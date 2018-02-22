@@ -1,0 +1,15 @@
+{
+  "name": "puzzle",
+  "version": "1.0.0",
+  "description": "Test to generate Puzzles",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kai Salmon",
+  "license": "ISC",
+  "dependencies": {
+    "@types/lodash": "^4.14.104",
+    "lodash": "^4.17.5"
+  }
+}
