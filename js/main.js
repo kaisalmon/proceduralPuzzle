@@ -176,7 +176,7 @@ var BoulderPuzzle = /** @class */ (function (_super) {
             if (!this.isPassable(tile)) {
                 return false;
             }
-            for (var j = i + 1; j < this.boulders.length - 1; j++) {
+            for (var j = i + 1; j <= this.boulders.length - 1; j++) {
                 var b2 = this.boulders[j];
                 if (b1.x == b2.x && b1.y == b2.y) {
                     return false;
@@ -217,23 +217,36 @@ function randInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 var p = new BoulderPuzzle(5, 5);
-for (var i = 0; i < 2; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
-    p.grid[x][y] = Tile.Target;
-    p.boulders.push(new Boulder(x, y));
+p.boulders.push(new Boulder(2, 2));
+p.boulders.push(new Boulder(2, 3));
+console.log(p.toString());
+p = p.reverse(BoulderMove.Down);
+if (p.isValid()) {
+    console.log(p.toString());
 }
-for (var i = 0; i < 1; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
-    p.grid[x][y] = Tile.Fragile;
+else {
+    console.error("\n", p.toString());
 }
-for (var i = 0; i < 3; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
+/*
+let p =new BoulderPuzzle(10, 10)
+for(let i = 0; i < 1; i++){
+    let x= randInt(0, p.width);
+    let y= randInt(0, p.height);
+    p.grid[x][y] = Tile.Target
+    p.boulders.push(new Boulder(x,y))
+}
+for(let i = 0; i < 3; i++){
+    let x= randInt(0, p.width);
+    let y= randInt(0, p.height);
+    p.grid[x][y] = Tile.Fragile
+}
+for(let i = 0; i < 5; i++){
+    let x= randInt(0, p.width);
+    let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Brick;
 }
-p.print_stack(4, true);
+p.print_stack(10, true)
+*/
 
 },{"lodash":2}],2:[function(require,module,exports){
 (function (global){
