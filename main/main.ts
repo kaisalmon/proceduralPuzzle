@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import * as $ from 'jquery'
 
 abstract class PuzzleState<MOVE>{
     abstract toString():string;
@@ -8,7 +9,8 @@ abstract class PuzzleState<MOVE>{
     abstract isValid(): boolean;    
     abstract getMoves(): MOVE[]; 
      
-    print_stack(depth: number, debug:boolean=false){
+    getStack(depth: number, debug:boolean=false):PuzzleState<MOVE>[]
+    {
         let bad_states = [] 
         let bad_count = 0;
         let stack:PuzzleState<MOVE>[] = [this]
@@ -47,22 +49,26 @@ abstract class PuzzleState<MOVE>{
                     }
                 }
             }else{
-                stack.push(_.sample(nexts))
+                let next = _.sample(nexts);
+                if(!next){
+                    throw "No valid options"
+                }
+                stack.push(next)
             }
         }
-        stack.reverse().forEach((e)=>console.log(e.toString()))
+        return stack.reverse()
     }
 }
 /*******************************************/
 
-enum Tile{
+export enum Tile{
     Empty='·',
     Fragile='□',
     Brick='■',
     Target='◎'
 }
 
-class Boulder{
+export class Boulder{
     x: number;
     y: number;
     constructor(x:number, y:number){
@@ -70,7 +76,7 @@ class Boulder{
         this.y = y;
     }
 }
-class BoulderPuzzle extends PuzzleState<BoulderMove>{
+export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     grid:Tile[][]     
     boulders: Boulder[];
     width: number; height: number;
@@ -108,7 +114,11 @@ class BoulderPuzzle extends PuzzleState<BoulderMove>{
         let result = "";
         for(let y = 0; y < this.height; y++){
             for(let x = 0; x < this.width; x++){
-                result += this.boulders.some((b)=>b.x==x && b.y==y) ? "o" : this.grid[x][y]
+                if(this.grid[x][y] == Tile.Target){
+                    result += this.boulders.some((b)=>b.x==x && b.y==y) ? "✓" : this.grid[x][y]
+                }else{
+                    result += this.boulders.some((b)=>b.x==x && b.y==y) ? "o" : this.grid[x][y]
+                }
             }
             result +="\n";
         }
@@ -168,11 +178,10 @@ class BoulderPuzzle extends PuzzleState<BoulderMove>{
                 }
             }
 
-            if(mags.length == 0){
+            let mag = _.sample(mags)
+            if(!mag){
                 throw "No options"
             }
-
-            let mag = _.sample(mags)
             b.x += vec[0]*mag      
             b.y += vec[1]*mag   
             if(state.isPassable(ox - vec[0], oy - vec[1])){
@@ -236,49 +245,44 @@ function randInt(min:number, max:number):number {
       return Math.floor(Math.random() * (max - min)) + min; 
 }
 
-try{
-    var p = new BoulderPuzzle(5, 6);
-    p.boulders.push(new Boulder(2, 3));
-    p.boulders.push(new Boulder(2, 2));
-    console.log(p.toString());
-    p = p.reverse(BoulderMove.Up);
-    if (p.isValid()) {
-        console.log(p.toString());
-    }else {
-        console.error("\n", p.toString());
-    }
-}catch(e){console.error(e)}
-console.log('-------------------');
-try{
-    var p = new BoulderPuzzle(5, 6);
-    p.boulders.push(new Boulder(2, 2));
-    p.boulders.push(new Boulder(2, 3));
-    console.log(p.toString());
-    p = p.reverse(BoulderMove.Up);
-    if (p.isValid()) {
-        console.log(p.toString());
-    }else {
-        console.error("\n", p.toString());
-    }
-}catch(e){console.error(e)}
+let p =new BoulderPuzzle(15, 15)
+for(let i = 0; i < 4; i++){   
+    let x= randInt(0, p.width);
+    let y= randInt(0, p.height);
+    p.grid[x][y] = Tile.Fragile
+}
+for(let i = 0; i < 6; i++){   
+    let x= randInt(0, p.width);
+    let y= randInt(0, p.height);
+    p.grid[x][y] = Tile.Brick;
+}
 
-/*
-let p =new BoulderPuzzle(10, 10)
 for(let i = 0; i < 3; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Target
     p.boulders.push(new Boulder(x,y))
 }
-for(let i = 0; i < 2; i++){   
-    let x= randInt(0, p.width);
-    let y= randInt(0, p.height);
-    p.grid[x][y] = Tile.Fragile
-}
-for(let i = 0; i < 5; i++){   
-    let x= randInt(0, p.width);
-    let y= randInt(0, p.height);
-    p.grid[x][y] = Tile.Brick;
-}
-p.print_stack(6, true)
-*/
+
+let stack = p.getStack(12, true)
+
+console.log(stack)
+
+$(document).ready(()=>{
+    let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
+    let $div = $('<div/>').addClass('puzzles').appendTo($wrapper)
+    stack.forEach((s)=>{
+        $('<pre/>').text(s.toString()).appendTo($div);
+    })
+    $($('.puzzles pre').hide()[0]).show();    
+    $('.puzzles pre').click(function(){
+        if($(this).next().length != 0)
+            $(this).hide().next().show();
+    })
+    $('.puzzles pre').contextmenu(function(){
+        if($(this).prev().length != 0)
+            $(this).hide().prev().show();
+        return false;
+    })
+})
+

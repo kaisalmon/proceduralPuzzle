@@ -9,7 +9,9 @@
   "author": "Kai Salmon",
   "license": "ISC",
   "dependencies": {
+    "@types/jquery": "^3.3.0",
     "@types/lodash": "^4.14.104",
+    "jquery": "^3.3.1",
     "lodash": "^4.17.5"
   }
 }
