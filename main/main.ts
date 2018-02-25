@@ -73,6 +73,7 @@ export enum Tile{
     Brick='■',
     Crystal='◇',
     Portal='℗',
+    Pit='▼',
     Target='◎'
 }
 
@@ -91,6 +92,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     width: number; height: number;
 
     use_crystals: boolean = false;
+    use_pits: boolean = false;
     use_portals: boolean = false;
 
     constructor(width:number, height:number){
@@ -204,6 +206,26 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         
         let haveMoved:Boulder[] = [];
 
+        if(state.isPitMove(move)){
+            let possibleCoords:{x:number, y:number}[] = [];
+            for(let coord of this.criticalTiles){
+                if(state.getTile(coord.x,coord.y) == Tile.Empty && state.isPassable(coord.x+vec[0],coord.y+vec[1])){
+                    if(state.boulders.some(b=>b.x == coord.x && b.y==coord.y)){
+                        continue; //Don't put a pit under an existing boulder
+                    }
+                    possibleCoords.push(coord)
+                } 
+            } 
+
+            let pit = _.sample(possibleCoords);
+            if(!pit){
+                throw "No pit locations";
+            }
+            state.grid[pit.x][pit.y] = Tile.Pit;
+            let b = new Boulder(pit.x, pit.y)
+            state.boulders.push(b)
+        }
+
         for(let b of state.bouldersInVecOrder(vec)){
             let ox = b.x;
             let oy = b.y;
@@ -235,17 +257,20 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                 state.criticalTiles.push(criticalTile)
             }
 
-            if(state.isPassable(ox - vec[0], oy - vec[1])){
+            if(state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox,oy) != Tile.Pit){
                 if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty){
                     state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile; 
                 }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target){
                     throw "Would need to put fragile block on target";
 
                 }
+            }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Pit){
+                throw "Would need to put fragile block where a pit ia pit is";
             }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile){
                 throw "Would need to put fragile block where there will already be one";
             }
         }
+
 
         if(state.isPortalMove(move)){
             if(this.hasPortals()){
@@ -301,6 +326,9 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         }
         return false;
     }
+    isPitMove(move:BoulderMove){
+        return move == BoulderMove.UpPit ||  move == BoulderMove.RightPit ||  move == BoulderMove.LeftPit ||  move == BoulderMove.DownPit;
+    }
     isPortalMove(move:BoulderMove){
         return move == BoulderMove.UpPortal ||  move == BoulderMove.RightPortal ||  move == BoulderMove.LeftPortal ||  move == BoulderMove.DownPortal;
     }
@@ -331,6 +359,12 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             moves.push(BoulderMove.LeftPortal)
             moves.push(BoulderMove.DownPortal)
         }
+        if(this.use_pits && randInt(0,2) == 0){
+            moves.push(BoulderMove.RightPit)
+            moves.push(BoulderMove.LeftPit)
+            moves.push(BoulderMove.UpPit)
+            moves.push(BoulderMove.DownPit)
+        }
         return moves;
     }
     getVec(move: BoulderMove): number[]{
@@ -339,17 +373,25 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                 return [1,0]
             case BoulderMove.RightPortal:
                 return [1,0]
+            case BoulderMove.RightPit:
+                return [1,0]
             case BoulderMove.Left:
                 return [-1,0]
             case BoulderMove.LeftPortal:
+                return [-1,0]
+            case BoulderMove.LeftPit:
                 return [-1,0]
             case BoulderMove.Up:
                 return [0,-1]
             case BoulderMove.UpPortal:
                 return [0,-1]
+            case BoulderMove.UpPit:
+                return [0,-1]
             case BoulderMove.Down:
                 return [0,1]
             case BoulderMove.DownPortal:
+                return [0,1]
+            case BoulderMove.DownPit:
                 return [0,1]
             default:
                 throw "Error"
@@ -360,12 +402,16 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
 enum BoulderMove{
     Up = "Up",
         UpPortal = "Up, using portal",
+        UpPit = "Up, into pit",
     Down = "Down",
         DownPortal = "Down, using portal",
+        DownPit = "Down, into pit",
     Left = "Left",
         LeftPortal = "Left, using portal",
+        LeftPit = "Left, into pit",
     Right = "Right",
         RightPortal = "Right, using portal",
+        RightPit = "Right, into pit",
     Shatter = "Shatter",
 }
 
@@ -385,29 +431,26 @@ function randInt(min:number, max:number):number {
       return Math.floor(Math.random() * (max - min)) + min; 
 }
 
-
 /*
 let stack:BoulderPuzzle[] = []
 let p =new BoulderPuzzle(10,10)
-p.boulders.push(new Boulder(2,2))
-p.boulders.push(new Boulder(7,2))
+p.grid[4][3] = Tile.Pit;
+p.boulders.push(new Boulder(4,4))
 stack.push(p)
-p = p.reverse(BoulderMove.Right)
-stack.push(p)
-p = p.reverse(BoulderMove.Down)
-stack.push(p)
-p = p.reverse(BoulderMove.LeftPortal)
+p = p.reverse(BoulderMove.Up)
 stack.push(p)
 stack = stack.reverse();
 */
-
-let p =new BoulderPuzzle(15, 15)
-for(let i = 0; i < 4; i++){   
+let p =new BoulderPuzzle(30, 15)
+p.use_pits = true;
+p.use_portals = true;
+p.use_crystals = true;
+for(let i = 0; i < 6; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Fragile
 }
-for(let i = 0; i < 10; i++){   
+for(let i = 0; i < p.width*p.height/20; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Brick;
@@ -420,10 +463,9 @@ for(let i = 0; i < 3; i++){
     p.boulders.push(new Boulder(x,y))
 }
 
-let stack = p.getStack(8, true)
+let stack = p.getStack(12, true)
 
 console.log(stack)
-
 $(document).ready(()=>{
     let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
     let $div = $('<div/>').addClass('puzzles').appendTo($wrapper)
