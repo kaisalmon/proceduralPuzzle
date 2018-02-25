@@ -402,8 +402,6 @@ stack = stack.reverse();
 */
 
 let p =new BoulderPuzzle(15, 15)
-p.use_portals = true;
-p.use_crystals = true;
 for(let i = 0; i < 4; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
@@ -422,7 +420,7 @@ for(let i = 0; i < 3; i++){
     p.boulders.push(new Boulder(x,y))
 }
 
-let stack = p.getStack(12, true)
+let stack = p.getStack(8, true)
 
 console.log(stack)
 
