@@ -108,8 +108,19 @@ class BoulderPuzzle extends PuzzleState<BoulderMove>{
         let result = _.cloneDeep(this);
         return this;    
     }
-    isPassable(tile:Tile|undefined):boolean{
+    isTilePassable(tile:Tile|undefined):boolean{
         return tile == Tile.Empty || tile == Tile.Target
+    }
+    isPassable(x:number, y:number):boolean{
+        if(!this.isTilePassable(this.getTile(x,y))){
+            return false;
+        }
+        for(let b of this.boulders){
+            if(b.x == x && b.y==y){
+                return false;
+            }
+        }
+        return true;
     }
     getTile(x:number, y:number): Tile|undefined{
         if(x<0 || x >= this.width || y<0 || y>=this.height){
@@ -133,11 +144,14 @@ class BoulderPuzzle extends PuzzleState<BoulderMove>{
             //Encapsulate some logic here
             {
                 for(let mag = 1; mag < this.height; mag++){
-                    if(this.isPassable(this.getTile(ox+vec[0]*mag, oy+vec[1]*mag))){
+                    if(state.isPassable(ox+vec[0]*mag, oy+vec[1]*mag)){
                         mags.push(mag) 
                     }else{
                         break;           
                     }
+                }
+                if(!state.isPassable(ox-vec[0], oy-vec[1])){
+                    mags.push(0)
                 }
             }
 
@@ -148,12 +162,14 @@ class BoulderPuzzle extends PuzzleState<BoulderMove>{
             let mag = _.sample(mags)
             b.x += vec[0]*mag      
             b.y += vec[1]*mag   
-            if(this.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty){
-                state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile; 
-            }else if(this.getTile(ox - vec[0], oy - vec[1]) == Tile.Target){
-                throw "Would need to put fragile block on target";
-            }else if(this.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile){
-                throw "Would need to put fragile block where there will already be one";
+            if(state.isPassable(ox - vec[0], oy - vec[1])){
+                if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty){
+                    state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile; 
+                }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target){
+                    throw "Would need to put fragile block on target";
+                }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile){
+                    throw "Would need to put fragile block where there will already be one";
+                }
             }
         }
 
@@ -163,7 +179,7 @@ class BoulderPuzzle extends PuzzleState<BoulderMove>{
         for (var i = 0; i < this.boulders.length - 1; i++) {
             let b1 = this.boulders[i];
             let tile = this.getTile(b1.x, b1.y);
-            if(!this.isPassable(tile)){
+            if(!this.isTilePassable(tile)){
                 return false;
             }
             for (var j = i+1; j <= this.boulders.length - 1; j++) {
@@ -206,26 +222,27 @@ function randInt(min:number, max:number):number {
       max = Math.floor(max);
       return Math.floor(Math.random() * (max - min)) + min; 
 }
-let p =new BoulderPuzzle(5, 5)
-p.boulders.push(new Boulder(2,2))
-p.boulders.push(new Boulder(2,3))
-console.log(p.toString())
+
+var p = new BoulderPuzzle(5, 5);
+p.boulders.push(new Boulder(2, 2));
+p.boulders.push(new Boulder(2, 3));
+console.log(p.toString());
 p = p.reverse(BoulderMove.Down);
-if(p.isValid()){
-    console.log(p.toString())
-}else{
-    console.error("\n", p.toString())
+if (p.isValid()) {
+    console.log(p.toString());
+}else {
+    console.error("\n", p.toString());
 }
 
 /*
 let p =new BoulderPuzzle(10, 10)
-for(let i = 0; i < 1; i++){   
+for(let i = 0; i < 3; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Target
     p.boulders.push(new Boulder(x,y))
 }
-for(let i = 0; i < 3; i++){   
+for(let i = 0; i < 2; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Fragile
@@ -235,5 +252,5 @@ for(let i = 0; i < 5; i++){
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Brick;
 }
-p.print_stack(10, true)
+p.print_stack(6, true)
 */
