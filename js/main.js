@@ -97,6 +97,18 @@ var BoulderPuzzle = /** @class */ (function (_super) {
         }
         return _this;
     }
+    BoulderPuzzle.prototype.bouldersInVecOrder = function (vec) {
+        return this.boulders.sort(function (a, b) {
+            var aVal = a.x * vec[0] + a.y * vec[1];
+            var bVal = b.x * vec[0] + b.y * vec[1];
+            if (aVal < bVal) {
+                return 1;
+            }
+            else {
+                return -1;
+            }
+        });
+    };
     BoulderPuzzle.prototype.toString = function () {
         var result = "";
         var _loop_1 = function (y) {
@@ -147,7 +159,7 @@ var BoulderPuzzle = /** @class */ (function (_super) {
         vec[0] = -vec[0];
         vec[1] = -vec[1];
         var state = _.cloneDeep(this);
-        for (var _i = 0, _a = state.boulders; _i < _a.length; _i++) {
+        for (var _i = 0, _a = state.bouldersInVecOrder(vec); _i < _a.length; _i++) {
             var b = _a[_i];
             var ox = b.x;
             var oy = b.y;
@@ -233,24 +245,59 @@ function randInt(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
-var p = new BoulderPuzzle(10, 10);
-for (var i = 0; i < 3; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
-    p.grid[x][y] = Tile.Target;
-    p.boulders.push(new Boulder(x, y));
+try {
+    var p = new BoulderPuzzle(5, 6);
+    p.boulders.push(new Boulder(2, 3));
+    p.boulders.push(new Boulder(2, 2));
+    console.log(p.toString());
+    p = p.reverse(BoulderMove.Up);
+    if (p.isValid()) {
+        console.log(p.toString());
+    }
+    else {
+        console.error("\n", p.toString());
+    }
 }
-for (var i = 0; i < 2; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
-    p.grid[x][y] = Tile.Fragile;
+catch (e) {
+    console.error(e);
 }
-for (var i = 0; i < 5; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
+console.log('-------------------');
+try {
+    var p = new BoulderPuzzle(5, 6);
+    p.boulders.push(new Boulder(2, 2));
+    p.boulders.push(new Boulder(2, 3));
+    console.log(p.toString());
+    p = p.reverse(BoulderMove.Up);
+    if (p.isValid()) {
+        console.log(p.toString());
+    }
+    else {
+        console.error("\n", p.toString());
+    }
+}
+catch (e) {
+    console.error(e);
+}
+/*
+let p =new BoulderPuzzle(10, 10)
+for(let i = 0; i < 3; i++){
+    let x= randInt(0, p.width);
+    let y= randInt(0, p.height);
+    p.grid[x][y] = Tile.Target
+    p.boulders.push(new Boulder(x,y))
+}
+for(let i = 0; i < 2; i++){
+    let x= randInt(0, p.width);
+    let y= randInt(0, p.height);
+    p.grid[x][y] = Tile.Fragile
+}
+for(let i = 0; i < 5; i++){
+    let x= randInt(0, p.width);
+    let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Brick;
 }
-p.print_stack(6, true);
+p.print_stack(6, true)
+*/
 
 },{"lodash":2}],2:[function(require,module,exports){
 (function (global){

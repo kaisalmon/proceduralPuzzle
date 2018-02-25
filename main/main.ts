@@ -91,6 +91,19 @@ class BoulderPuzzle extends PuzzleState<BoulderMove>{
             }
         }
     }
+    
+    bouldersInVecOrder(vec:number[]):Boulder[]{
+        return this.boulders.sort((a,b)=>{
+            let aVal = a.x * vec[0] + a.y * vec[1]
+            let bVal = b.x * vec[0] + b.y * vec[1]
+            if(aVal < bVal){
+                return 1;
+            }else{
+                return -1;
+            }
+        })
+    }
+
     toString():string{
         let result = "";
         for(let y = 0; y < this.height; y++){
@@ -136,7 +149,7 @@ class BoulderPuzzle extends PuzzleState<BoulderMove>{
         vec[1] = -vec[1]
         let state = _.cloneDeep(this);
         
-        for(let b of state.boulders){
+        for(let b of state.bouldersInVecOrder(vec)){
             let ox = b.x;
             let oy = b.y;
             let mags = [];
@@ -223,16 +236,31 @@ function randInt(min:number, max:number):number {
       return Math.floor(Math.random() * (max - min)) + min; 
 }
 
-var p = new BoulderPuzzle(5, 5);
-p.boulders.push(new Boulder(2, 2));
-p.boulders.push(new Boulder(2, 3));
-console.log(p.toString());
-p = p.reverse(BoulderMove.Down);
-if (p.isValid()) {
+try{
+    var p = new BoulderPuzzle(5, 6);
+    p.boulders.push(new Boulder(2, 3));
+    p.boulders.push(new Boulder(2, 2));
     console.log(p.toString());
-}else {
-    console.error("\n", p.toString());
-}
+    p = p.reverse(BoulderMove.Up);
+    if (p.isValid()) {
+        console.log(p.toString());
+    }else {
+        console.error("\n", p.toString());
+    }
+}catch(e){console.error(e)}
+console.log('-------------------');
+try{
+    var p = new BoulderPuzzle(5, 6);
+    p.boulders.push(new Boulder(2, 2));
+    p.boulders.push(new Boulder(2, 3));
+    console.log(p.toString());
+    p = p.reverse(BoulderMove.Up);
+    if (p.isValid()) {
+        console.log(p.toString());
+    }else {
+        console.error("\n", p.toString());
+    }
+}catch(e){console.error(e)}
 
 /*
 let p =new BoulderPuzzle(10, 10)
