@@ -179,7 +179,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             }
 
             let mag = _.sample(mags)
-            if(!mag){
+            if(mag === undefined){
                 throw "No options"
             }
             b.x += vec[0]*mag      
@@ -189,9 +189,10 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                     state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile; 
                 }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target){
                     throw "Would need to put fragile block on target";
-                }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile){
-                    throw "Would need to put fragile block where there will already be one";
+
                 }
+            }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile){
+                throw "Would need to put fragile block where there will already be one";
             }
         }
 
@@ -239,6 +240,16 @@ enum BoulderMove{
     Right = "Right"
 }
 
+/*
+let p =new BoulderPuzzle(5, 3)
+p.boulders.push(new Boulder(2,1))
+p.grid[1][1] = Tile.Fragile;
+console.log(p.toString())
+p = p.reverse(BoulderMove.Left);
+console.log(p.toString())
+
+
+*/
 function randInt(min:number, max:number):number {
       min = Math.ceil(min);
       max = Math.floor(max);
@@ -251,7 +262,7 @@ for(let i = 0; i < 4; i++){
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Fragile
 }
-for(let i = 0; i < 6; i++){   
+for(let i = 0; i < 10; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Brick;
@@ -285,4 +296,3 @@ $(document).ready(()=>{
         return false;
     })
 })
-

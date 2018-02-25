@@ -190,7 +190,7 @@ var BoulderPuzzle = /** @class */ (function (_super) {
                 }
             }
             var mag = _.sample(mags);
-            if (!mag) {
+            if (mag === undefined) {
                 throw "No options";
             }
             b.x += vec[0] * mag;
@@ -202,9 +202,9 @@ var BoulderPuzzle = /** @class */ (function (_super) {
                 else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target) {
                     throw "Would need to put fragile block on target";
                 }
-                else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile) {
-                    throw "Would need to put fragile block where there will already be one";
-                }
+            }
+            else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile) {
+                throw "Would need to put fragile block where there will already be one";
             }
         }
         return state;
@@ -252,6 +252,16 @@ var BoulderMove;
     BoulderMove["Left"] = "Left";
     BoulderMove["Right"] = "Right";
 })(BoulderMove || (BoulderMove = {}));
+/*
+let p =new BoulderPuzzle(5, 3)
+p.boulders.push(new Boulder(2,1))
+p.grid[1][1] = Tile.Fragile;
+console.log(p.toString())
+p = p.reverse(BoulderMove.Left);
+console.log(p.toString())
+
+
+*/
 function randInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
@@ -263,7 +273,7 @@ for (var i = 0; i < 4; i++) {
     var y = randInt(0, p.height);
     p.grid[x][y] = Tile.Fragile;
 }
-for (var i = 0; i < 6; i++) {
+for (var i = 0; i < 10; i++) {
     var x = randInt(0, p.width);
     var y = randInt(0, p.height);
     p.grid[x][y] = Tile.Brick;
