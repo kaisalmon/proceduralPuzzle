@@ -12,7 +12,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
-var $ = require("jquery");
 var PuzzleState = /** @class */ (function () {
     function PuzzleState() {
     }
@@ -27,12 +26,12 @@ var PuzzleState = /** @class */ (function () {
             if (itr_count > 1000) {
                 throw "Too many iterations";
             }
-            var p_1 = stack[stack.length - 1];
+            var p = stack[stack.length - 1];
             var nexts = [];
-            for (var _i = 0, _a = p_1.getMoves(); _i < _a.length; _i++) {
+            for (var _i = 0, _a = p.getMoves(); _i < _a.length; _i++) {
                 var move = _a[_i];
                 try {
-                    var next = p_1.reverse(move);
+                    var next = p.reverse(move);
                     if (!next.isValid()) {
                         throw "Invalid state";
                     }
@@ -48,9 +47,9 @@ var PuzzleState = /** @class */ (function () {
                 if (bad_count > 30) {
                     throw "Maximum bad states exceeded";
                 }
-                if (bad_states.indexOf(p_1.hashString()) === -1) {
+                if (bad_states.indexOf(p.hashString()) === -1) {
                     stack.pop();
-                    bad_states.push(p_1.hashString());
+                    bad_states.push(p.hashString());
                     if (stack.length == 0) {
                         throw "Bad Solution";
                     }
@@ -74,6 +73,7 @@ var PuzzleState = /** @class */ (function () {
     };
     return PuzzleState;
 }());
+exports.PuzzleState = PuzzleState;
 /*******************************************/
 var Tile;
 (function (Tile) {
@@ -82,6 +82,7 @@ var Tile;
     Tile["Brick"] = "\u25A0";
     Tile["Crystal"] = "\u25C7";
     Tile["Portal"] = "\u2117";
+    Tile["Pit"] = "\u25BC";
     Tile["Target"] = "\u25CE";
 })(Tile = exports.Tile || (exports.Tile = {}));
 var Boulder = /** @class */ (function () {
@@ -94,13 +95,17 @@ var Boulder = /** @class */ (function () {
 exports.Boulder = Boulder;
 var BoulderPuzzle = /** @class */ (function (_super) {
     __extends(BoulderPuzzle, _super);
-    function BoulderPuzzle(width, height) {
+    function BoulderPuzzle(ops) {
         var _this = _super.call(this) || this;
         _this.criticalTiles = [];
         _this.use_crystals = false;
+        _this.use_pits = false;
         _this.use_portals = false;
-        _this.width = width;
-        _this.height = height;
+        _this.width = ops.width;
+        _this.height = ops.height;
+        _this.use_pits = ops.use_pits || false;
+        _this.use_portals = ops.use_portals || false;
+        _this.use_crystals = ops.use_crystals || false;
         _this.grid = [];
         _this.boulders = [];
         for (var y = 0; y < _this.height; y++) {
@@ -110,6 +115,22 @@ var BoulderPuzzle = /** @class */ (function (_super) {
                 }
                 _this.grid[x].push(Tile.Empty);
             }
+        }
+        for (var i = 0; i < _this.width * _this.height / 30; i++) {
+            var x = randInt(0, _this.width);
+            var y = randInt(0, _this.height);
+            _this.grid[x][y] = Tile.Fragile;
+        }
+        for (var i = 0; i < _this.width * _this.height / 20; i++) {
+            var x = randInt(0, _this.width);
+            var y = randInt(0, _this.height);
+            _this.grid[x][y] = Tile.Brick;
+        }
+        for (var i = 0; i < ops.boulders; i++) {
+            var x = randInt(0, _this.width);
+            var y = randInt(0, _this.height);
+            _this.grid[x][y] = Tile.Target;
+            _this.boulders.push(new Boulder(x, y));
         }
         return _this;
     }
@@ -212,8 +233,30 @@ var BoulderPuzzle = /** @class */ (function (_super) {
         vec[0] = -vec[0];
         vec[1] = -vec[1];
         var haveMoved = [];
-        for (var _i = 0, _a = state.bouldersInVecOrder(vec); _i < _a.length; _i++) {
-            var b = _a[_i];
+        if (state.isPitMove(move)) {
+            var possibleCoords = [];
+            var _loop_3 = function (coord) {
+                if (state.getTile(coord.x, coord.y) == Tile.Empty && state.isPassable(coord.x + vec[0], coord.y + vec[1])) {
+                    if (state.boulders.some(function (b) { return b.x == coord.x && b.y == coord.y; })) {
+                        return "continue";
+                    }
+                    possibleCoords.push(coord);
+                }
+            };
+            for (var _i = 0, _a = this.criticalTiles; _i < _a.length; _i++) {
+                var coord = _a[_i];
+                _loop_3(coord);
+            }
+            var pit = _.sample(possibleCoords);
+            if (!pit) {
+                throw "No pit locations";
+            }
+            state.grid[pit.x][pit.y] = Tile.Pit;
+            var b = new Boulder(pit.x, pit.y);
+            state.boulders.push(b);
+        }
+        for (var _b = 0, _c = state.bouldersInVecOrder(vec); _b < _c.length; _b++) {
+            var b = _c[_b];
             var ox = b.x;
             var oy = b.y;
             var mags = [];
@@ -242,13 +285,16 @@ var BoulderPuzzle = /** @class */ (function (_super) {
                 var criticalTile = { x: b.x - vec[0] * i, y: b.y - vec[1] * i };
                 state.criticalTiles.push(criticalTile);
             }
-            if (state.isPassable(ox - vec[0], oy - vec[1])) {
+            if (state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox, oy) != Tile.Pit) {
                 if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty) {
                     state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile;
                 }
                 else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target) {
                     throw "Would need to put fragile block on target";
                 }
+            }
+            else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Pit) {
+                throw "Would need to put fragile block where a pit ia pit is";
             }
             else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile) {
                 throw "Would need to put fragile block where there will already be one";
@@ -305,6 +351,9 @@ var BoulderPuzzle = /** @class */ (function (_super) {
         }
         return false;
     };
+    BoulderPuzzle.prototype.isPitMove = function (move) {
+        return move == BoulderMove.UpPit || move == BoulderMove.RightPit || move == BoulderMove.LeftPit || move == BoulderMove.DownPit;
+    };
     BoulderPuzzle.prototype.isPortalMove = function (move) {
         return move == BoulderMove.UpPortal || move == BoulderMove.RightPortal || move == BoulderMove.LeftPortal || move == BoulderMove.DownPortal;
     };
@@ -335,6 +384,12 @@ var BoulderPuzzle = /** @class */ (function (_super) {
             moves.push(BoulderMove.LeftPortal);
             moves.push(BoulderMove.DownPortal);
         }
+        if (this.use_pits && randInt(0, 2) == 0) {
+            moves.push(BoulderMove.RightPit);
+            moves.push(BoulderMove.LeftPit);
+            moves.push(BoulderMove.UpPit);
+            moves.push(BoulderMove.DownPit);
+        }
         return moves;
     };
     BoulderPuzzle.prototype.getVec = function (move) {
@@ -343,17 +398,25 @@ var BoulderPuzzle = /** @class */ (function (_super) {
                 return [1, 0];
             case BoulderMove.RightPortal:
                 return [1, 0];
+            case BoulderMove.RightPit:
+                return [1, 0];
             case BoulderMove.Left:
                 return [-1, 0];
             case BoulderMove.LeftPortal:
+                return [-1, 0];
+            case BoulderMove.LeftPit:
                 return [-1, 0];
             case BoulderMove.Up:
                 return [0, -1];
             case BoulderMove.UpPortal:
                 return [0, -1];
+            case BoulderMove.UpPit:
+                return [0, -1];
             case BoulderMove.Down:
                 return [0, 1];
             case BoulderMove.DownPortal:
+                return [0, 1];
+            case BoulderMove.DownPit:
                 return [0, 1];
             default:
                 throw "Error";
@@ -366,84 +429,79 @@ var BoulderMove;
 (function (BoulderMove) {
     BoulderMove["Up"] = "Up";
     BoulderMove["UpPortal"] = "Up, using portal";
+    BoulderMove["UpPit"] = "Up, into pit";
     BoulderMove["Down"] = "Down";
     BoulderMove["DownPortal"] = "Down, using portal";
+    BoulderMove["DownPit"] = "Down, into pit";
     BoulderMove["Left"] = "Left";
     BoulderMove["LeftPortal"] = "Left, using portal";
+    BoulderMove["LeftPit"] = "Left, into pit";
     BoulderMove["Right"] = "Right";
     BoulderMove["RightPortal"] = "Right, using portal";
+    BoulderMove["RightPit"] = "Right, into pit";
     BoulderMove["Shatter"] = "Shatter";
-})(BoulderMove || (BoulderMove = {}));
-/*
-let p =new BoulderPuzzle(5, 3)
-p.boulders.push(new Boulder(2,1))
-p.grid[1][1] = Tile.Fragile;
-console.log(p.toString())
-p = p.reverse(BoulderMove.Left);
-console.log(p.toString())
-
-
-*/
+})(BoulderMove = exports.BoulderMove || (exports.BoulderMove = {}));
 function randInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
+
+},{"lodash":4}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var BP = require("./boulderpuzzle");
+var $ = require("jquery");
 /*
-let stack:BoulderPuzzle[] = []
 let p =new BoulderPuzzle(10,10)
-p.boulders.push(new Boulder(2,2))
-p.boulders.push(new Boulder(7,2))
+p.grid[4][3] = Tile.Pit;
+p.boulders.push(new Boulder(4,4))
 stack.push(p)
-p = p.reverse(BoulderMove.Right)
-stack.push(p)
-p = p.reverse(BoulderMove.Down)
-stack.push(p)
-p = p.reverse(BoulderMove.LeftPortal)
+p = p.reverse(BoulderMove.Up)
 stack.push(p)
 stack = stack.reverse();
 */
-var p = new BoulderPuzzle(15, 15);
-p.use_portals = true;
-p.use_crystals = true;
-for (var i = 0; i < 4; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
-    p.grid[x][y] = Tile.Fragile;
-}
-for (var i = 0; i < 10; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
-    p.grid[x][y] = Tile.Brick;
-}
-for (var i = 0; i < 3; i++) {
-    var x = randInt(0, p.width);
-    var y = randInt(0, p.height);
-    p.grid[x][y] = Tile.Target;
-    p.boulders.push(new Boulder(x, y));
-}
-var stack = p.getStack(12, true);
+var GameObject = /** @class */ (function () {
+    function GameObject($e, x, y) {
+        var _this = this;
+        this.$e = $e;
+        this.x = x;
+        this.y = y;
+        this.trueY = x;
+        this.trueX = y;
+        this.$e.ready(function () { return _this.updateTransform(); });
+    }
+    GameObject.prototype.updateTransform = function () {
+        this.$e.css('transform', 'translate(' + this.trueX * 30 + 'px, ' + this.trueY * 30 + 'px)');
+    };
+    return GameObject;
+}());
+var p = new BP.BoulderPuzzle({ width: 10, height: 10, boulders: 2 });
+var stack = p.getStack(4, true);
 console.log(stack);
+var level = stack[0];
 $(document).ready(function () {
+    var objects = [];
+    var boulders = [];
     var $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body');
-    var $div = $('<div/>').addClass('puzzles').appendTo($wrapper);
-    stack.forEach(function (s) {
-        $('<pre/>').text(s.toString()).appendTo($div);
-    });
-    $($('.puzzles pre').hide()[0]).show();
-    $('.puzzles pre').click(function () {
-        if ($(this).next().length != 0)
-            $(this).hide().next().show();
-    });
-    $('.puzzles pre').contextmenu(function () {
-        if ($(this).prev().length != 0)
-            $(this).hide().prev().show();
-        return false;
-    });
-    console.log(stack);
+    var $board = $('<div/>').addClass('puzzles').appendTo($wrapper);
+    for (var x = 0; x < level.width; x++) {
+        for (var y = 0; y < level.height; y++) {
+            var className = level.getTile(x, y) == BP.Tile.Brick ? "tile brick" : "tile";
+            $board.append($('<div/>').addClass(className));
+        }
+        $board.append('<br>');
+    }
+    for (var _i = 0, _a = level.boulders; _i < _a.length; _i++) {
+        var b = _a[_i];
+        var $e = $('<div/>').addClass('game-object boulder').appendTo('.puzzles');
+        var o = new GameObject($e, b.x, b.y);
+        objects.push(o);
+        boulders.push(o);
+    }
 });
 
-},{"jquery":2,"lodash":3}],2:[function(require,module,exports){
+},{"./boulderpuzzle":1,"jquery":3}],3:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10809,7 +10867,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -27910,4 +27968,4 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[1]);
+},{}]},{},[2]);

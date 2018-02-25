@@ -13,5 +13,6 @@
     "@types/lodash": "^4.14.104",
     "jquery": "^3.3.1",
     "lodash": "^4.17.5"
-  }
+  },
+  "devDependencies": {}
 }
