@@ -94,6 +94,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     use_crystals: boolean = false;
     use_pits: boolean = false;
     use_portals: boolean = false;
+    no_basic: boolean = false;
 
     constructor(width:number, height:number){
         super(); 
@@ -350,6 +351,9 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     }
     getMoves(): BoulderMove[]{
         let moves = [BoulderMove.Up, BoulderMove.Down, BoulderMove.Left, BoulderMove.Right]
+        if(this.no_basic){
+            moves = []
+        }
         if(this.use_crystals){
             moves.push(BoulderMove.Shatter)
         }
@@ -359,7 +363,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             moves.push(BoulderMove.LeftPortal)
             moves.push(BoulderMove.DownPortal)
         }
-        if(this.use_pits && randInt(0,2) == 0){
+        if(this.use_pits){
             moves.push(BoulderMove.RightPit)
             moves.push(BoulderMove.LeftPit)
             moves.push(BoulderMove.UpPit)
@@ -441,10 +445,8 @@ p = p.reverse(BoulderMove.Up)
 stack.push(p)
 stack = stack.reverse();
 */
-let p =new BoulderPuzzle(30, 15)
+let p =new BoulderPuzzle(10, 10)
 p.use_pits = true;
-p.use_portals = true;
-p.use_crystals = true;
 for(let i = 0; i < 6; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
@@ -456,14 +458,14 @@ for(let i = 0; i < p.width*p.height/20; i++){
     p.grid[x][y] = Tile.Brick;
 }
 
-for(let i = 0; i < 3; i++){   
+for(let i = 0; i < 1; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Target
     p.boulders.push(new Boulder(x,y))
 }
 
-let stack = p.getStack(12, true)
+let stack = p.getStack(6, true)
 
 console.log(stack)
 $(document).ready(()=>{
@@ -473,11 +475,11 @@ $(document).ready(()=>{
         $('<pre/>').text(s.toString()).appendTo($div);
     })
     $($('.puzzles pre').hide()[0]).show();    
-    $('.puzzles pre').click(function(){
+    $('.puzzles pre').click(function(this:HTMLElement){
         if($(this).next().length != 0)
             $(this).hide().next().show();
     })
-    $('.puzzles pre').contextmenu(function(){
+    $('.puzzles pre').contextmenu(function(this:HTMLElement){
         if($(this).prev().length != 0)
             $(this).hide().prev().show();
         return false;
