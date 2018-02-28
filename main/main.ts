@@ -30,10 +30,25 @@ abstract class PuzzleState<MOVE>{
                     if(!next.isValid()){
                         throw "Invalid state"
                     }
+                    if(next.apply(move).hashString() != p.hashString()){
+                        throw {"name":"FatalError",
+                                "message":"Reversing move and applying move have different results",
+                                "starting-point":next,
+                                "a":next.apply(move),
+                                "b":p,
+                                "a-hash":next.apply(move).hashString(),
+                                "b-hash":p.hashString(),
+                                "move":move
+                            }
+                    }
                     nexts.push(next)
                 }catch(e){
-                    if(debug)
+                    if(debug){
                         console.error(e)
+                    }
+                    if(e.name == "FatalError"){
+                        throw e;    
+                    }
                 }
             }
             if(nexts.length == 0){
@@ -146,8 +161,39 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         return this.toString();
     }
     apply(move: BoulderMove): BoulderPuzzle{
-        let result = _.cloneDeep(this);
-        return this;    
+        let state = _.cloneDeep(this);
+        if(move == BoulderMove.Shatter){
+            throw "Can't do no shattering yet"
+        }
+        let vec = this.getVec(move);
+
+        let toBeRemoved:Boulder[] =[]
+        for(let b of state.bouldersInVecOrder(vec)){
+            let ox = b.x;
+            let oy = b.y;
+            for(let mag = 1; mag < this.height; mag++){
+                if(state.isPassable(ox+vec[0]*mag, oy+vec[1]*mag)){
+                    b.x = ox+vec[0]*mag;
+                    b.y = oy+vec[1]*mag;
+                }else{
+                    let t = state.getTile(ox+vec[0]*mag, oy+vec[1]*mag)
+                    if(t == Tile.Pit){
+                        toBeRemoved.push(b);
+                        b.x = -1;
+                        b.y = -1;
+                        state.grid[ox+vec[0]*mag][oy+vec[1]*mag] = Tile.Empty;
+                    }
+                    //don't break if we didn't move
+                    if(mag>1 && t == Tile.Fragile){
+                        state.grid[ox+vec[0]*mag][oy+vec[1]*mag] = Tile.Empty;
+                    }
+                    break;
+                }
+            }
+        }
+        state.boulders = state.boulders.filter(b=>toBeRemoved.indexOf(b)==-1);
+        console.log(state)
+        return state;    
     }
     isTilePassable(tile:Tile|undefined):boolean{
         return tile == Tile.Empty || tile == Tile.Target
@@ -445,44 +491,55 @@ p = p.reverse(BoulderMove.Up)
 stack.push(p)
 stack = stack.reverse();
 */
-let p =new BoulderPuzzle(10, 10)
+let p =new BoulderPuzzle(8, 8)
 p.use_pits = true;
-for(let i = 0; i < 6; i++){   
+for(let i = 0; i < 3; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
-    p.grid[x][y] = Tile.Fragile
+    p.grid[x][y] = Tile.Pit
 }
-for(let i = 0; i < p.width*p.height/20; i++){   
+for(let i = 0; i < p.width*p.height/10; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Brick;
 }
 
-for(let i = 0; i < 1; i++){   
+for(let i = 0; i < 3; i++){   
     let x= randInt(0, p.width);
     let y= randInt(0, p.height);
     p.grid[x][y] = Tile.Target
     p.boulders.push(new Boulder(x,y))
 }
 
-let stack = p.getStack(6, true)
-
+let stack = p.getStack(7, true)
+let board = stack[0];
 console.log(stack)
 $(document).ready(()=>{
     let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
     let $div = $('<div/>').addClass('puzzles').appendTo($wrapper)
-    stack.forEach((s)=>{
-        $('<pre/>').text(s.toString()).appendTo($div);
-    })
-    $($('.puzzles pre').hide()[0]).show();    
-    $('.puzzles pre').click(function(this:HTMLElement){
-        if($(this).next().length != 0)
-            $(this).hide().next().show();
-    })
-    $('.puzzles pre').contextmenu(function(this:HTMLElement){
-        if($(this).prev().length != 0)
-            $(this).hide().prev().show();
-        return false;
-    })
+    $('<pre/>').text(board.toString()).appendTo($div);
     console.log(stack)
+    $('body').keyup((e)=>{
+        let move:BoulderMove|undefined = undefined;
+        switch(e.which){
+            case 37:
+                move = BoulderMove.Left;
+                break;
+            case 38:
+                move = BoulderMove.Up;
+                break;
+            case 39:
+                move = BoulderMove.Right;
+                break;
+            case 40:
+                move = BoulderMove.Down;
+                break;
+        }
+        if(move){
+            board = board.apply(move)
+            $div.empty()
+            $('<pre/>').text(board.toString()).appendTo($div);
+        }
+    })
 })
+
