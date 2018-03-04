@@ -128,6 +128,7 @@ var Tile;
 })(Tile = exports.Tile || (exports.Tile = {}));
 class Boulder {
     constructor(x, y) {
+        this.index = -1;
         this.x = x;
         this.y = y;
     }
@@ -191,6 +192,9 @@ class BoulderPuzzle extends PuzzleState {
     }
     apply(move) {
         let state = _.cloneDeep(this);
+        for (var i = 0; i < state.boulders.length; i++) {
+            state.boulders[i].index = i;
+        }
         if (move == BoulderMove.Shatter) {
             state.grid = state.grid.map(line => line.map(t => t == Tile.Crystal ? Tile.Empty : t));
             return state;
@@ -219,9 +223,12 @@ class BoulderPuzzle extends PuzzleState {
                     }
                     break;
                 }
+                b.last_move = [vec[0] * mag, vec[1] * mag];
+                b.last_mag = mag;
             }
         }
         state.boulders = state.boulders.filter(b => toBeRemoved.indexOf(b) == -1);
+        state.boulders = state.boulders.sort((a, b) => a.index - b.index);
         return state;
     }
     isTilePassable(tile) {
@@ -559,13 +566,13 @@ stack = stack.reverse();
 (function () {
     return __awaiter(this, void 0, void 0, function* () {
         function createPuzzle() {
-            let p = new BoulderPuzzle(10, 10);
+            let p = new BoulderPuzzle(8, 8);
             for (let i = 0; i < p.width * p.height / 5; i++) {
                 let x = randInt(0, p.width);
                 let y = randInt(0, p.height);
                 p.grid[x][y] = Tile.Brick;
             }
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 2; i++) {
                 let x = randInt(0, p.width);
                 let y = randInt(0, p.height);
                 p.grid[x][y] = Tile.Target;
@@ -577,7 +584,7 @@ stack = stack.reverse();
             let stack = p.getStack(6, true);
             let solution = stack[0].solve();
             console.log("Min Steps:", solution ? solution.length - 1 : " > 5");
-            if (solution && solution.length < 5) {
+            if (solution && solution.length < 6) {
                 throw "too short";
             }
             return stack;
@@ -586,8 +593,35 @@ stack = stack.reverse();
         let board = stack[0];
         $(document).ready(() => {
             let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body');
-            let $div = $('<div/>').addClass('puzzles').appendTo($wrapper);
-            $('<pre/>').text(board.toString()).appendTo($div);
+            $('<div/>').addClass('puzzles')
+                .css('width', board.width * 25 + 'px')
+                .css('height', board.height * 25 + 'px')
+                .appendTo($wrapper);
+            for (let x = 0; x < board.width; x++) {
+                for (let y = 0; y < board.height; y++) {
+                    let t = board.getTile(x, y);
+                    if (t == Tile.Empty) {
+                        continue;
+                    }
+                    let tileName = 'brick';
+                    if (t == Tile.Target) {
+                        tileName = 'target';
+                    }
+                    $('.puzzles').append($('<div/>')
+                        .addClass('tile')
+                        .addClass('tile--' + tileName)
+                        .css('transform', 'translate(' + x * 25 + 'px, ' + y * 25 + 'px)'));
+                }
+            }
+            for (let b of board.boulders) {
+                let x = b.x * 25;
+                let y = b.y * 25;
+                $('.puzzles').append($('<div class="boulder"/>')
+                    .css('transform', 'translate(' + x + 'px, ' + y + 'px)')
+                    .data('x', b.x)
+                    .data('y', b.y));
+            }
+            let moving = false;
             $('body').keyup((e) => {
                 let move = undefined;
                 switch (e.which) {
@@ -610,10 +644,24 @@ stack = stack.reverse();
                         move = BoulderMove.Down;
                         break;
                 }
-                if (move) {
+                if (move && !moving) {
+                    moving = true;
                     board = board.apply(move);
-                    $div.empty();
-                    $('<pre/>').text(board.toString()).appendTo($div);
+                    $('.puzzles .boulder').each((i, e) => {
+                        let b = board.boulders[i];
+                        if (b) {
+                            let x = b.x * 25;
+                            let y = b.y * 25;
+                            let s = 0.1 * (b.last_mag || 0);
+                            $(e).css('transition', 'transform ' + s + 's ease-in');
+                            $(e).css('transform', 'translate(' + x + 'px, ' + y + 'px)');
+                            setTimeout(() => {
+                                //
+                            }, s * 1000);
+                        }
+                    });
+                    let time = board.boulders.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
+                    setTimeout(() => moving = false, time);
                 }
             });
         });
