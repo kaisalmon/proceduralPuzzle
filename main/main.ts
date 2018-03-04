@@ -7,8 +7,43 @@ abstract class PuzzleState<MOVE>{
     abstract apply(move:MOVE): PuzzleState<MOVE>; 
     abstract reverse(move:MOVE): PuzzleState<MOVE>; 
     abstract isValid(): boolean;    
+    abstract isSolved(): boolean;    
     abstract getMoves(): MOVE[]; 
+    abstract getReverseMoves(): MOVE[]; 
      
+    solve(maxDepth:number=5, curDepth:number=0):PuzzleState<MOVE>[]|undefined
+    {     
+        if(this.isSolved()){
+            return [this]
+        }
+        if(curDepth>=maxDepth){
+            return undefined;
+        }
+        let shortestSolution:PuzzleState<MOVE>[]|undefined = undefined;
+        let nextDepth = maxDepth;
+        for(let m of this.getMoves()){
+            let s = this.apply(m);
+            console.log("Trying "+m)
+            if(s.hashString() === this.hashString()){
+                console.log("No change")
+                continue
+            }
+            let ss = s.solve(nextDepth, curDepth+1)
+            if(ss){
+                if(shortestSolution === undefined || ss.length < shortestSolution.length){
+                    shortestSolution = ss;
+                    nextDepth = shortestSolution.length - 1;
+                }else{
+                    console.log('Nope')
+                } 
+            }
+        }
+        if(shortestSolution){
+            let arr:PuzzleState<MOVE>[] = [this]
+            arr = arr.concat(shortestSolution)
+            return arr;
+        }
+    }
     getStack(depth: number, debug:boolean=false):PuzzleState<MOVE>[]
     {
         let bad_states = [] 
@@ -24,7 +59,7 @@ abstract class PuzzleState<MOVE>{
             let p = stack[stack.length -1]
 
             let nexts:PuzzleState<MOVE>[] = [];
-            for(let move of p.getMoves()){
+            for(let move of p.getReverseMoves()){
                 try{
                     let next = p.reverse(move);
                     if(!next.isValid()){
@@ -109,6 +144,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     use_crystals: boolean = false;
     use_pits: boolean = false;
     use_portals: boolean = false;
+    use_fragile: boolean = false;
     no_basic: boolean = false;
 
     constructor(width:number, height:number){
@@ -163,7 +199,8 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     apply(move: BoulderMove): BoulderPuzzle{
         let state = _.cloneDeep(this);
         if(move == BoulderMove.Shatter){
-            throw "Can't do no shattering yet"
+            state.grid = state.grid.map(line=>line.map(t=> t==Tile.Crystal ? Tile.Empty : t )) 
+            return state;
         }
         let vec = this.getVec(move);
 
@@ -192,7 +229,6 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             }
         }
         state.boulders = state.boulders.filter(b=>toBeRemoved.indexOf(b)==-1);
-        console.log(state)
         return state;    
     }
     isTilePassable(tile:Tile|undefined):boolean{
@@ -306,10 +342,12 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
 
             if(state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox,oy) != Tile.Pit){
                 if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty){
+                    if(!state.use_fragile){
+                        throw "No Fragile supported"
+                    }
                     state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile; 
                 }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target){
                     throw "Would need to put fragile block on target";
-
                 }
             }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Pit){
                 throw "Would need to put fragile block where a pit ia pit is";
@@ -396,6 +434,13 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         return true;
     }
     getMoves(): BoulderMove[]{
+        let moves =  [BoulderMove.Up, BoulderMove.Down, BoulderMove.Left, BoulderMove.Right]
+        if(this.use_crystals){
+            moves.push(BoulderMove.Shatter)
+        }
+        return moves;
+    }
+    getReverseMoves(): BoulderMove[]{
         let moves = [BoulderMove.Up, BoulderMove.Down, BoulderMove.Left, BoulderMove.Right]
         if(this.no_basic){
             moves = []
@@ -447,6 +492,18 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                 throw "Error"
         }
     }
+    isSolved():boolean{
+        for(var x = 0; x < this.width; x++){
+            for(var y = 0; y < this.height; y++){
+                if(this.getTile(x,y) == Tile.Target){
+                    if(!this.boulders.some(b=>b.x==x && b.y==y)){
+                        return false
+                    }
+                }
+            }
+        }
+        return true;
+    }
 }
 
 enum BoulderMove{
@@ -481,6 +538,30 @@ function randInt(min:number, max:number):number {
       return Math.floor(Math.random() * (max - min)) + min; 
 }
 
+async function tryUntilSuccess<T>(f:()=>T): Promise<T>{
+    return new Promise<T>((resolve, reject)=>{
+        let i = 0;
+        function _attempt():void{
+            try{
+                let result = f();
+                resolve(result)
+            }catch(e){
+                console.error(e)
+                i++;
+                if(i%10){
+                    console.warn("Over "+i+" attempts..")
+                }
+                if(i > 600){
+                    reject();
+                }else{
+                    requestAnimationFrame(_attempt)
+                }
+            }
+        }
+        _attempt();
+    })
+}
+
 /*
 let stack:BoulderPuzzle[] = []
 let p =new BoulderPuzzle(10,10)
@@ -491,55 +572,67 @@ p = p.reverse(BoulderMove.Up)
 stack.push(p)
 stack = stack.reverse();
 */
-let p =new BoulderPuzzle(8, 8)
-p.use_pits = true;
-for(let i = 0; i < 3; i++){   
-    let x= randInt(0, p.width);
-    let y= randInt(0, p.height);
-    p.grid[x][y] = Tile.Pit
-}
-for(let i = 0; i < p.width*p.height/10; i++){   
-    let x= randInt(0, p.width);
-    let y= randInt(0, p.height);
-    p.grid[x][y] = Tile.Brick;
-}
-
-for(let i = 0; i < 3; i++){   
-    let x= randInt(0, p.width);
-    let y= randInt(0, p.height);
-    p.grid[x][y] = Tile.Target
-    p.boulders.push(new Boulder(x,y))
-}
-
-let stack = p.getStack(7, true)
-let board = stack[0];
-console.log(stack)
-$(document).ready(()=>{
-    let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
-    let $div = $('<div/>').addClass('puzzles').appendTo($wrapper)
-    $('<pre/>').text(board.toString()).appendTo($div);
-    console.log(stack)
-    $('body').keyup((e)=>{
-        let move:BoulderMove|undefined = undefined;
-        switch(e.which){
-            case 37:
-                move = BoulderMove.Left;
-                break;
-            case 38:
-                move = BoulderMove.Up;
-                break;
-            case 39:
-                move = BoulderMove.Right;
-                break;
-            case 40:
-                move = BoulderMove.Down;
-                break;
+(async function(){
+    function createPuzzle():PuzzleState<BoulderMove>[]{
+        let p =new BoulderPuzzle(10, 10)
+        for(let i = 0; i < p.width*p.height/5; i++){   
+            let x= randInt(0, p.width);
+            let y= randInt(0, p.height);
+            p.grid[x][y] = Tile.Brick;
         }
-        if(move){
-            board = board.apply(move)
-            $div.empty()
-            $('<pre/>').text(board.toString()).appendTo($div);
+
+        for(let i = 0; i < 3; i++){   
+            let x= randInt(0, p.width);
+            let y= randInt(0, p.height);
+            p.grid[x][y] = Tile.Target
+            p.boulders.push(new Boulder(x,y))
         }
+        p.use_fragile = false;
+        p.use_crystals = false;
+        p.use_pits = false;
+
+        let stack = p.getStack(6, true)
+        let solution = stack[0].solve();
+        console.log("Min Steps:",solution ? solution.length-1 : " > 5")
+        if(solution && solution.length < 5){
+            throw "too short"
+        } 
+        return stack;
+    }
+
+    let stack = await tryUntilSuccess(createPuzzle);
+    let board = stack[0];
+    $(document).ready(()=>{
+        let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
+        let $div = $('<div/>').addClass('puzzles').appendTo($wrapper)
+        $('<pre/>').text(board.toString()).appendTo($div);
+        $('body').keyup((e)=>{
+            let move:BoulderMove|undefined = undefined;
+            switch(e.which){
+                case 13:
+                    move = BoulderMove.Shatter;
+                    break;
+                case 32:
+                    move = BoulderMove.Shatter;
+                    break;
+                case 37:
+                    move = BoulderMove.Left;
+                    break;
+                case 38:
+                    move = BoulderMove.Up;
+                    break;
+                case 39:
+                    move = BoulderMove.Right;
+                    break;
+                case 40:
+                    move = BoulderMove.Down;
+                    break;
+            }
+            if(move){
+                board = board.apply(move)
+                $div.empty()
+                $('<pre/>').text(board.toString()).appendTo($div);
+            }
+        })
     })
-})
-
+})();
