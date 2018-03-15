@@ -1,6 +1,5 @@
 import * as _ from "lodash";
 import * as $ from 'jquery'
-
 abstract class PuzzleState<MOVE>{
     abstract toString():string;
     abstract hashString():string;
@@ -79,7 +78,7 @@ abstract class PuzzleState<MOVE>{
                     nexts.push(next)
                 }catch(e){
                     if(debug){
-                        console.error(e)
+                        //console.error(e)
                     }
                     if(e.name == "FatalError"){
                         throw e;    
@@ -133,6 +132,7 @@ export class Boulder{
     index: number = -1;
     last_move: number[]|undefined;
     last_mag: number|undefined;
+    last_contact: {x:number, y:number}|undefined; 
     constructor(x:number, y:number){
         this.x = x;
         this.y = y;
@@ -233,6 +233,11 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                     break;
                 }
                 b.last_move = [vec[0]*mag, vec[1]*mag];
+                if(mag != 0){
+                    b.last_contact = {x:b.x + vec[0], y:b.y + vec[1]};
+                }else{
+                    b.last_contact = undefined;
+                }
                 b.last_mag = mag;
             }
         }
@@ -322,6 +327,13 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             let ox = b.x;
             let oy = b.y;
             let mags = [];
+            if(state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox,oy) != Tile.Pit){
+                if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty){
+                    if(!state.use_fragile){
+                        throw "No Fragile supported"
+                    }
+                }
+            }
             for(let mag = 1; mag < this.height; mag++){
                 if(state.isPassable(ox+vec[0]*mag, oy+vec[1]*mag)){
                     mags.push(mag) 
@@ -555,7 +567,7 @@ async function tryUntilSuccess<T>(f:()=>T): Promise<T>{
                 let result = f();
                 resolve(result)
             }catch(e){
-                console.error(e)
+                //console.error(e)
                 i++;
                 if(i%10){
                     console.warn("Over "+i+" attempts..")
@@ -582,28 +594,39 @@ stack.push(p)
 stack = stack.reverse();
 */
 (async function(){
+    let params = getUrlVars();
+    let boulders:number = parseInt(params['boulders']) || 2;
+    let depth:number = parseInt(params['depth']) || 4;
+    let mindepth:number = parseInt(params['mindepth']) || depth;
+    let fragile:boolean = params['fragile']=="true";
+
     function createPuzzle():BoulderPuzzle[]{
-        let p =new BoulderPuzzle(8, 8)
+        let p =new BoulderPuzzle(12, 12)
+        for(let i = 0; i < (fragile ? 1/25 : 0)*p.width*p.height; i++){   
+            let x= randInt(0, p.width);
+            let y= randInt(0, p.height);
+            p.grid[x][y] = Tile.Fragile;
+        }
         for(let i = 0; i < p.width*p.height/5; i++){   
             let x= randInt(0, p.width);
             let y= randInt(0, p.height);
             p.grid[x][y] = Tile.Brick;
         }
 
-        for(let i = 0; i < 2; i++){   
+        for(let i = 0; i < boulders; i++){   
             let x= randInt(0, p.width);
             let y= randInt(0, p.height);
             p.grid[x][y] = Tile.Target
             p.boulders.push(new Boulder(x,y))
         }
-        p.use_fragile = false;
+        p.use_fragile = fragile;
         p.use_crystals = false;
         p.use_pits = false;
 
-        let stack = p.getStack(6, true)
+        let stack = p.getStack(depth, true)
         let solution = stack[0].solve();
         console.log("Min Steps:",solution ? solution.length-1 : " > 5")
-        if(solution && solution.length < 6){
+        if(solution && solution.length < mindepth){
             throw "too short"
         } 
         return stack as BoulderPuzzle[];
@@ -618,7 +641,9 @@ stack = stack.reverse();
             .css('height', board.height*25+'px')
             .appendTo($wrapper)
 
+        var $tiles: JQuery[][] = [];
         for(let x = 0; x < board.width; x++){
+            $tiles[x] = []
             for(let y = 0; y < board.height; y++){
                 let t = board.getTile(x,y)
                 if(t == Tile.Empty){
@@ -628,12 +653,15 @@ stack = stack.reverse();
                 if(t == Tile.Target){
                     tileName = 'target';
                 }
-                $('.puzzles').append(
-                    $('<div/>')
+                if(t == Tile.Fragile){
+                    tileName = 'fragile';
+                }
+                let $t = $('<div/>')
                         .addClass('tile')
                         .addClass('tile--'+tileName)
                         .css('transform','translate('+x*25+'px, '+y*25+'px)')
-                );
+                        .appendTo('.puzzles')
+                $tiles[x][y] = $t
             }
         }
         for(let b of board.boulders){
@@ -682,7 +710,13 @@ stack = stack.reverse();
                         $(e).css('transition','transform '+s+'s ease-in')
                         $(e).css('transform','translate('+x+'px, '+y+'px)')
                         setTimeout(()=>{
-                            //
+                            if(b.last_contact){
+                                let t = board.getTile(b.last_contact.x, b.last_contact.y)
+                                let $t = $tiles[b.last_contact.x][b.last_contact.y]
+                                if($t && t==Tile.Empty){
+                                    $t.remove()
+                                }
+                            }
                         },s*1000)
                     }
                 })
@@ -691,4 +725,15 @@ stack = stack.reverse();
             }
         })
     })
+
+    function getUrlVars():{[id: string] : string} {
+        var vars:{[id: string] : string} = {};
+        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,    
+            function(m,key,value:string):string {
+                vars[key] = value;
+                return "";
+            }
+        );
+        return vars;
+    }
 })();
