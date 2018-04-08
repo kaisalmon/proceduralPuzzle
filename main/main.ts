@@ -599,6 +599,8 @@ stack = stack.reverse();
     let depth:number = parseInt(params['depth']) || 4;
     let mindepth:number = parseInt(params['mindepth']) || depth;
     let fragile:boolean = params['fragile']=="true";
+    let crystal:boolean = params['crystal']=="true";
+    let pits:boolean = params['pits']=="true";
 
     function createPuzzle():BoulderPuzzle[]{
         let p =new BoulderPuzzle(12, 12)
@@ -620,8 +622,8 @@ stack = stack.reverse();
             p.boulders.push(new Boulder(x,y))
         }
         p.use_fragile = fragile;
-        p.use_crystals = false;
-        p.use_pits = false;
+        p.use_crystals = crystal;
+        p.use_pits = pits;
 
         let stack = p.getStack(depth, true)
         let solution = stack[0].solve();
@@ -629,6 +631,13 @@ stack = stack.reverse();
         if(solution && solution.length < mindepth){
             throw "too short"
         } 
+        let board:BoulderPuzzle = stack[0] as BoulderPuzzle;
+        if(crystal && !board.grid.some(line=>line.some(tile=>tile==Tile.Crystal))){
+            throw "No crystals"
+        }
+        if(pits && !board.grid.some(line=>line.some(tile=>tile==Tile.Pit))){
+            throw "No Pits"
+        }
         return stack as BoulderPuzzle[];
     }
 
@@ -655,6 +664,12 @@ stack = stack.reverse();
                 }
                 if(t == Tile.Fragile){
                     tileName = 'fragile';
+                }
+                if(t == Tile.Crystal){
+                    tileName = 'crystal';
+                }
+                if(t == Tile.Pit){
+                    tileName = 'pit';
                 }
                 let $t = $('<div/>')
                         .addClass('tile')
@@ -721,7 +736,18 @@ stack = stack.reverse();
                     }
                 })
                 let time = board.boulders.reduce((t,b)=>Math.max(b.last_mag||0, t),0) * 100;
-                setTimeout(()=>moving = false, time)
+                setTimeout(()=>{
+                    moving = false;
+                    for(let x = 0; x < board.width; x++){
+                        for(let y = 0; y < board.height; y++){
+                            let t = board.getTile(x, y)
+                            let $t = $tiles[x][y]
+                            if($t && t==Tile.Empty){
+                                $t.remove()
+                            }
+                        }
+                    }
+                }, time)
             }
         })
     })
