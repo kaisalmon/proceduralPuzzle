@@ -81,6 +81,7 @@ abstract class PuzzleState<MOVE>{
                         //console.error(e)
                     }
                     if(e.name == "FatalError"){
+                        console.error(e)
                         throw e;    
                     }
                 }
@@ -130,12 +131,19 @@ export class Boulder{
     x: number;
     y: number;
     index: number = -1;
+    in_pit: boolean = false;
     last_move: number[]|undefined;
     last_mag: number|undefined;
     last_contact: {x:number, y:number}|undefined; 
     constructor(x:number, y:number){
         this.x = x;
         this.y = y;
+    }
+    is_frozen():boolean{
+        if(this.in_pit){
+            return true;
+        }
+        return false;
     }
 }
 export class BoulderPuzzle extends PuzzleState<BoulderMove>{
@@ -186,8 +194,9 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                 if(this.grid[x][y] == Tile.Target){
                     result += this.boulders.some((b)=>b.x==x && b.y==y) ? "✓" : this.grid[x][y]
                 }else if(this.grid[x][y] == Tile.Empty){
-                    //result += this.boulders.some((b)=>b.x==x && b.y==y) ? "o" : (this.criticalTiles.some((t)=>t.x==x && t.y==y) ? this.grid[x][y] : ' ');
                     result += this.boulders.some((b)=>b.x==x && b.y==y) ? "o" : this.grid[x][y]
+                }else if(this.grid[x][y] == Tile.Pit){
+                    result += this.boulders.some((b)=>b.x==x && b.y==y) ? Tile.Empty : this.grid[x][y]
                 }else{
                     result += this.boulders.some((b)=>b.x==x && b.y==y) ? "o" : this.grid[x][y]
                 }
@@ -212,6 +221,9 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
 
         let toBeRemoved:Boulder[] =[]
         for(let b of state.bouldersInVecOrder(vec)){
+            if(b.is_frozen()){
+                continue;
+            }
             let ox = b.x;
             let oy = b.y;
             for(let mag = 1; mag < this.height; mag++){
@@ -220,11 +232,10 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                     b.y = oy+vec[1]*mag;
                 }else{
                     let t = state.getTile(ox+vec[0]*mag, oy+vec[1]*mag)
-                    if(t == Tile.Pit){
-                        toBeRemoved.push(b);
-                        b.x = -1;
-                        b.y = -1;
-                        state.grid[ox+vec[0]*mag][oy+vec[1]*mag] = Tile.Empty;
+                    if(t == Tile.Pit && !state.any_boulder_at(ox+vec[0]*mag, oy+vec[1]*mag)){
+                        b.in_pit = true;
+                        b.x = ox+vec[0]*mag;
+                        b.y = oy+vec[1]*mag;
                     }
                     //don't break if we didn't move
                     if(mag>1 && t == Tile.Fragile){
@@ -250,10 +261,14 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     }
     isPassable(x:number, y:number):boolean{
         if(!this.isTilePassable(this.getTile(x,y))){
-            return false;
+            if(this.getTile(x,y) == Tile.Pit && this.any_boulder_at(x,y)){
+                //that's fine
+            }else{
+                return false;
+            }
         }
         for(let b of this.boulders){
-            if(b.x == x && b.y==y){
+            if(b.x == x && b.y==y && !b.in_pit){
                 return false;
             }
         }
@@ -265,6 +280,11 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         }
         return this.grid[x][y];
     }
+
+    any_boulder_at(x:number, y:number):boolean{
+        return (this.boulders.some(b=>b.x == x && b.y==y))
+    }
+
 
     reverseShatter(): BoulderPuzzle{
         if(this.criticalTiles.length < 8){
@@ -443,7 +463,11 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             let b1 = this.boulders[i];
             let tile = this.getTile(b1.x, b1.y);
             if(!this.isTilePassable(tile)){
-                return false;
+                if(tile == Tile.Pit && b1.in_pit){
+                    //that's fine
+                }else{
+                    return false;
+                }
             }
             for (var j = i+1; j <= this.boulders.length - 1; j++) {
                 let b2 = this.boulders[j];
