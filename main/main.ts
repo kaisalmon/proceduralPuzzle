@@ -236,6 +236,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                         b.in_pit = true;
                         b.x = ox+vec[0]*mag;
                         b.y = oy+vec[1]*mag;
+                        b.last_mag = mag;
                     }
                     //don't break if we didn't move
                     if(mag>1 && t == Tile.Fragile){
@@ -592,15 +593,17 @@ async function tryUntilSuccess<T>(f:()=>T): Promise<T>{
                 resolve(result)
             }catch(e){
                 //console.error(e)
-                i++;
-                if(i%10){
-                    console.warn("Over "+i+" attempts..")
+                for(var j = 0; j < 10; j++){
+                    i++;
+                    if(i%10){
+                        console.warn("Over "+i+" attempts..")
+                    }
+                    if(i > 600){
+                        reject();
+                        return;
+                    }
                 }
-                if(i > 600){
-                    reject();
-                }else{
-                    requestAnimationFrame(_attempt)
-                }
+                requestAnimationFrame(_attempt)
             }
         }
         _attempt();
@@ -619,6 +622,7 @@ stack = stack.reverse();
 */
 (async function(){
     let params = getUrlVars();
+    let size:number = parseInt(params['size']) || 10;
     let boulders:number = parseInt(params['boulders']) || 2;
     let depth:number = parseInt(params['depth']) || 4;
     let mindepth:number = parseInt(params['mindepth']) || depth;
@@ -627,7 +631,7 @@ stack = stack.reverse();
     let pits:boolean = params['pits']=="true";
 
     function createPuzzle():BoulderPuzzle[]{
-        let p =new BoulderPuzzle(12, 12)
+        let p =new BoulderPuzzle(size, size)
         for(let i = 0; i < (fragile ? 1/25 : 0)*p.width*p.height; i++){   
             let x= randInt(0, p.width);
             let y= randInt(0, p.height);
@@ -748,6 +752,11 @@ stack = stack.reverse();
                         let s = 0.1*(b.last_mag||0);
                         $(e).css('transition','transform '+s+'s ease-in')
                         $(e).css('transform','translate('+x+'px, '+y+'px)')
+                        if(b.in_pit){
+                            $(e).addClass('boulder--in-pit');
+                        }else{
+                            $(e).removeClass('boulder--in-pit');
+                        }
                         setTimeout(()=>{
                             if(b.last_contact){
                                 let t = board.getTile(b.last_contact.x, b.last_contact.y)
