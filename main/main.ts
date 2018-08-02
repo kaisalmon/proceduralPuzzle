@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import * as $ from 'jquery'
-
+import swal from 'sweetalert2'
 
 abstract class PuzzleState<MOVE>{
     abstract toString():string;
@@ -700,9 +700,19 @@ stack = stack.reverse();
                     move = BoulderMove.Down;
                     break;
                 case 82:
-                    board = orig;
-                    $tiles = create_board(board);
-                    moving = false;
+                    swal({
+                      title: "Restart puzzle?",
+                      type: "question",
+                      showCancelButton: true,
+                      confirmButtonText: "Yes",
+                      cancelButtonText: "No!",
+                      useRejections: true,
+                      focusCancel: true
+                    }).then( () => {
+                      board = orig;
+                      $tiles = create_board(board);
+                      moving = false;
+                    });
                     break;
             }
             if(move && !moving){
@@ -743,6 +753,14 @@ stack = stack.reverse();
                                 $t.remove()
                             }
                         }
+                    }
+                    if(board.isSolved()){
+                      setTimeout(() => {
+                        swal({
+                          title: "You win!",
+                          type: "success"
+                        })
+                      }, 400);
                     }
                 }, time)
             }
