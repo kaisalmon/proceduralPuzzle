@@ -1,17 +1,19 @@
 import * as _ from "lodash";
 import * as $ from 'jquery'
+
+
 abstract class PuzzleState<MOVE>{
     abstract toString():string;
     abstract hashString():string;
-    abstract apply(move:MOVE): PuzzleState<MOVE>; 
-    abstract reverse(move:MOVE): PuzzleState<MOVE>; 
-    abstract isValid(): boolean;    
-    abstract isSolved(): boolean;    
-    abstract getMoves(): MOVE[]; 
-    abstract getReverseMoves(): MOVE[]; 
-     
+    abstract apply(move:MOVE): PuzzleState<MOVE>;
+    abstract reverse(move:MOVE): PuzzleState<MOVE>;
+    abstract isValid(): boolean;
+    abstract isSolved(): boolean;
+    abstract getMoves(): MOVE[];
+    abstract getReverseMoves(): MOVE[];
+
     solve(maxDepth:number=5, curDepth:number=0):PuzzleState<MOVE>[]|undefined
-    {     
+    {
         if(this.isSolved()){
             return [this]
         }
@@ -22,6 +24,7 @@ abstract class PuzzleState<MOVE>{
         let nextDepth = maxDepth;
         for(let m of this.getMoves()){
             let s = this.apply(m);
+
             console.log("Trying "+m)
             if(s.hashString() === this.hashString()){
                 console.log("No change")
@@ -34,7 +37,7 @@ abstract class PuzzleState<MOVE>{
                     nextDepth = shortestSolution.length - 1;
                 }else{
                     console.log('Nope')
-                } 
+                }
             }
         }
         if(shortestSolution){
@@ -45,7 +48,7 @@ abstract class PuzzleState<MOVE>{
     }
     getStack(depth: number, debug:boolean=false):PuzzleState<MOVE>[]
     {
-        let bad_states = [] 
+        let bad_states = []
         let bad_count = 0;
         let itr_count = 0;
         let stack:PuzzleState<MOVE>[] = [this]
@@ -82,7 +85,7 @@ abstract class PuzzleState<MOVE>{
                     }
                     if(e.name == "FatalError"){
                         console.error(e)
-                        throw e;    
+                        throw e;
                     }
                 }
             }
@@ -90,7 +93,7 @@ abstract class PuzzleState<MOVE>{
                 bad_count ++;
                 if(bad_count > 30){
                     throw "Maximum bad states exceeded"
-                } 
+                }
 
                 if(bad_states.indexOf(p.hashString()) === -1){
                     stack.pop()
@@ -134,7 +137,7 @@ export class Boulder{
     in_pit: boolean = false;
     last_move: number[]|undefined;
     last_mag: number|undefined;
-    last_contact: {x:number, y:number}|undefined; 
+    last_contact: {x:number, y:number}|undefined;
     constructor(x:number, y:number){
         this.x = x;
         this.y = y;
@@ -147,7 +150,7 @@ export class Boulder{
     }
 }
 export class BoulderPuzzle extends PuzzleState<BoulderMove>{
-    grid:Tile[][]     
+    grid:Tile[][]
     boulders: Boulder[];
     criticalTiles: {x:number, y:number}[] = []
     width: number; height: number;
@@ -159,7 +162,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     no_basic: boolean = false;
 
     constructor(width:number, height:number){
-        super(); 
+        super();
         this.width = width;
         this.height = height;
         this.grid = [];
@@ -168,13 +171,13 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         for(let y = 0; y < this.height; y++){
             for(let x = 0; x < this.width; x++){
                 if(!this.grid[x]){
-                    this.grid[x] = [] 
+                    this.grid[x] = []
                 }
-                this.grid[x].push(Tile.Empty); 
+                this.grid[x].push(Tile.Empty);
             }
         }
     }
-    
+
     bouldersInVecOrder(vec:number[]):Boulder[]{
         return this.boulders.sort((a,b)=>{
             let aVal = a.x * vec[0] + a.y * vec[1]
@@ -214,7 +217,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             state.boulders[i].index = i;
         }
         if(move == BoulderMove.Shatter){
-            state.grid = state.grid.map(line=>line.map(t=> t==Tile.Crystal ? Tile.Empty : t )) 
+            state.grid = state.grid.map(line=>line.map(t=> t==Tile.Crystal ? Tile.Empty : t ))
             return state;
         }
         let vec = this.getVec(move);
@@ -255,7 +258,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         }
         state.boulders = state.boulders.filter(b=>toBeRemoved.indexOf(b)==-1);
         state.boulders = state.boulders.sort((a,b)=>a.index - b.index);
-        return state;    
+        return state;
     }
     isTilePassable(tile:Tile|undefined):boolean{
         return tile == Tile.Empty || tile == Tile.Target
@@ -309,7 +312,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                 this.grid[x][y] = Tile.Crystal;
             }
         }
-        return this; 
+        return this;
     }
 
     reverse(move: BoulderMove): BoulderPuzzle{
@@ -321,7 +324,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         let vec = this.getVec(move);
         vec[0] = -vec[0]
         vec[1] = -vec[1]
-        
+
         let haveMoved:Boulder[] = [];
 
         if(state.isPitMove(move)){
@@ -332,8 +335,8 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                         continue; //Don't put a pit under an existing boulder
                     }
                     possibleCoords.push(coord)
-                } 
-            } 
+                }
+            }
 
             let pit = _.sample(possibleCoords);
             if(!pit){
@@ -357,9 +360,9 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             }
             for(let mag = 1; mag < this.height; mag++){
                 if(state.isPassable(ox+vec[0]*mag, oy+vec[1]*mag)){
-                    mags.push(mag) 
+                    mags.push(mag)
                 }else{
-                    break;           
+                    break;
                 }
             }
             if(!state.isPassable(ox-vec[0], oy-vec[1])){
@@ -373,8 +376,8 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             if(mag != 0){
                 haveMoved.push(b)
             }
-            b.x += vec[0]*mag      
-            b.y += vec[1]*mag   
+            b.x += vec[0]*mag
+            b.y += vec[1]*mag
 
             //Add path to Critical Path
             for(var i = 1; i <= mag; i++){
@@ -387,7 +390,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                     if(!state.use_fragile){
                         throw "No Fragile supported"
                     }
-                    state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile; 
+                    state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile;
                 }else if(state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target){
                     throw "Would need to put fragile block on target";
                 }
@@ -407,16 +410,16 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
             let b = _.sample(haveMoved);
             if(b){
                 state.grid[b.x][b.y] = Tile.Portal;
-                
+
                 let possibleCoords:{x:number, y:number}[] = [];
                 for(var x = 0; x < this.width; x++){
                     for(var y = 0; y < this.height; y++){
                         if(state.getTile(x,y) == Tile.Empty && state.isPassable(x+vec[0],y+vec[1])){
                             possibleCoords.push({x:x, y:y})
                         }
-                    } 
-                } 
-    
+                    }
+                }
+
                 let portal = _.sample(possibleCoords);
                 if(!portal){
                     throw "No portal locations possible";
@@ -427,18 +430,18 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
                 let mags = [];
                 for(let mag = 1; mag < this.height; mag++){
                     if(state.isPassable(b.x+vec[0]*mag, b.y+vec[1]*mag)){
-                        mags.push(mag) 
+                        mags.push(mag)
                     }else{
-                        break;           
+                        break;
                     }
                 }
                 let mag = _.sample(mags);
                 if(!mag){
-                    throw "No where to enter portal from (Shouldn't happen)" 
+                    throw "No where to enter portal from (Shouldn't happen)"
                 }
                 b.x += vec[0]*mag;
                 b.y += vec[1]*mag;
-            }   
+            }
         }
 
         return state;
@@ -581,7 +584,7 @@ console.log(p.toString())
 function randInt(min:number, max:number):number {
       min = Math.ceil(min);
       max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min)) + min; 
+      return Math.floor(Math.random() * (max - min)) + min;
 }
 
 async function tryUntilSuccess<T>(f:()=>T): Promise<T>{
@@ -631,19 +634,19 @@ stack = stack.reverse();
     let pits:boolean = params['pits']=="true";
 
     function createPuzzle():BoulderPuzzle[]{
-        let p =new BoulderPuzzle(size, size)
-        for(let i = 0; i < (fragile ? 1/25 : 0)*p.width*p.height; i++){   
+        let p = new BoulderPuzzle(size, size)
+        for(let i = 0; i < (fragile ? 1/25 : 0)*p.width*p.height; i++){
             let x= randInt(0, p.width);
             let y= randInt(0, p.height);
             p.grid[x][y] = Tile.Fragile;
         }
-        for(let i = 0; i < p.width*p.height/5; i++){   
+        for(let i = 0; i < p.width*p.height/5; i++){
             let x= randInt(0, p.width);
             let y= randInt(0, p.height);
             p.grid[x][y] = Tile.Brick;
         }
 
-        for(let i = 0; i < boulders; i++){   
+        for(let i = 0; i < boulders; i++){
             let x= randInt(0, p.width);
             let y= randInt(0, p.height);
             p.grid[x][y] = Tile.Target
@@ -658,7 +661,7 @@ stack = stack.reverse();
         console.log("Min Steps:",solution ? solution.length-1 : " > 5")
         if(solution && solution.length < mindepth){
             throw "too short"
-        } 
+        }
         let board:BoulderPuzzle = stack[0] as BoulderPuzzle;
         if(crystal && !board.grid.some(line=>line.some(tile=>tile==Tile.Crystal))){
             throw "No crystals"
@@ -671,53 +674,9 @@ stack = stack.reverse();
 
     let stack = await tryUntilSuccess(createPuzzle);
     let board = stack[0];
+    let orig = board;
     $(document).ready(()=>{
-        let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
-        $('<div/>').addClass('puzzles')
-            .css('width', board.width*25+'px')
-            .css('height', board.height*25+'px')
-            .appendTo($wrapper)
-
-        var $tiles: JQuery[][] = [];
-        for(let x = 0; x < board.width; x++){
-            $tiles[x] = []
-            for(let y = 0; y < board.height; y++){
-                let t = board.getTile(x,y)
-                if(t == Tile.Empty){
-                    continue;
-                }
-                let tileName = 'brick';
-                if(t == Tile.Target){
-                    tileName = 'target';
-                }
-                if(t == Tile.Fragile){
-                    tileName = 'fragile';
-                }
-                if(t == Tile.Crystal){
-                    tileName = 'crystal';
-                }
-                if(t == Tile.Pit){
-                    tileName = 'pit';
-                }
-                let $t = $('<div/>')
-                        .addClass('tile')
-                        .addClass('tile--'+tileName)
-                        .css('transform','translate('+x*25+'px, '+y*25+'px)')
-                        .appendTo('.puzzles')
-                $tiles[x][y] = $t
-            }
-        }
-        for(let b of board.boulders){
-            let x = b.x * 25;
-            let y = b.y * 25;
-            $('.puzzles').append(
-                $('<div class="boulder"/>')
-                    .css('transform','translate('+x+'px, '+y+'px)')
-                    .data('x',b.x)
-                    .data('y',b.y)
-            );
-        }
-
+        let $tiles = create_board(board);
         let moving = false;
         $('body').keyup((e)=>{
             let move:BoulderMove|undefined = undefined;
@@ -739,6 +698,11 @@ stack = stack.reverse();
                     break;
                 case 40:
                     move = BoulderMove.Down;
+                    break;
+                case 82:
+                    board = orig;
+                    $tiles = create_board(board);
+                    moving = false;
                     break;
             }
             if(move && !moving){
@@ -787,7 +751,7 @@ stack = stack.reverse();
 
     function getUrlVars():{[id: string] : string} {
         var vars:{[id: string] : string} = {};
-        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,    
+        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,
             function(m,key,value:string):string {
                 vars[key] = value;
                 return "";
@@ -796,3 +760,55 @@ stack = stack.reverse();
         return vars;
     }
 })();
+
+function create_board(board:BoulderPuzzle):JQuery[][]{
+  $('.puzzle-wrapper').remove();
+
+  let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
+
+  $('<div/>').addClass('puzzles')
+      .css('width', board.width*25+'px')
+      .css('height', board.height*25+'px')
+      .appendTo($wrapper)
+
+  var $tiles: JQuery[][] = [];
+  for(let x = 0; x < board.width; x++){
+      $tiles[x] = []
+      for(let y = 0; y < board.height; y++){
+          let t = board.getTile(x,y)
+          if(t == Tile.Empty){
+              continue;
+          }
+          let tileName = 'brick';
+          if(t == Tile.Target){
+              tileName = 'target';
+          }
+          if(t == Tile.Fragile){
+              tileName = 'fragile';
+          }
+          if(t == Tile.Crystal){
+              tileName = 'crystal';
+          }
+          if(t == Tile.Pit){
+              tileName = 'pit';
+          }
+          let $t = $('<div/>')
+                  .addClass('tile')
+                  .addClass('tile--'+tileName)
+                  .css('transform','translate('+x*25+'px, '+y*25+'px)')
+                  .appendTo('.puzzles')
+          $tiles[x][y] = $t
+      }
+  }
+  for(let b of board.boulders){
+      let x = b.x * 25;
+      let y = b.y * 25;
+      $('.puzzles').append(
+          $('<div class="boulder"/>')
+              .css('transform','translate('+x+'px, '+y+'px)')
+              .data('x',b.x)
+              .data('y',b.y)
+      );
+  }
+  return $tiles;
+}

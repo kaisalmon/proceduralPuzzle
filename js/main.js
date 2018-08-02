@@ -651,49 +651,9 @@ stack = stack.reverse();
         }
         let stack = yield tryUntilSuccess(createPuzzle);
         let board = stack[0];
+        let orig = board;
         $(document).ready(() => {
-            let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body');
-            $('<div/>').addClass('puzzles')
-                .css('width', board.width * 25 + 'px')
-                .css('height', board.height * 25 + 'px')
-                .appendTo($wrapper);
-            var $tiles = [];
-            for (let x = 0; x < board.width; x++) {
-                $tiles[x] = [];
-                for (let y = 0; y < board.height; y++) {
-                    let t = board.getTile(x, y);
-                    if (t == Tile.Empty) {
-                        continue;
-                    }
-                    let tileName = 'brick';
-                    if (t == Tile.Target) {
-                        tileName = 'target';
-                    }
-                    if (t == Tile.Fragile) {
-                        tileName = 'fragile';
-                    }
-                    if (t == Tile.Crystal) {
-                        tileName = 'crystal';
-                    }
-                    if (t == Tile.Pit) {
-                        tileName = 'pit';
-                    }
-                    let $t = $('<div/>')
-                        .addClass('tile')
-                        .addClass('tile--' + tileName)
-                        .css('transform', 'translate(' + x * 25 + 'px, ' + y * 25 + 'px)')
-                        .appendTo('.puzzles');
-                    $tiles[x][y] = $t;
-                }
-            }
-            for (let b of board.boulders) {
-                let x = b.x * 25;
-                let y = b.y * 25;
-                $('.puzzles').append($('<div class="boulder"/>')
-                    .css('transform', 'translate(' + x + 'px, ' + y + 'px)')
-                    .data('x', b.x)
-                    .data('y', b.y));
-            }
+            let $tiles = create_board(board);
             let moving = false;
             $('body').keyup((e) => {
                 let move = undefined;
@@ -715,6 +675,11 @@ stack = stack.reverse();
                         break;
                     case 40:
                         move = BoulderMove.Down;
+                        break;
+                    case 82:
+                        board = orig;
+                        $tiles = create_board(board);
+                        moving = false;
                         break;
                 }
                 if (move && !moving) {
@@ -771,6 +736,52 @@ stack = stack.reverse();
         }
     });
 })();
+function create_board(board) {
+    $('.puzzle-wrapper').remove();
+    let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body');
+    $('<div/>').addClass('puzzles')
+        .css('width', board.width * 25 + 'px')
+        .css('height', board.height * 25 + 'px')
+        .appendTo($wrapper);
+    var $tiles = [];
+    for (let x = 0; x < board.width; x++) {
+        $tiles[x] = [];
+        for (let y = 0; y < board.height; y++) {
+            let t = board.getTile(x, y);
+            if (t == Tile.Empty) {
+                continue;
+            }
+            let tileName = 'brick';
+            if (t == Tile.Target) {
+                tileName = 'target';
+            }
+            if (t == Tile.Fragile) {
+                tileName = 'fragile';
+            }
+            if (t == Tile.Crystal) {
+                tileName = 'crystal';
+            }
+            if (t == Tile.Pit) {
+                tileName = 'pit';
+            }
+            let $t = $('<div/>')
+                .addClass('tile')
+                .addClass('tile--' + tileName)
+                .css('transform', 'translate(' + x * 25 + 'px, ' + y * 25 + 'px)')
+                .appendTo('.puzzles');
+            $tiles[x][y] = $t;
+        }
+    }
+    for (let b of board.boulders) {
+        let x = b.x * 25;
+        let y = b.y * 25;
+        $('.puzzles').append($('<div class="boulder"/>')
+            .css('transform', 'translate(' + x + 'px, ' + y + 'px)')
+            .data('x', b.x)
+            .data('y', b.y));
+    }
+    return $tiles;
+}
 
 },{"jquery":2,"lodash":3}],2:[function(require,module,exports){
 /*!
