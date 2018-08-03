@@ -1,6 +1,11 @@
 <meta charset="UTF-8">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/>
+<link href="https://fonts.googleapis.com/css?family=Josefin+Sans" rel="stylesheet">`
 <style>
+  body{
+    font-family: 'Josefin Sans', sans-serif;
+    background: #333;
+  }
     .puzzle-wrapper{
         position: absolute;
         left:0;
@@ -8,7 +13,6 @@
         top:0;
         bottom: 0;
 
-        background: #333;
     }
     .puzzles{
         position: absolute;
@@ -69,19 +73,36 @@
         margin: 0;
         padding: 0;
     }
-    .hint{
+    .buttons{
+      z-index: 1;
       position: absolute;
-      bottom:10px;
-      right: 10px;
+        bottom:10px;
+        right: 10px;
+    }
+    .buttons .fa-stack{
       color: white;
       opacity: 0.3;
       transition: opacity 0.5s;
-      z-index: 1;
-      font-size: 54px;
+      font-size: 40px;
     }
-    .hint:hover{
+    .buttons .fa-stack:hover{
       opacity: 1;
     }
 </style>
 <script src="js/main.js"></script>
-<i class="hint fa fa-question-circle"></i>
+<div class="buttons">
+  <!--
+  <span class="fa-stack fa-lg">
+    <i class="fa fa-circle-thin fa-stack-2x"></i>
+    <i class="fa fa-question fa-stack-1x"></i>
+  </span>
+  -->
+  <span class="hint fa-stack fa-lg">
+    <i class="fa fa-circle-thin fa-stack-2x"></i>
+    <i class="fa fa-lightbulb-o fa-stack-1x"></i>
+  </span>
+  <span class="reset fa-stack fa-lg">
+    <i class="fa fa-circle-thin fa-stack-2x"></i>
+    <i class="fa fa-refresh fa-stack-1x"></i>
+  </span>
+</div>

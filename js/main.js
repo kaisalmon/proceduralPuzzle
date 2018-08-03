@@ -65,6 +65,10 @@ class PuzzleState {
                     if (!next.isValid()) {
                         throw "Invalid state";
                     }
+                    if (next.hashString() === p.hashString()) {
+                        console.error("Pointless move");
+                        throw "Pointless Move";
+                    }
                     if (next.apply(move).hashString() != p.hashString()) {
                         throw {
                             "name": "FatalError",
@@ -680,6 +684,21 @@ $(document).ready(() => {
                 sweetalert2_1.default(solution.join("\n"));
             });
             let orig = board;
+            $('.reset').click(() => {
+                sweetalert2_1.default({
+                    title: "Restart puzzle?",
+                    type: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes",
+                    cancelButtonText: "No!",
+                    useRejections: true,
+                    focusCancel: true
+                }).then(() => {
+                    board = orig;
+                    $tiles = create_board(board);
+                    moving = false;
+                });
+            });
             let $tiles = create_board(board);
             let moving = false;
             $('body').keyup((e) => {
@@ -702,21 +721,6 @@ $(document).ready(() => {
                         break;
                     case 40:
                         move = BoulderMove.Down;
-                        break;
-                    case 82:
-                        sweetalert2_1.default({
-                            title: "Restart puzzle?",
-                            type: "question",
-                            showCancelButton: true,
-                            confirmButtonText: "Yes",
-                            cancelButtonText: "No!",
-                            useRejections: true,
-                            focusCancel: true
-                        }).then(() => {
-                            board = orig;
-                            $tiles = create_board(board);
-                            moving = false;
-                        });
                         break;
                 }
                 if (move && !moving) {
