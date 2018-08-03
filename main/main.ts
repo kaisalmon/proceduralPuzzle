@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import * as $ from 'jquery'
+import * as Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 
 abstract class PuzzleState<MOVE>{
@@ -12,7 +13,7 @@ abstract class PuzzleState<MOVE>{
   abstract getMoves(): MOVE[];
   abstract getReverseMoves(): MOVE[];
 
-  solve(maxDepth: number = 5, curDepth: number = 0): PuzzleState<MOVE>[] | undefined {
+  solve(maxDepth: number = 5, curDepth: number = 1): PuzzleState<MOVE>[] | undefined {
     if (this.isSolved()) {
       return [this]
     }
@@ -631,7 +632,9 @@ p = p.reverse(BoulderMove.Up)
 stack.push(p)
 stack = stack.reverse();
 */
-
+let board:BoulderPuzzle;
+let moving = false;
+let $tiles:JQuery[][];
 $(document).ready(() => {
   (async function() {
     let params = getUrlVars();
@@ -702,7 +705,7 @@ $(document).ready(() => {
       return
     }
 
-    let board = stack[0][0];
+    board = stack[0][0];
     let solution = stack[1]
     $('.hint').click(()=>{
       swal(solution.join("\n"))
@@ -724,8 +727,23 @@ $(document).ready(() => {
       });
     });
 
-    let $tiles = create_board(board);
-    let moving = false;
+    $tiles = create_board(board);
+    var mc = new Hammer($('body')[0]);
+    mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
+    mc.on("swipeleft", function(ev:any) {
+      apply_move(BoulderMove.Left)
+    });
+    mc.on("swiperight", function(ev:any) {
+      apply_move(BoulderMove.Right)
+    });
+    mc.on("swipeup", function(ev:any) {
+      apply_move(BoulderMove.Up)
+    });
+    mc.on("swipedown", function(ev:any) {
+      apply_move(BoulderMove.Down)
+    });
+
+
     $('body').keyup((e) => {
       let move: BoulderMove | undefined = undefined;
       switch (e.which) {
@@ -748,53 +766,7 @@ $(document).ready(() => {
           move = BoulderMove.Down;
           break;
       }
-      if (move && !moving) {
-        moving = true;
-        board = board.apply(move)
-        $('.puzzles .boulder').each((i, e) => {
-          let b = board.boulders[i];
-          if (b) {
-            let s = 0.1 * (b.last_mag || 0);
-            $(e).css('transition', 'transform ' + s + 's ease-in')
-            $(e).css('transform',  'translate(calc(var(--tsize) * '+b.x+'), calc(var(--tsize) * '+b.y+')')
-            if (b.in_pit) {
-              $(e).addClass('boulder--in-pit');
-            } else {
-              $(e).removeClass('boulder--in-pit');
-            }
-            setTimeout(() => {
-              if (b.last_contact) {
-                let t = board.getTile(b.last_contact.x, b.last_contact.y)
-                let $t = $tiles[b.last_contact.x][b.last_contact.y]
-                if ($t && t == Tile.Empty) {
-                  $t.remove()
-                }
-              }
-            }, s * 1000)
-          }
-        })
-        let time = board.boulders.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
-        setTimeout(() => {
-          moving = false;
-          for (let x = 0; x < board.width; x++) {
-            for (let y = 0; y < board.height; y++) {
-              let t = board.getTile(x, y)
-              let $t = $tiles[x][y]
-              if ($t && t == Tile.Empty) {
-                $t.remove()
-              }
-            }
-          }
-          if (board.isSolved()) {
-            setTimeout(() => {
-              swal({
-                title: "You win!",
-                type: "success"
-              })
-            }, 400);
-          }
-        }, time)
-      }
+      apply_move(move)
     })
 
     function getUrlVars(): { [id: string]: string } {
@@ -808,8 +780,58 @@ $(document).ready(() => {
       return vars;
     }
   })();
-
 })
+
+function apply_move(move: BoulderMove|undefined):void{
+  if (move && !moving && board) {
+    moving = true;
+    board = board.apply(move)
+    $('.puzzles .boulder').each((i, e) => {
+      let b = board.boulders[i];
+      if (b) {
+        let s = 0.1 * (b.last_mag || 0);
+        $(e).css('transition', 'transform ' + s + 's ease-in')
+        $(e).css('transform',  'translate(calc(var(--tsize) * '+b.x+'), calc(var(--tsize) * '+b.y+')')
+        if (b.in_pit) {
+          $(e).addClass('boulder--in-pit');
+        } else {
+          $(e).removeClass('boulder--in-pit');
+        }
+        setTimeout(() => {
+          if (b.last_contact) {
+            let t = board.getTile(b.last_contact.x, b.last_contact.y)
+            let $t = $tiles[b.last_contact.x][b.last_contact.y]
+            if ($t && t == Tile.Empty) {
+              $t.remove()
+            }
+          }
+        }, s * 1000)
+      }
+    })
+    let time = board.boulders.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
+    setTimeout(() => {
+      moving = false;
+      for (let x = 0; x < board.width; x++) {
+        for (let y = 0; y < board.height; y++) {
+          let t = board.getTile(x, y)
+          let $t = $tiles[x][y]
+          if ($t && t == Tile.Empty) {
+            $t.remove()
+          }
+        }
+      }
+      if (board.isSolved()) {
+        setTimeout(() => {
+          swal({
+            title: "You win!",
+            type: "success"
+          })
+        }, 400);
+      }
+    }, time)
+  }
+}
+
 function create_board(board: BoulderPuzzle): JQuery[][] {
   $('.puzzle-wrapper').remove();
 
