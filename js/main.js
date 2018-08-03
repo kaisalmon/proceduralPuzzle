@@ -620,6 +620,8 @@ let $tiles;
 $(document).ready(() => {
     (function () {
         return __awaiter(this, void 0, void 0, function* () {
+            var mc = new Hammer($('body')[0]);
+            mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
             let params = getUrlVars();
             let size = parseInt(params['size']) || 10;
             let boulders = parseInt(params['boulders']) || 2;
@@ -704,8 +706,6 @@ $(document).ready(() => {
                 });
             });
             $tiles = create_board(board);
-            var mc = new Hammer($('body')[0]);
-            mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
             mc.on("swipeleft", function (ev) {
                 apply_move(BoulderMove.Left);
             });
