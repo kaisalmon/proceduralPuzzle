@@ -51,6 +51,7 @@ class PuzzleState {
         let bad_count = 0;
         let itr_count = 0;
         let stack = [this];
+        let moves = [];
         while (stack.length < depth) {
             itr_count++;
             if (itr_count > 1000) {
@@ -65,7 +66,8 @@ class PuzzleState {
                         throw "Invalid state";
                     }
                     if (next.apply(move).hashString() != p.hashString()) {
-                        throw { "name": "FatalError",
+                        throw {
+                            "name": "FatalError",
                             "message": "Reversing move and applying move have different results",
                             "starting-point": next,
                             "a": next.apply(move),
@@ -75,7 +77,7 @@ class PuzzleState {
                             "move": move
                         };
                     }
-                    nexts.push(next);
+                    nexts.push([next, move]);
                 }
                 catch (e) {
                     if (debug) {
@@ -94,6 +96,7 @@ class PuzzleState {
                 }
                 if (bad_states.indexOf(p.hashString()) === -1) {
                     stack.pop();
+                    moves.pop();
                     bad_states.push(p.hashString());
                     if (stack.length == 0) {
                         throw "Bad Solution";
@@ -101,6 +104,7 @@ class PuzzleState {
                 }
                 else {
                     stack = [this];
+                    moves = [];
                     if (bad_states.indexOf(this.hashString()) !== -1) {
                         throw "Bad Solution";
                     }
@@ -111,10 +115,11 @@ class PuzzleState {
                 if (!next) {
                     throw "No valid options";
                 }
-                stack.push(next);
+                stack.push(next[0]);
+                moves.push(next[1]);
             }
         }
-        return stack.reverse();
+        return [stack.reverse(), moves.reverse()];
     }
 }
 /*******************************************/
@@ -207,7 +212,7 @@ class BoulderPuzzle extends PuzzleState {
             state.boulders[i].index = i;
         }
         if (move == BoulderMove.Shatter) {
-            state.grid = state.grid.map(line => line.map(t => t == Tile.Crystal ? Tile.Empty : t));
+            state.grid = state.grid.map((line) => line.map((t) => t == Tile.Crystal ? Tile.Empty : t));
             return state;
         }
         let vec = this.getVec(move);
@@ -247,7 +252,7 @@ class BoulderPuzzle extends PuzzleState {
                 b.last_mag = mag;
             }
         }
-        state.boulders = state.boulders.filter(b => toBeRemoved.indexOf(b) == -1);
+        state.boulders = state.boulders.filter((b) => toBeRemoved.indexOf(b) == -1);
         state.boulders = state.boulders.sort((a, b) => a.index - b.index);
         return state;
     }
@@ -316,7 +321,7 @@ class BoulderPuzzle extends PuzzleState {
             let possibleCoords = [];
             for (let coord of this.criticalTiles) {
                 if (state.getTile(coord.x, coord.y) == Tile.Empty && state.isPassable(coord.x + vec[0], coord.y + vec[1])) {
-                    if (state.boulders.some(b => b.x == coord.x && b.y == coord.y)) {
+                    if (state.boulders.some((b) => b.x == coord.x && b.y == coord.y)) {
                         continue; //Don't put a pit under an existing boulder
                     }
                     possibleCoords.push(coord);
@@ -582,7 +587,7 @@ function tryUntilSuccess(f) {
                         if (i % 10) {
                             console.warn("Over " + i + " attempts..");
                         }
-                        if (i > 600) {
+                        if (i > 5000) {
                             reject();
                             return;
                         }
@@ -604,56 +609,77 @@ p = p.reverse(BoulderMove.Up)
 stack.push(p)
 stack = stack.reverse();
 */
-(function () {
-    return __awaiter(this, void 0, void 0, function* () {
-        let params = getUrlVars();
-        let size = parseInt(params['size']) || 10;
-        let boulders = parseInt(params['boulders']) || 2;
-        let depth = parseInt(params['depth']) || 4;
-        let mindepth = parseInt(params['mindepth']) || depth;
-        let fragile = params['fragile'] == "true";
-        let crystal = params['crystal'] == "true";
-        let pits = params['pits'] == "true";
-        function createPuzzle() {
-            let p = new BoulderPuzzle(size, size);
-            for (let i = 0; i < (fragile ? 1 / 25 : 0) * p.width * p.height; i++) {
-                let x = randInt(0, p.width);
-                let y = randInt(0, p.height);
-                p.grid[x][y] = Tile.Fragile;
+$(document).ready(() => {
+    (function () {
+        return __awaiter(this, void 0, void 0, function* () {
+            let params = getUrlVars();
+            let size = parseInt(params['size']) || 10;
+            let boulders = parseInt(params['boulders']) || 2;
+            let depth = parseInt(params['depth']) || 4;
+            let mindepth = parseInt(params['mindepth']) || depth;
+            let fragile = params['fragile'] == "true";
+            let crystal = params['crystal'] == "true";
+            let pits = params['pits'] == "true";
+            function createPuzzle() {
+                let p = new BoulderPuzzle(size, size);
+                for (let i = 0; i < (fragile ? 1 / 25 : 0) * p.width * p.height; i++) {
+                    let x = randInt(0, p.width);
+                    let y = randInt(0, p.height);
+                    p.grid[x][y] = Tile.Fragile;
+                }
+                for (let i = 0; i < p.width * p.height / 5; i++) {
+                    let x = randInt(0, p.width);
+                    let y = randInt(0, p.height);
+                    p.grid[x][y] = Tile.Brick;
+                }
+                for (let i = 0; i < boulders; i++) {
+                    let x = randInt(0, p.width);
+                    let y = randInt(0, p.height);
+                    p.grid[x][y] = Tile.Target;
+                    p.boulders.push(new Boulder(x, y));
+                }
+                p.use_fragile = fragile;
+                p.use_crystals = crystal;
+                p.use_pits = pits;
+                let stack = p.getStack(depth, true);
+                let solution = stack[0][0].solve();
+                console.log("Min Steps:", solution ? solution.length - 1 : " > 5");
+                if (solution && solution.length < mindepth) {
+                    throw "too short";
+                }
+                let board = stack[0][0];
+                if (crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
+                    throw "No crystals";
+                }
+                if (pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
+                    throw "No Pits";
+                }
+                return [stack[0], stack[1]];
             }
-            for (let i = 0; i < p.width * p.height / 5; i++) {
-                let x = randInt(0, p.width);
-                let y = randInt(0, p.height);
-                p.grid[x][y] = Tile.Brick;
+            let stack = undefined;
+            sweetalert2_1.default({
+                title: 'Generating Level',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                onOpen: () => __awaiter(this, void 0, void 0, function* () {
+                    sweetalert2_1.default.showLoading();
+                })
+            });
+            try {
+                stack = yield tryUntilSuccess(createPuzzle);
+                sweetalert2_1.default.close();
             }
-            for (let i = 0; i < boulders; i++) {
-                let x = randInt(0, p.width);
-                let y = randInt(0, p.height);
-                p.grid[x][y] = Tile.Target;
-                p.boulders.push(new Boulder(x, y));
+            catch (e) {
+                sweetalert2_1.default("Couldn't generate level!", "feel free to try a few more times", "error");
+                return;
             }
-            p.use_fragile = fragile;
-            p.use_crystals = crystal;
-            p.use_pits = pits;
-            let stack = p.getStack(depth, true);
-            let solution = stack[0].solve();
-            console.log("Min Steps:", solution ? solution.length - 1 : " > 5");
-            if (solution && solution.length < mindepth) {
-                throw "too short";
-            }
-            let board = stack[0];
-            if (crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
-                throw "No crystals";
-            }
-            if (pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
-                throw "No Pits";
-            }
-            return stack;
-        }
-        let stack = yield tryUntilSuccess(createPuzzle);
-        let board = stack[0];
-        let orig = board;
-        $(document).ready(() => {
+            let board = stack[0][0];
+            let solution = stack[1];
+            $('.hint').click(() => {
+                sweetalert2_1.default(solution.join("\n"));
+            });
+            let orig = board;
             let $tiles = create_board(board);
             let moving = false;
             $('body').keyup((e) => {
@@ -744,17 +770,17 @@ stack = stack.reverse();
                     }, time);
                 }
             });
+            function getUrlVars() {
+                var vars = {};
+                window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
+                    vars[key] = value;
+                    return "";
+                });
+                return vars;
+            }
         });
-        function getUrlVars() {
-            var vars = {};
-            window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
-                vars[key] = value;
-                return "";
-            });
-            return vars;
-        }
-    });
-})();
+    })();
+});
 function create_board(board) {
     $('.puzzle-wrapper').remove();
     let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body');
