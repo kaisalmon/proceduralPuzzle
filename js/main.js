@@ -729,11 +729,9 @@ $(document).ready(() => {
                     $('.puzzles .boulder').each((i, e) => {
                         let b = board.boulders[i];
                         if (b) {
-                            let x = b.x * 25;
-                            let y = b.y * 25;
                             let s = 0.1 * (b.last_mag || 0);
                             $(e).css('transition', 'transform ' + s + 's ease-in');
-                            $(e).css('transform', 'translate(' + x + 'px, ' + y + 'px)');
+                            $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')');
                             if (b.in_pit) {
                                 $(e).addClass('boulder--in-pit');
                             }
@@ -788,9 +786,8 @@ $(document).ready(() => {
 function create_board(board) {
     $('.puzzle-wrapper').remove();
     let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body');
+    $("body").attr("style", "--tsize:calc(var(--bsize) / " + board.width + ")");
     $('<div/>').addClass('puzzles')
-        .css('width', board.width * 25 + 'px')
-        .css('height', board.height * 25 + 'px')
         .appendTo($wrapper);
     var $tiles = [];
     for (let x = 0; x < board.width; x++) {
@@ -816,16 +813,14 @@ function create_board(board) {
             let $t = $('<div/>')
                 .addClass('tile')
                 .addClass('tile--' + tileName)
-                .css('transform', 'translate(' + x * 25 + 'px, ' + y * 25 + 'px)')
+                .css('transform', 'translate(calc(var(--tsize) * ' + x + '), calc(var(--tsize) * ' + y + ')')
                 .appendTo('.puzzles');
             $tiles[x][y] = $t;
         }
     }
     for (let b of board.boulders) {
-        let x = b.x * 25;
-        let y = b.y * 25;
         $('.puzzles').append($('<div class="boulder"/>')
-            .css('transform', 'translate(' + x + 'px, ' + y + 'px)')
+            .css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')')
             .data('x', b.x)
             .data('y', b.y));
     }

@@ -1,10 +1,17 @@
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/>
 <link href="https://fonts.googleapis.com/css?family=Josefin+Sans" rel="stylesheet">`
 <style>
+html, body{
+    height: 100%;
+    margin: 0px;
+    padding: 0px
+}
   body{
-    font-family: 'Josefin Sans', sans-serif;
-    background: #333;
+      font-family: 'Josefin Sans', sans-serif;
+      background: #333;
+      --bsize: 80vmin;
   }
     .puzzle-wrapper{
         position: absolute;
@@ -18,10 +25,11 @@
         position: absolute;
         top:50%;
         left: 50%;
+        width: var(--bsize);
+        height:  var(--bsize);
         transform: translate(-50%, -50%);
         background: white;
         box-shadow: 2px 2px 3px black;
-        padding:0.2em;
     }
     .boulder{
         display: inline-block;
@@ -30,8 +38,8 @@
         top:3px;
         left:2px;
         transition: transform 0.5s ease-in;
-        width: 20px;
-        height: 20px;
+        width: calc(var(--tsize) - 5px);
+        height: calc(var(--tsize) - 5px);
         border-radius: 100%;
         z-index:2;
     }
@@ -46,8 +54,8 @@
         box-shadow: 4px 4px 4px black inset;
         background: #DDD;
         margin:1px;
-        width:23px;
-        height:23px;
+        width: calc(var(--tsize) - 3px);
+        height:calc(var(--tsize) - 3px);
     }
     .tile--crystal {
         background: lightgreen;
@@ -61,8 +69,8 @@
         border-radius:100%;
     }
     .tile {
-        width: 25px;
-        height: 25px;
+        width: var(--tsize);
+        height: var(--tsize);
         position: absolute;
         top: 0;
         left: 0;
