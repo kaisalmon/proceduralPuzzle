@@ -637,9 +637,6 @@ let moving = false;
 let $tiles:JQuery[][];
 $(document).ready(() => {
   (async function() {
-
-    var mc = new Hammer($('body')[0]);
-    mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
     let params = getUrlVars();
     let size: number = parseInt(params['size']) || 10;
     let boulders: number = parseInt(params['boulders']) || 2;
@@ -731,19 +728,6 @@ $(document).ready(() => {
     });
 
     $tiles = create_board(board);
-    mc.on("swipeleft", function(ev:any) {
-      apply_move(BoulderMove.Left)
-    });
-    mc.on("swiperight", function(ev:any) {
-      apply_move(BoulderMove.Right)
-    });
-    mc.on("swipeup", function(ev:any) {
-      apply_move(BoulderMove.Up)
-    });
-    mc.on("swipedown", function(ev:any) {
-      apply_move(BoulderMove.Down)
-    });
-
 
     $('body').keyup((e) => {
       let move: BoulderMove | undefined = undefined;
@@ -878,5 +862,24 @@ function create_board(board: BoulderPuzzle): JQuery[][] {
         .data('y', b.y)
     );
   }
+
+  var mc = new Hammer($wrapper[0]);
+  mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+
+  mc.on("swipeleft", function(ev:any) {
+    apply_move(BoulderMove.Left)
+  });
+  mc.on("swiperight", function(ev:any) {
+    apply_move(BoulderMove.Right)
+  });
+  mc.on("swipeup", function(ev:any) {
+    apply_move(BoulderMove.Up)
+  });
+  mc.on("swipedown", function(ev:any) {
+    apply_move(BoulderMove.Down)
+  });
+
+
+
   return $tiles;
 }
