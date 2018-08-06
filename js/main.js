@@ -747,20 +747,36 @@ function apply_move(move) {
             let b = board.boulders[i];
             if (b) {
                 let s = 0.1 * (b.last_mag || 0);
-                $(e).css('transition', 'transform ' + s + 's ease-in');
+                let base_transform = "background 0.5s, border 0.5s";
+                $(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transform);
                 $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')');
-                if (b.in_pit) {
-                    $(e).addClass('boulder--in-pit');
-                }
-                else {
-                    $(e).removeClass('boulder--in-pit');
+                if (board.getTile(b.x, b.y) != Tile.Target) {
+                    $(e).removeClass('boulder--on-target');
                 }
                 setTimeout(() => {
+                    if (board.getTile(b.x, b.y) == Tile.Target) {
+                        $(e).addClass('boulder--on-target');
+                    }
+                    if (b.in_pit) {
+                        $(e).addClass('boulder--in-pit');
+                    }
+                    else {
+                        1;
+                        $(e).removeClass('boulder--in-pit');
+                    }
                     if (b.last_contact) {
                         let t = board.getTile(b.last_contact.x, b.last_contact.y);
                         let $t = $tiles[b.last_contact.x][b.last_contact.y];
                         if ($t && t == Tile.Empty) {
-                            $t.remove();
+                            $t.addClass('animated');
+                            if (b.last_contact.x > b.x)
+                                $t.addClass('fadeOutRight');
+                            else if (b.last_contact.x < b.x)
+                                $t.addClass('fadeOutLeft');
+                            else if (b.last_contact.y < b.y)
+                                $t.addClass('fadeOutUp');
+                            else if (b.last_contact.y > b.y)
+                                $t.addClass('fadeOutDown');
                         }
                     }
                 }, s * 1000);
@@ -769,15 +785,15 @@ function apply_move(move) {
         let time = board.boulders.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
         setTimeout(() => {
             moving = false;
-            for (let x = 0; x < board.width; x++) {
-                for (let y = 0; y < board.height; y++) {
-                    let t = board.getTile(x, y);
-                    let $t = $tiles[x][y];
-                    if ($t && t == Tile.Empty) {
-                        $t.remove();
-                    }
+            /* for (let x = 0; x < board.width; x++) {
+              for (let y = 0; y < board.height; y++) {
+                let t = board.getTile(x, y)
+                let $t = $tiles[x][y]
+                if ($t && t == Tile.Empty) {
+                  $t.remove();
                 }
-            }
+              }
+            } */
             if (board.isSolved()) {
                 setTimeout(() => {
                     sweetalert2_1.default({
@@ -821,11 +837,14 @@ function create_board(board) {
                 tileName = 'pit';
                 layer = "lower";
             }
+            let $tw = $('<div/>')
+                .addClass('tile-wrapper')
+                .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles')
+                .css('transform', 'translate(calc(var(--tsize) * ' + x + '), calc(var(--tsize) * ' + y + ')');
             let $t = $('<div/>')
                 .addClass('tile')
                 .addClass('tile--' + tileName)
-                .css('transform', 'translate(calc(var(--tsize) * ' + x + '), calc(var(--tsize) * ' + y + ')')
-                .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles');
+                .appendTo($tw);
             $tiles[x][y] = $t;
         }
     }

@@ -2,6 +2,7 @@
 <meta name="viewport" content="width=device-width">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/>
 <link href="https://fonts.googleapis.com/css?family=Josefin+Sans" rel="stylesheet">`
+<link rel="stylesheet" type="text/css" href="animate.css">
 <style>
 html, body{
     height: 100%;
@@ -41,7 +42,7 @@ html, body{
       background: white;
       border: calc(var(--tsize) * 0.05) solid orange;
       filter: blur(calc(var(--tsize) * 0.1));
-      transition: transform 0.5s ease-in;
+      transition: transform 0.5s ease-in, border 0.5s;
       top: calc(var(--tsize) * 0.15);
       left: calc(var(--tsize) * 0.15);
       width: calc(var(--tsize) * 0.7);
@@ -52,6 +53,10 @@ html, body{
     .boulder.boulder--in-pit{
         background: #9a4f19;
         z-index:1;
+    }
+    .boulder.boulder--on-target{
+        border: calc(var(--tsize) * 0.05) solid green;
+        background: lawngreen;
     }
     .tile--brick{
         background: brown;
@@ -108,9 +113,14 @@ html, body{
       filter:
         drop-shadow(4px 4px 6px rgba(0,0,0,0.4))
         drop-shadow(1px 1px 10px rgba(0,0,0,0.4))
-        drop-shadow(1px 1px 10px red)
       ;
       z-index:1;
+    }
+
+    .tile-wrapper{
+      position: absolute;
+      width: var(--t-size);
+      height: var(--t-size);
     }
 
 </style>
