@@ -22,33 +22,44 @@ html, body{
 
     }
     .puzzles{
+      background: #555;
+      border: inset 10px #666;
+      box-shadow: 2px 2px 3px black;
+    }
+
+    .puzzles, .upper-layer{
         position: absolute;
         top:50%;
         left: 50%;
         width: var(--bsize);
         height:  var(--bsize);
         transform: translate(-50%, -50%);
-        background: white;
-        box-shadow: 2px 2px 3px black;
     }
     .boulder{
-        display: inline-block;
-        position: absolute;
-        background: chocolate;
-        top:3px;
-        left:2px;
-        transition: transform 0.5s ease-in;
-        width: calc(var(--tsize) - 5px);
-        height: calc(var(--tsize) - 5px);
-        border-radius: 100%;
-        z-index:2;
+      display: inline-block;
+      position: absolute;
+      background: white;
+      border: 5px solid orange;
+      filter: blur(4px);
+      top: 10px;
+      left: 10px;
+      transition: transform 0.5s ease-in;
+      width: calc(var(--tsize) - 27px);
+      height: calc(var(--tsize) - 27px);
+      border-radius: 100%;
+      z-index: 2;
     }
     .boulder.boulder--in-pit{
         background: #9a4f19;
         z-index:1;
     }
-    .tile--brick {
+    .tile--brick{
         background: brown;
+        border: calc(var(--tsize) * 0.2) outset #c4544a;
+    }
+    .tile--fragile {
+      background: url(assets/cracked64.png);
+      background-size: cover;
     }
     .tile.tile--pit {
         box-shadow: 4px 4px 4px black inset;
@@ -60,10 +71,6 @@ html, body{
     .tile--crystal {
         background: lightgreen;
     }
-    .tile--fragile {
-        background: brown;
-        opacity: 0.3;
-    }
     .tile--target {
         background: rgba(0,0,0,0.25);
         border-radius:100%;
@@ -74,6 +81,7 @@ html, body{
         position: absolute;
         top: 0;
         left: 0;
+        box-sizing: border-box;
     }
     pre{
         font-size: 35px;
@@ -82,7 +90,7 @@ html, body{
         padding: 0;
     }
     .buttons{
-      z-index: 1;
+      z-index: 2;
       position: absolute;
         bottom:10px;
         right: 10px;
@@ -96,6 +104,14 @@ html, body{
     .buttons .fa-stack:hover{
       opacity: 1;
     }
+    .upper-layer{
+      filter:
+        drop-shadow(4px 4px 6px rgba(0,0,0,0.4))
+        drop-shadow(1px 1px 10px rgba(0,0,0,0.4))
+      ;
+      z-index:1;
+    }
+
 </style>
 <script src="js/main.js"></script>
 <div class="buttons">

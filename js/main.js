@@ -743,7 +743,7 @@ function apply_move(move) {
     if (move && !moving && board) {
         moving = true;
         board = board.apply(move);
-        $('.puzzles .boulder').each((i, e) => {
+        $('.puzzle-wrapper .boulder').each((i, e) => {
             let b = board.boulders[i];
             if (b) {
                 let s = 0.1 * (b.last_mag || 0);
@@ -795,17 +795,21 @@ function create_board(board) {
     $("body").attr("style", "--tsize:calc(var(--bsize) / " + board.width + ")");
     $('<div/>').addClass('puzzles')
         .appendTo($wrapper);
+    $('<div/>').addClass('upper-layer')
+        .appendTo($wrapper);
     var $tiles = [];
     for (let x = 0; x < board.width; x++) {
         $tiles[x] = [];
         for (let y = 0; y < board.height; y++) {
             let t = board.getTile(x, y);
+            let layer = "upper";
             if (t == Tile.Empty) {
                 continue;
             }
             let tileName = 'brick';
             if (t == Tile.Target) {
                 tileName = 'target';
+                layer = "lower";
             }
             if (t == Tile.Fragile) {
                 tileName = 'fragile';
@@ -815,17 +819,18 @@ function create_board(board) {
             }
             if (t == Tile.Pit) {
                 tileName = 'pit';
+                layer = "lower";
             }
             let $t = $('<div/>')
                 .addClass('tile')
                 .addClass('tile--' + tileName)
                 .css('transform', 'translate(calc(var(--tsize) * ' + x + '), calc(var(--tsize) * ' + y + ')')
-                .appendTo('.puzzles');
+                .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles');
             $tiles[x][y] = $t;
         }
     }
     for (let b of board.boulders) {
-        $('.puzzles').append($('<div class="boulder"/>')
+        $('.upper-layer').append($('<div class="boulder"/>')
             .css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')')
             .data('x', b.x)
             .data('y', b.y));
