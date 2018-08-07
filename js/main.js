@@ -8,18 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const _ = __importStar(require("lodash"));
+const lodash_1 = __importDefault(require("lodash"));
 const jquery_1 = __importDefault(require("jquery"));
 const hammerjs_1 = __importDefault(require("hammerjs"));
 const sweetalert2_1 = __importDefault(require("sweetalert2"));
@@ -126,7 +119,7 @@ class PuzzleState {
                 }
             }
             else {
-                let next = _.sample(nexts);
+                let next = lodash_1.default.sample(nexts);
                 if (!next) {
                     throw "No valid options";
                 }
@@ -222,7 +215,7 @@ class BoulderPuzzle extends PuzzleState {
         return this.toString();
     }
     apply(move) {
-        let state = _.cloneDeep(this);
+        let state = lodash_1.default.cloneDeep(this);
         for (var i = 0; i < state.boulders.length; i++) {
             state.boulders[i].index = i;
         }
@@ -308,7 +301,7 @@ class BoulderPuzzle extends PuzzleState {
             throw "Crystals already present";
         }
         for (var i = 0; i < randInt(1, 4); i++) {
-            let coord = _.sample(this.criticalTiles);
+            let coord = lodash_1.default.sample(this.criticalTiles);
             if (coord) {
                 if (this.getTile(coord.x, coord.y) == Tile.Empty) {
                     this.grid[coord.x][coord.y] = Tile.Crystal;
@@ -325,7 +318,7 @@ class BoulderPuzzle extends PuzzleState {
         return this;
     }
     reverse(move) {
-        let state = _.cloneDeep(this);
+        let state = lodash_1.default.cloneDeep(this);
         if (move == BoulderMove.Shatter) {
             return state.reverseShatter();
         }
@@ -343,7 +336,7 @@ class BoulderPuzzle extends PuzzleState {
                     possibleCoords.push(coord);
                 }
             }
-            let pit = _.sample(possibleCoords);
+            let pit = lodash_1.default.sample(possibleCoords);
             if (!pit) {
                 throw "No pit locations";
             }
@@ -373,7 +366,7 @@ class BoulderPuzzle extends PuzzleState {
             if (!state.isPassable(ox - vec[0], oy - vec[1])) {
                 mags.push(0);
             }
-            let mag = _.sample(mags);
+            let mag = lodash_1.default.sample(mags);
             if (mag === undefined) {
                 throw "No options";
             }
@@ -409,7 +402,7 @@ class BoulderPuzzle extends PuzzleState {
             if (this.hasPortals()) {
                 throw "Already has a portal pair";
             }
-            let b = _.sample(haveMoved);
+            let b = lodash_1.default.sample(haveMoved);
             if (b) {
                 state.grid[b.x][b.y] = Tile.Portal;
                 let possibleCoords = [];
@@ -420,7 +413,7 @@ class BoulderPuzzle extends PuzzleState {
                         }
                     }
                 }
-                let portal = _.sample(possibleCoords);
+                let portal = lodash_1.default.sample(possibleCoords);
                 if (!portal) {
                     throw "No portal locations possible";
                 }
@@ -436,7 +429,7 @@ class BoulderPuzzle extends PuzzleState {
                         break;
                     }
                 }
-                let mag = _.sample(mags);
+                let mag = lodash_1.default.sample(mags);
                 if (!mag) {
                     throw "No where to enter portal from (Shouldn't happen)";
                 }
@@ -718,12 +711,6 @@ jquery_1.default(document).ready(() => {
             jquery_1.default('body').keyup((e) => {
                 let move = undefined;
                 switch (e.which) {
-                    case 13:
-                        move = BoulderMove.Shatter;
-                        break;
-                    case 32:
-                        move = BoulderMove.Shatter;
-                        break;
                     case 37:
                         move = BoulderMove.Left;
                         break;
@@ -756,10 +743,10 @@ function apply_move(move) {
         board = board.apply(move);
         jquery_1.default('.puzzle-wrapper .boulder').each((i, e) => {
             let b = board.boulders[i];
-            if (b) {
+            if (b && !jquery_1.default(e).hasClass('boulder--in-pit')) {
                 let s = 0.1 * (b.last_mag || 0);
-                let base_transform = "background 0.5s, border 0.5s, filter 0.5s";
-                jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transform);
+                let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
+                jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
                 jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))');
                 if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
                     jquery_1.default(e).removeClass('boulder--on-target');
@@ -769,10 +756,12 @@ function apply_move(move) {
                         jquery_1.default(e).addClass('boulder--on-target');
                     }
                     if (b.in_pit) {
-                        jquery_1.default(e).addClass('boulder--in-pit');
+                        setTimeout(() => {
+                            jquery_1.default(e).addClass('boulder--in-pit');
+                            jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')) scale(0.7)');
+                        }, 100);
                     }
                     else {
-                        1;
                         jquery_1.default(e).removeClass('boulder--in-pit');
                     }
                     if (b.last_contact) {

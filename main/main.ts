@@ -1,6 +1,6 @@
-import * as _ from "lodash";
-import $ from 'jquery'
-import  Hammer from 'hammerjs'
+import _ from "lodash";
+import  $ from 'jquery'
+import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 
 abstract class PuzzleState<MOVE>{
@@ -733,12 +733,6 @@ $(document).ready(() => {
     $('body').keyup((e) => {
       let move: BoulderMove | undefined = undefined;
       switch (e.which) {
-        case 13:
-          move = BoulderMove.Shatter;
-          break;
-        case 32:
-          move = BoulderMove.Shatter;
-          break;
         case 37:
           move = BoulderMove.Left;
           break;
@@ -775,10 +769,10 @@ function apply_move(move: BoulderMove|undefined):void{
     board = board.apply(move)
     $('.puzzle-wrapper .boulder').each((i, e) => {
       let b = board.boulders[i];
-      if (b) {
+      if (b && !$(e).hasClass('boulder--in-pit')) {
         let s = 0.1 * (b.last_mag || 0);
-        let base_transform = "background 0.5s, border 0.5s, filter 0.5s";
-        $(e).css('transition', 'transform ' + s + 's ease-in, '+base_transform)
+        let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
+        $(e).css('transition', 'transform ' + s + 's ease-in, '+base_transition)
         $(e).css('transform',  'translate(calc(var(--tsize) * '+b.x+'), calc(var(--tsize) * '+b.y+'))')
         if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
           $(e).removeClass('boulder--on-target');
@@ -788,8 +782,11 @@ function apply_move(move: BoulderMove|undefined):void{
             $(e).addClass('boulder--on-target');
           }
           if (b.in_pit) {
-            $(e).addClass('boulder--in-pit');
-          } else {1
+            setTimeout(()=>{
+              $(e).addClass('boulder--in-pit');
+              $(e).css('transform',  'translate(calc(var(--tsize) * '+b.x+'), calc(var(--tsize) * '+b.y+')) scale(0.7)')
+            }, 100)
+          } else {
             $(e).removeClass('boulder--in-pit');
           }
           if (b.last_contact) {

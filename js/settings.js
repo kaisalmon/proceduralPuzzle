@@ -208,7 +208,8 @@ jquery_1.default(document).ready(() => {
             'size': parseInt(url_vars["size"]) || 6,
             'boulders': parseInt(url_vars["boulders"]) || 2,
             'minmoves': parseInt(url_vars["depth"]) - 1 || 3,
-            'no_fragile': url_vars["fragile"] === undefined || url_vars["fragile"] === "true" ? false : true
+            'no_fragile': url_vars["fragile"] === undefined || url_vars["fragile"] === "true" ? false : true,
+            'pits': url_vars["pits"] === undefined || url_vars["pits"] === "false" ? false : true
         },
         'watch': {
             'size': function () {
@@ -220,6 +221,8 @@ jquery_1.default(document).ready(() => {
                 this.setUrl();
             }, 'no_fragile': function () {
                 this.setUrl();
+            }, 'pits': function () {
+                this.setUrl();
             }
         },
         'computed': {
@@ -228,6 +231,9 @@ jquery_1.default(document).ready(() => {
             },
             'difficulty': function () {
                 let d = Math.sqrt(this.boulders) * (Math.pow(this.minmoves, 3) - 5 * Math.pow(this.size - 8, 2));
+                if (this.pits) {
+                    d *= 1.15;
+                }
                 return Math.max(d, 150);
             },
             'difficulty_label': function () {
@@ -240,7 +246,7 @@ jquery_1.default(document).ready(() => {
                 return "hard";
             },
             'max_difficulty': function () {
-                return Math.sqrt(10) * Math.pow(7, 3);
+                return Math.sqrt(10) * Math.pow(7, 3) * 1.25;
             },
             'difficulty_percent': function () {
                 return (this.difficulty / this.max_difficulty * 100) + "%";
@@ -256,6 +262,7 @@ jquery_1.default(document).ready(() => {
                 settings += "&depth=" + this.depth;
                 settings += "&boulders=" + this.boulders;
                 settings += "&fragile=" + this.fragile;
+                settings += "&pits=" + this.pits;
                 window.history.replaceState({}, "Settings", base + "?" + settings);
             },
             'play': function () {
