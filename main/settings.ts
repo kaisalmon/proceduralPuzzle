@@ -42,22 +42,22 @@ $(document).ready(()=>{
         return !this.no_fragile;
       },
       'difficulty' : function():number{
-        let d = Math.sqrt(this.boulders) * (Math.pow(this.minmoves, 3) - 5 * Math.pow(this.size-8, 2));
+        let d = Math.sqrt(this.boulders) * (Math.pow(this.minmoves, 2) -  Math.pow(this.size-8, 2));
         if(this.pits){
           d *= 1.15;
         }
-        return Math.max(d, 150);
+        return Math.max(d, 10);
       },
       'difficulty_label': function():string{
-        if (this.difficulty < 250) {
+        if (this.difficulty < this.max_difficulty * 0.3) {
           return "easy"
-        } else if (this.difficulty < 600) {
+        } else if (this.difficulty < this.max_difficulty * 0.7) {
           return "medium"
         }
         return "hard";
       },
       'max_difficulty': function(){
-        return Math.sqrt(10) * Math.pow(7,3) * 1.25
+        return Math.sqrt(10) * Math.pow(7,2) * 1.25
       },
       'difficulty_percent': function(){
         return (this.difficulty/this.max_difficulty * 100) + "%";
