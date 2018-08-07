@@ -824,7 +824,15 @@ function apply_move(move: BoulderMove|undefined):void{
         setTimeout(() => {
           swal({
             title: "You win!",
-            type: "success"
+            type: "success",
+            showCancelButton: true,
+            cancelButtonText: "Back to settings",
+            confirmButtonText: "New Puzzle",
+            useRejections: true,
+          }).then(()=>{
+              window.location.reload();
+          }).catch(()=>{
+              window.location.href = window.location.href.replace("game", "index");
           })
         }, 400);
       }
