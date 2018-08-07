@@ -1,6 +1,6 @@
 import * as _ from "lodash";
-import * as $ from 'jquery'
-import * as Hammer from 'hammerjs'
+import $ from 'jquery'
+import  Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 
 abstract class PuzzleState<MOVE>{
@@ -758,7 +758,7 @@ $(document).ready(() => {
     function getUrlVars(): { [id: string]: string } {
       var vars: { [id: string]: string } = {};
       window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,
-        function(m, key, value: string): string {
+        function({}, key, value: string): string {
           vars[key] = value;
           return "";
         }
@@ -766,6 +766,7 @@ $(document).ready(() => {
       return vars;
     }
   })();
+
 })
 
 function apply_move(move: BoulderMove|undefined):void{
@@ -805,6 +806,7 @@ function apply_move(move: BoulderMove|undefined):void{
               else if(b.last_contact.y > b.y)
                 $t.addClass('fadeOutDown')
             }
+            setTimeout(()=>$t.remove, 1000)
           }
         }, s * 1000)
       }
@@ -893,16 +895,16 @@ function create_board(board: BoulderPuzzle): JQuery[][] {
   var mc = new Hammer($wrapper[0]);
   mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
 
-  mc.on("swipeleft", function(ev:any) {
+  mc.on("swipeleft", function() {
     apply_move(BoulderMove.Left)
   });
-  mc.on("swiperight", function(ev:any) {
+  mc.on("swiperight", function() {
     apply_move(BoulderMove.Right)
   });
-  mc.on("swipeup", function(ev:any) {
+  mc.on("swipeup", function() {
     apply_move(BoulderMove.Up)
   });
-  mc.on("swipedown", function(ev:any) {
+  mc.on("swipedown", function() {
     apply_move(BoulderMove.Down)
   });
 

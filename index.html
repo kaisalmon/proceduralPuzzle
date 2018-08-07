@@ -1,148 +1,67 @@
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width">
+<meta charset="utf-8">
+  <meta name="viewport"
+     content="width=device-width, initial-scale=1, user-scalable=yes">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/>
-<link href="https://fonts.googleapis.com/css?family=Josefin+Sans" rel="stylesheet">`
+<link href="https://fonts.googleapis.com/css?family=Josefin+Sans" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="animate.css">
+<link rel="stylesheet" type="text/css" href="material-switch.css">
+<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+
 <style>
-html, body{
-    height: 100%;
-    margin: 0px;
-    padding: 0px
-}
+
   body{
       font-family: 'Josefin Sans', sans-serif;
       background: #333;
-      --bsize: 80vmin;`
+      --bsize: 80vmin;
   }
-    .puzzle-wrapper{
-        position: absolute;
-        left:0;
-        right:0;
-        top:0;
-        bottom: 0;
 
-    }
-    .puzzles{
-      background: #555;
-      border: inset 10px #666;
-      box-shadow: 2px 2px 3px black;
-    }
-
-    .puzzles, .upper-layer{
-        position: absolute;
-        top:50%;
-        left: 50%;
-        width: var(--bsize);
-        height:  var(--bsize);
-        transform: translate(-50%, -50%);
-    }
-    .boulder{
-      display: inline-block;
-      position: absolute;
-      background: white;
-      border: calc(var(--tsize) * 0.1) solid orange;
-      filter: blur(calc(var(--tsize) * 0.1));
-      transition: transform 0.5s ease-in, border 0.5s;
-      top: calc(var(--tsize) * 0.15);
-      left: calc(var(--tsize) * 0.15);
-      width: calc(var(--tsize) * 0.7);
-      height: calc(var(--tsize) * 0.7);
-      border-radius: 100%;
-      box-sizing:border-box;
-      z-index: 2;
-    }
-    .boulder.boulder--in-pit{
-        background: #9a4f19;
-        z-index:1;
-    }
-    .boulder.boulder--on-target{
-        border: calc(var(--tsize) * 0.1) solid green;
-    }
-    .tile--brick{
-        background: brown;
-        border: calc(var(--tsize) * 0.2) outset #c4544a;
-    }
-    .tile--fragile {
-      background: url(assets/cracked64.png);
-      background-size: cover;
-    }
-    .tile.tile--pit {
-        box-shadow: 4px 4px 4px black inset;
-        background: #DDD;
-        margin:1px;
-        width: calc(var(--tsize) - 3px);
-        height:calc(var(--tsize) - 3px);
-    }
-    .tile--crystal {
-        background: lightgreen;
-    }
-    .tile--target {
-        background: rgba(0,0,0,0.25);
-        border-radius:100%;
-    }
-    .tile {
-        width: var(--tsize);
-        height: var(--tsize);
-        position: absolute;
-        top: 0;
-        left: 0;
-        box-sizing: border-box;
-    }
-    pre{
-        font-size: 35px;
-        line-height: 23px;
-        margin: 0;
-        padding: 0;
-    }
-    .buttons{
-      z-index: 2;
-      position: absolute;
-        bottom:10px;
-        right: 10px;
-    }
-    .buttons .fa-stack{
-      color: white;
-      opacity: 0.3;
-      transition: opacity 0.5s;
-      font-size: 40px;
-    }
-    .buttons .fa-stack:hover{
-      opacity: 1;
-    }
-    .upper-layer{
-      filter:
-        drop-shadow(4px 4px 6px rgba(0,0,0,0.4))
-        drop-shadow(1px 1px 10px rgba(0,0,0,0.4))
-      ;
-
-      -webkit-filter:
-        drop-shadow(4px 4px 6px rgba(0,0,0,0.4))
-        drop-shadow(1px 1px 10px rgba(0,0,0,0.4))
-      ;
-      z-index:1;
-    }
-
-    .tile-wrapper{
-      position: absolute;
-      width: var(--t-size);
-      height: var(--t-size);
-    }
-
+  #settings{
+    position: absolute;
+    transform: translateY(-50%);
+    top: 50%;
+  }
 </style>
-<script src="js/main.js"></script>
-<div class="buttons">
-  <!--
-  <span class="fa-stack fa-lg">
-    <i class="fa fa-circle-thin fa-stack-2x"></i>
-    <i class="fa fa-question fa-stack-1x"></i>
-  </span>
-  -->
-  <span class="hint fa-stack fa-lg">
-    <i class="fa fa-circle-thin fa-stack-2x"></i>
-    <i class="fa fa-lightbulb-o fa-stack-1x"></i>
-  </span>
-  <span class="reset fa-stack fa-lg">
-    <i class="fa fa-circle-thin fa-stack-2x"></i>
-    <i class="fa fa-refresh fa-stack-1x"></i>
-  </span>
+
+<div  id="settings" class="container-fluid">
+  <div class="row m-3">
+    <div class="col-md-2"></div>
+    <div class="col-12 col-md-8">
+      <h3 class="text-center">Puzzle Game Settings</h3>
+      <div class="row">
+        <h5 class="mt-4 col-12">Basic Settings</h5>
+          <label class="col-12 col-md-4"> Boulders
+            <input class="form-control" v-model="boulders" type="number" min="1" max="10"/>
+          </label>
+          <label class="col-12 col-md-4">Grid Size
+            <input class="form-control" v-model="size" type="number" min="4" max="12"/>
+          </label>
+          <label class="col-12 col-md-4">  Minimum Moves
+            <input class="form-control" v-model="minmoves" type="number" min="1" max="7"/>
+          </label>
+
+          <h5 class="mt-4 col-12">Options</h5>
+          <div class="col-12 col-sm-6 col-md-3">
+            <input class="form-control" v-model="no_fragile" id="no_fragile" type="checkbox" />
+            <label for="no_fragile">  No Fragile Blocks  </label>
+          </div>
+
+          <h5 class="mt-4 col-12">Infomation</h5>
+          <label class="col-12">  Difficulty
+            <div class="progress">
+              <div class="progress-bar " role="progressbar" v-bind:style='{width: difficulty_percent}'>
+                {{difficulty_label}}
+              </div>
+            </div>
+          </label>
+          <div class="text-center col-12 p-4">
+            <button class="btn-primary btn" v-on:click="play()">
+              Generate Puzzle
+            </button>
+          </div>
+      </div>
+    </div>
+    <div class="col-md-2"></div>
 </div>
+</div>
+
+<script src="js/settings.js"></script>

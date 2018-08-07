@@ -8,11 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const _ = require("lodash");
-const $ = require("jquery");
-const Hammer = require("hammerjs");
-const sweetalert2_1 = require("sweetalert2");
+const _ = __importStar(require("lodash"));
+const jquery_1 = __importDefault(require("jquery"));
+const hammerjs_1 = __importDefault(require("hammerjs"));
+const sweetalert2_1 = __importDefault(require("sweetalert2"));
 class PuzzleState {
     solve(maxDepth = 5, curDepth = 1) {
         if (this.isSolved()) {
@@ -618,7 +628,7 @@ stack = stack.reverse();
 let board;
 let moving = false;
 let $tiles;
-$(document).ready(() => {
+jquery_1.default(document).ready(() => {
     (function () {
         return __awaiter(this, void 0, void 0, function* () {
             let params = getUrlVars();
@@ -685,11 +695,11 @@ $(document).ready(() => {
             }
             board = stack[0][0];
             let solution = stack[1];
-            $('.hint').click(() => {
+            jquery_1.default('.hint').click(() => {
                 sweetalert2_1.default(solution.join("\n"));
             });
             let orig = board;
-            $('.reset').click(() => {
+            jquery_1.default('.reset').click(() => {
                 sweetalert2_1.default({
                     title: "Restart puzzle?",
                     type: "question",
@@ -705,7 +715,7 @@ $(document).ready(() => {
                 });
             });
             $tiles = create_board(board);
-            $('body').keyup((e) => {
+            jquery_1.default('body').keyup((e) => {
                 let move = undefined;
                 switch (e.which) {
                     case 13:
@@ -731,7 +741,7 @@ $(document).ready(() => {
             });
             function getUrlVars() {
                 var vars = {};
-                window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
+                window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function ({}, key, value) {
                     vars[key] = value;
                     return "";
                 });
@@ -744,26 +754,26 @@ function apply_move(move) {
     if (move && !moving && board) {
         moving = true;
         board = board.apply(move);
-        $('.puzzle-wrapper .boulder').each((i, e) => {
+        jquery_1.default('.puzzle-wrapper .boulder').each((i, e) => {
             let b = board.boulders[i];
             if (b) {
                 let s = 0.1 * (b.last_mag || 0);
                 let base_transform = "background 0.5s, border 0.5s, filter 0.5s";
-                $(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transform);
-                $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))');
+                jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transform);
+                jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))');
                 if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
-                    $(e).removeClass('boulder--on-target');
+                    jquery_1.default(e).removeClass('boulder--on-target');
                 }
                 setTimeout(() => {
                     if (board.getTile(b.x, b.y) == Tile.Target) {
-                        $(e).addClass('boulder--on-target');
+                        jquery_1.default(e).addClass('boulder--on-target');
                     }
                     if (b.in_pit) {
-                        $(e).addClass('boulder--in-pit');
+                        jquery_1.default(e).addClass('boulder--in-pit');
                     }
                     else {
                         1;
-                        $(e).removeClass('boulder--in-pit');
+                        jquery_1.default(e).removeClass('boulder--in-pit');
                     }
                     if (b.last_contact) {
                         let t = board.getTile(b.last_contact.x, b.last_contact.y);
@@ -779,6 +789,7 @@ function apply_move(move) {
                             else if (b.last_contact.y > b.y)
                                 $t.addClass('fadeOutDown');
                         }
+                        setTimeout(() => $t.remove, 1000);
                     }
                 }, s * 1000);
             }
@@ -807,12 +818,12 @@ function apply_move(move) {
     }
 }
 function create_board(board) {
-    $('.puzzle-wrapper').remove();
-    let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body');
-    $("body").attr("style", "--tsize:calc(var(--bsize) / " + board.width + ")");
-    $('<div/>').addClass('puzzles')
+    jquery_1.default('.puzzle-wrapper').remove();
+    let $wrapper = jquery_1.default('<div/>').addClass('puzzle-wrapper').appendTo('body');
+    jquery_1.default("body").attr("style", "--tsize:calc(var(--bsize) / " + board.width + ")");
+    jquery_1.default('<div/>').addClass('puzzles')
         .appendTo($wrapper);
-    $('<div/>').addClass('upper-layer')
+    jquery_1.default('<div/>').addClass('upper-layer')
         .appendTo($wrapper);
     var $tiles = [];
     for (let x = 0; x < board.width; x++) {
@@ -838,11 +849,11 @@ function create_board(board) {
                 tileName = 'pit';
                 layer = "lower";
             }
-            let $tw = $('<div/>')
+            let $tw = jquery_1.default('<div/>')
                 .addClass('tile-wrapper')
                 .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles')
                 .css('transform', 'translate(calc(var(--tsize) * ' + x + '), calc(var(--tsize) * ' + y + '))');
-            let $t = $('<div/>')
+            let $t = jquery_1.default('<div/>')
                 .addClass('tile')
                 .addClass('tile--' + tileName)
                 .appendTo($tw);
@@ -850,7 +861,7 @@ function create_board(board) {
         }
     }
     for (let b of board.boulders) {
-        let $e = $('<div class="boulder"/>')
+        let $e = jquery_1.default('<div class="boulder"/>')
             .css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))')
             .data('x', b.x)
             .data('y', b.y)
@@ -859,18 +870,18 @@ function create_board(board) {
             $e.addClass('boulder--on-target');
         }
     }
-    var mc = new Hammer($wrapper[0]);
-    mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
-    mc.on("swipeleft", function (ev) {
+    var mc = new hammerjs_1.default($wrapper[0]);
+    mc.get('swipe').set({ direction: hammerjs_1.default.DIRECTION_ALL });
+    mc.on("swipeleft", function () {
         apply_move(BoulderMove.Left);
     });
-    mc.on("swiperight", function (ev) {
+    mc.on("swiperight", function () {
         apply_move(BoulderMove.Right);
     });
-    mc.on("swipeup", function (ev) {
+    mc.on("swipeup", function () {
         apply_move(BoulderMove.Up);
     });
-    mc.on("swipedown", function (ev) {
+    mc.on("swipedown", function () {
         apply_move(BoulderMove.Down);
     });
     return $tiles;

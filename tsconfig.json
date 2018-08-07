@@ -4,6 +4,7 @@
     "moduleResolution": "node",
     "removeComments": false,
     "preserveConstEnums": true,
+    "esModuleInterop": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
@@ -23,4 +24,3 @@
     "typings"
   ]
 }
-
