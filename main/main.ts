@@ -777,7 +777,7 @@ function apply_move(move: BoulderMove|undefined):void{
         let s = 0.1 * (b.last_mag || 0);
         let base_transform = "background 0.5s, border 0.5s";
         $(e).css('transition', 'transform ' + s + 's ease-in, '+base_transform)
-        $(e).css('transform',  'translate(calc(var(--tsize) * '+b.x+'), calc(var(--tsize) * '+b.y+')')
+        $(e).css('transform',  'translate(calc(var(--tsize) * '+b.x+'), calc(var(--tsize) * '+b.y+'))')
         if (board.getTile(b.x, b.y) != Tile.Target) {
           $(e).removeClass('boulder--on-target');
         }
@@ -870,7 +870,7 @@ function create_board(board: BoulderPuzzle): JQuery[][] {
       let $tw = $('<div/>')
         .addClass('tile-wrapper')
         .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles')
-        .css('transform', 'translate(calc(var(--tsize) * '+x+'), calc(var(--tsize) * '+y+')')
+        .css('transform', 'translate(calc(var(--tsize) * '+x+'), calc(var(--tsize) * '+y+'))')
       let $t = $('<div/>')
         .addClass('tile')
         .addClass('tile--' + tileName)
@@ -881,7 +881,7 @@ function create_board(board: BoulderPuzzle): JQuery[][] {
   for (let b of board.boulders) {
     $('.upper-layer').append(
       $('<div class="boulder"/>')
-        .css('transform',  'translate(calc(var(--tsize) * '+b.x+'), calc(var(--tsize) * '+b.y+')')
+        .css('transform',  'translate(calc(var(--tsize) * '+b.x+'), calc(var(--tsize) * '+b.y+'))')
         .data('x', b.x)
         .data('y', b.y)
     );
