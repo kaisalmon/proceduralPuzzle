@@ -223,6 +223,7 @@ class BoulderPuzzle extends PuzzleState {
         let vec = this.getVec(move);
         let toBeRemoved = [];
         for (let b of state.bouldersInVecOrder(vec)) {
+            b.last_move = [0, 0];
             if (b.is_frozen()) {
                 continue;
             }
@@ -747,10 +748,10 @@ function apply_move(move) {
             let b = board.boulders[i];
             if (b) {
                 let s = 0.1 * (b.last_mag || 0);
-                let base_transform = "background 0.5s, border 0.5s";
+                let base_transform = "background 0.5s, border 0.5s, filter 0.5s";
                 $(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transform);
                 $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))');
-                if (board.getTile(b.x, b.y) != Tile.Target) {
+                if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
                     $(e).removeClass('boulder--on-target');
                 }
                 setTimeout(() => {
@@ -849,10 +850,14 @@ function create_board(board) {
         }
     }
     for (let b of board.boulders) {
-        $('.upper-layer').append($('<div class="boulder"/>')
+        let $e = $('<div class="boulder"/>')
             .css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))')
             .data('x', b.x)
-            .data('y', b.y));
+            .data('y', b.y)
+            .appendTo('.upper-layer');
+        if (board.getTile(b.x, b.y) == Tile.Target) {
+            $e.addClass('boulder--on-target');
+        }
     }
     var mc = new Hammer($wrapper[0]);
     mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
