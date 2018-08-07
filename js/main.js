@@ -683,7 +683,19 @@ jquery_1.default(document).ready(() => {
                 sweetalert2_1.default.close();
             }
             catch (e) {
-                sweetalert2_1.default("Couldn't generate level!", "feel free to try a few more times", "error");
+                sweetalert2_1.default({
+                    title: "Couldn't generate level!",
+                    text: "feel free to try a few more times",
+                    type: "error",
+                    showCancelButton: true,
+                    cancelButtonText: "Back to settings",
+                    confirmButtonText: "New Puzzle",
+                    useRejections: true,
+                }).then(() => {
+                    window.location.reload();
+                }).catch(() => {
+                    window.location.href = window.location.href.replace("game", "index");
+                });
                 return;
             }
             board = stack[0][0];

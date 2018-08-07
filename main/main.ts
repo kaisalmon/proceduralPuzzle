@@ -702,7 +702,19 @@ $(document).ready(() => {
       stack = await tryUntilSuccess(createPuzzle);
       swal.close();
     }catch(e){
-      swal("Couldn't generate level!","feel free to try a few more times", "error")
+      swal({
+        title: "Couldn't generate level!",
+        text: "feel free to try a few more times",
+        type: "error",
+        showCancelButton: true,
+        cancelButtonText: "Back to settings",
+        confirmButtonText: "New Puzzle",
+        useRejections: true,
+      }).then(()=>{
+          window.location.reload();
+      }).catch(()=>{
+          window.location.href = window.location.href.replace("game", "index");
+      })
       return
     }
 
