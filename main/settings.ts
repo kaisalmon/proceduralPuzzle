@@ -20,7 +20,7 @@ $(document).ready(()=>{
       'size':parseInt(url_vars["size"]) || 6,
       'boulders': parseInt(url_vars["boulders"]) || 2,
       'minmoves': parseInt(url_vars["depth"])  - 1 || 3,
-      'no_fragile': url_vars["fragile"] === undefined ? false :  url_vars["fragile"]
+      'no_fragile': url_vars["fragile"] === undefined || url_vars["fragile"] === "true" ? false : true
     },
     'watch':{
       'size': function(){
