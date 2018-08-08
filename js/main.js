@@ -457,12 +457,12 @@ function randInt(min, max) {
 }
 function createBoulderPuzzle(args) {
     let p = new boulderPuzzle_1.BoulderPuzzle(args.size, args.size);
-    for (let i = 0; i < (args.fragile ? 1 / 25 : 0) * p.width * p.height; i++) {
+    for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
         let x = randInt(0, p.width);
         let y = randInt(0, p.height);
         p.grid[x][y] = boulderPuzzle_1.Tile.Fragile;
     }
-    for (let i = 0; i < p.width * p.height / 5; i++) {
+    for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
         let x = randInt(0, p.width);
         let y = randInt(0, p.height);
         p.grid[x][y] = boulderPuzzle_1.Tile.Brick;
@@ -472,6 +472,13 @@ function createBoulderPuzzle(args) {
         let y = randInt(0, p.height);
         p.grid[x][y] = boulderPuzzle_1.Tile.Target;
         p.boulders.push(new boulderPuzzle_1.Boulder(x, y));
+    }
+    if (args.decoy_pits) {
+        for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
+            let x = randInt(0, p.width);
+            let y = randInt(0, p.height);
+            p.grid[x][y] = boulderPuzzle_1.Tile.Pit;
+        }
     }
     p.use_fragile = args.fragile;
     p.use_crystals = args.crystal;
@@ -488,6 +495,9 @@ function createBoulderPuzzle(args) {
     }
     if (args.pits && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Pit))) {
         throw "No Pits";
+    }
+    if (args.pits && !stack[1].some((m => [boulderPuzzle_1.BoulderMove.DownPit, boulderPuzzle_1.BoulderMove.UpPit, boulderPuzzle_1.BoulderMove.LeftPit, boulderPuzzle_1.BoulderMove.RightPit].indexOf(m) !== -1))) {
+        throw "No Pit USED in solution";
     }
     return [stack[0], stack[1]];
 }
@@ -559,11 +569,15 @@ jquery_1.default(document).ready(() => {
             let params = getUrlVars();
             let size = parseInt(params['size']) || 10;
             let boulders = parseInt(params['boulders']) || 2;
+            let brick_density = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']);
+            let pit_density = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']);
+            let fragile_brick_density = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']);
             let depth = parseInt(params['depth']) || 4;
             let mindepth = parseInt(params['mindepth']) || depth;
             let fragile = params['fragile'] == "true";
             let crystal = params['crystal'] == "true";
             let pits = params['pits'] == "true";
+            let decoy_pits = params['decoy_pits'] == "true";
             let stack = undefined;
             sweetalert2_1.default({
                 title: 'Generating Level',
@@ -575,7 +589,7 @@ jquery_1.default(document).ready(() => {
                 })
             });
             try {
-                stack = yield tryUntilSuccess(boulderPuzzleGenerator_1.createBoulderPuzzle, { size, boulders, depth, mindepth, fragile, crystal, pits });
+                stack = yield tryUntilSuccess(boulderPuzzleGenerator_1.createBoulderPuzzle, { size, boulders, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density });
                 sweetalert2_1.default.close();
             }
             catch (e) {
@@ -666,6 +680,7 @@ function apply_move(move) {
                     if (b.in_pit) {
                         setTimeout(() => {
                             jquery_1.default(e).addClass('boulder--in-pit');
+                            jquery_1.default(e).removeClass('boulder--on-target');
                             jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')) scale(0.7)');
                         }, 100);
                     }

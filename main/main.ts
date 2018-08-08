@@ -48,11 +48,15 @@ $(document).ready(() => {
     let params = getUrlVars();
     let size: number = parseInt(params['size']) || 10;
     let boulders: number = parseInt(params['boulders']) || 2;
+    let brick_density: number = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']) ;
+    let pit_density: number = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']) ;
+    let fragile_brick_density: number = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']) ;
     let depth: number = parseInt(params['depth']) || 4;
     let mindepth: number = parseInt(params['mindepth']) || depth;
     let fragile: boolean = params['fragile'] == "true";
     let crystal: boolean = params['crystal'] == "true";
     let pits: boolean = params['pits'] == "true";
+    let decoy_pits: boolean = params['decoy_pits'] == "true";
 
     let stack: [BoulderPuzzle[], BoulderMove[]] | undefined = undefined;
     swal({
@@ -66,7 +70,7 @@ $(document).ready(() => {
     })
 
     try {
-      stack = await tryUntilSuccess(createPuzzle, { size, boulders, depth, mindepth, fragile, crystal, pits });
+      stack = await tryUntilSuccess(createPuzzle, {size, boulders, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density});
       swal.close();
     } catch (e) {
       swal({
@@ -163,6 +167,7 @@ function apply_move(move: BoulderMove | undefined): void {
           if (b.in_pit) {
             setTimeout(() => {
               $(e).addClass('boulder--in-pit');
+              $(e).removeClass('boulder--on-target');
               $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')) scale(0.7)')
             }, 100)
           } else {

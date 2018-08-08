@@ -14,16 +14,20 @@ interface puzzleConfig {
     crystal: boolean;
     depth: number;
     mindepth: number;
+    decoy_pits: boolean;
+    brick_density: number;
+    fragile_brick_density: number;
+    pit_density: number;
 }
 
 export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], BoulderMove[]] {
       let p = new BoulderPuzzle(args.size, args.size)
-      for (let i = 0; i < (args.fragile ? 1 / 25 : 0) * p.width * p.height; i++) {
+      for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
         let x = randInt(0, p.width);
         let y = randInt(0, p.height);
         p.grid[x][y] = Tile.Fragile;
       }
-      for (let i = 0; i < p.width * p.height / 5; i++) {
+      for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
         let x = randInt(0, p.width);
         let y = randInt(0, p.height);
         p.grid[x][y] = Tile.Brick;
@@ -35,6 +39,15 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
         p.grid[x][y] = Tile.Target
         p.boulders.push(new Boulder(x, y))
       }
+
+      if(args.decoy_pits){
+          for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
+          let x = randInt(0, p.width);
+          let y = randInt(0, p.height);
+          p.grid[x][y] = Tile.Pit;
+        }
+      }
+
       p.use_fragile = args.fragile;
       p.use_crystals = args.crystal;
       p.use_pits = args.pits;
@@ -51,6 +64,9 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
       }
       if (args.pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
         throw "No Pits"
+      }
+      if (args.pits && !stack[1].some((m => [BoulderMove.DownPit, BoulderMove.UpPit, BoulderMove.LeftPit, BoulderMove.RightPit].indexOf(m) !== -1))) {
+        throw "No Pit USED in solution"
       }
 
       return [stack[0] as BoulderPuzzle[], stack[1] as BoulderMove[]]
