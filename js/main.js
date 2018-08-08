@@ -1,136 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = __importDefault(require("lodash"));
-const jquery_1 = __importDefault(require("jquery"));
-const hammerjs_1 = __importDefault(require("hammerjs"));
-const sweetalert2_1 = __importDefault(require("sweetalert2"));
-class PuzzleState {
-    solve(maxDepth = 5, curDepth = 1) {
-        if (this.isSolved()) {
-            return [this];
-        }
-        if (curDepth >= maxDepth) {
-            return undefined;
-        }
-        let shortestSolution = undefined;
-        let nextDepth = maxDepth;
-        for (let m of this.getMoves()) {
-            let s = this.apply(m);
-            console.log("Trying " + m);
-            if (s.hashString() === this.hashString()) {
-                console.log("No change");
-                continue;
-            }
-            let ss = s.solve(nextDepth, curDepth + 1);
-            if (ss) {
-                if (shortestSolution === undefined || ss.length < shortestSolution.length) {
-                    shortestSolution = ss;
-                    nextDepth = shortestSolution.length - 1;
-                }
-                else {
-                    console.log('Nope');
-                }
-            }
-        }
-        if (shortestSolution) {
-            let arr = [this];
-            arr = arr.concat(shortestSolution);
-            return arr;
-        }
-    }
-    getStack(depth, debug = false) {
-        let bad_states = [];
-        let bad_count = 0;
-        let itr_count = 0;
-        let stack = [this];
-        let moves = [];
-        while (stack.length < depth) {
-            itr_count++;
-            if (itr_count > 1000) {
-                throw "Too many iterations";
-            }
-            let p = stack[stack.length - 1];
-            let nexts = [];
-            for (let move of p.getReverseMoves()) {
-                try {
-                    let next = p.reverse(move);
-                    if (!next.isValid()) {
-                        throw "Invalid state";
-                    }
-                    if (next.hashString() === p.hashString()) {
-                        console.error("Pointless move");
-                        throw "Pointless Move";
-                    }
-                    if (next.apply(move).hashString() != p.hashString()) {
-                        throw {
-                            "name": "FatalError",
-                            "message": "Reversing move and applying move have different results",
-                            "starting-point": next,
-                            "a": next.apply(move),
-                            "b": p,
-                            "a-hash": next.apply(move).hashString(),
-                            "b-hash": p.hashString(),
-                            "move": move
-                        };
-                    }
-                    nexts.push([next, move]);
-                }
-                catch (e) {
-                    if (debug) {
-                        //console.error(e)
-                    }
-                    if (e.name == "FatalError") {
-                        console.error(e);
-                        throw e;
-                    }
-                }
-            }
-            if (nexts.length == 0) {
-                bad_count++;
-                if (bad_count > 30) {
-                    throw "Maximum bad states exceeded";
-                }
-                if (bad_states.indexOf(p.hashString()) === -1) {
-                    stack.pop();
-                    moves.pop();
-                    bad_states.push(p.hashString());
-                    if (stack.length == 0) {
-                        throw "Bad Solution";
-                    }
-                }
-                else {
-                    stack = [this];
-                    moves = [];
-                    if (bad_states.indexOf(this.hashString()) !== -1) {
-                        throw "Bad Solution";
-                    }
-                }
-            }
-            else {
-                let next = lodash_1.default.sample(nexts);
-                if (!next) {
-                    throw "No valid options";
-                }
-                stack.push(next[0]);
-                moves.push(next[1]);
-            }
-        }
-        return [stack.reverse(), moves.reverse()];
-    }
-}
-/*******************************************/
+const puzzleState_1 = __importDefault(require("./puzzleState"));
 var Tile;
 (function (Tile) {
     Tile["Empty"] = " ";
@@ -141,6 +16,27 @@ var Tile;
     Tile["Pit"] = "\u25BC";
     Tile["Target"] = "\u25CE";
 })(Tile = exports.Tile || (exports.Tile = {}));
+var BoulderMove;
+(function (BoulderMove) {
+    BoulderMove["Up"] = "Up";
+    BoulderMove["UpPortal"] = "Up, using portal";
+    BoulderMove["UpPit"] = "Up, into pit";
+    BoulderMove["Down"] = "Down";
+    BoulderMove["DownPortal"] = "Down, using portal";
+    BoulderMove["DownPit"] = "Down, into pit";
+    BoulderMove["Left"] = "Left";
+    BoulderMove["LeftPortal"] = "Left, using portal";
+    BoulderMove["LeftPit"] = "Left, into pit";
+    BoulderMove["Right"] = "Right";
+    BoulderMove["RightPortal"] = "Right, using portal";
+    BoulderMove["RightPit"] = "Right, into pit";
+    BoulderMove["Shatter"] = "Shatter";
+})(BoulderMove = exports.BoulderMove || (exports.BoulderMove = {}));
+function randInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+}
 class Boulder {
     constructor(x, y) {
         this.index = -1;
@@ -156,7 +52,7 @@ class Boulder {
     }
 }
 exports.Boulder = Boulder;
-class BoulderPuzzle extends PuzzleState {
+class BoulderPuzzle extends puzzleState_1.default {
     constructor(width, height) {
         super();
         this.criticalTiles = [];
@@ -549,44 +445,80 @@ class BoulderPuzzle extends PuzzleState {
     }
 }
 exports.BoulderPuzzle = BoulderPuzzle;
-var BoulderMove;
-(function (BoulderMove) {
-    BoulderMove["Up"] = "Up";
-    BoulderMove["UpPortal"] = "Up, using portal";
-    BoulderMove["UpPit"] = "Up, into pit";
-    BoulderMove["Down"] = "Down";
-    BoulderMove["DownPortal"] = "Down, using portal";
-    BoulderMove["DownPit"] = "Down, into pit";
-    BoulderMove["Left"] = "Left";
-    BoulderMove["LeftPortal"] = "Left, using portal";
-    BoulderMove["LeftPit"] = "Left, into pit";
-    BoulderMove["Right"] = "Right";
-    BoulderMove["RightPortal"] = "Right, using portal";
-    BoulderMove["RightPit"] = "Right, into pit";
-    BoulderMove["Shatter"] = "Shatter";
-})(BoulderMove || (BoulderMove = {}));
-/*
-let p =new BoulderPuzzle(5, 3)
-p.boulders.push(new Boulder(2,1))
-p.grid[1][1] = Tile.Fragile;
-console.log(p.toString())
-p = p.reverse(BoulderMove.Left);
-console.log(p.toString())
 
-
-*/
+},{"./puzzleState":4,"lodash":7}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const boulderPuzzle_1 = require("./boulderPuzzle");
 function randInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
-function tryUntilSuccess(f) {
+function createBoulderPuzzle(args) {
+    let p = new boulderPuzzle_1.BoulderPuzzle(args.size, args.size);
+    for (let i = 0; i < (args.fragile ? 1 / 25 : 0) * p.width * p.height; i++) {
+        let x = randInt(0, p.width);
+        let y = randInt(0, p.height);
+        p.grid[x][y] = boulderPuzzle_1.Tile.Fragile;
+    }
+    for (let i = 0; i < p.width * p.height / 5; i++) {
+        let x = randInt(0, p.width);
+        let y = randInt(0, p.height);
+        p.grid[x][y] = boulderPuzzle_1.Tile.Brick;
+    }
+    for (let i = 0; i < args.boulders; i++) {
+        let x = randInt(0, p.width);
+        let y = randInt(0, p.height);
+        p.grid[x][y] = boulderPuzzle_1.Tile.Target;
+        p.boulders.push(new boulderPuzzle_1.Boulder(x, y));
+    }
+    p.use_fragile = args.fragile;
+    p.use_crystals = args.crystal;
+    p.use_pits = args.pits;
+    let stack = p.getStack(args.depth, true);
+    let solution = stack[0][0].solve();
+    console.log("Min Steps:", solution ? solution.length - 1 : " > 5");
+    if (solution && solution.length < args.mindepth) {
+        throw "too short";
+    }
+    let board = stack[0][0];
+    if (args.crystal && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Crystal))) {
+        throw "No crystals";
+    }
+    if (args.pits && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Pit))) {
+        throw "No Pits";
+    }
+    return [stack[0], stack[1]];
+}
+exports.createBoulderPuzzle = createBoulderPuzzle;
+
+},{"./boulderPuzzle":1}],3:[function(require,module,exports){
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const jquery_1 = __importDefault(require("jquery"));
+const hammerjs_1 = __importDefault(require("hammerjs"));
+const sweetalert2_1 = __importDefault(require("sweetalert2"));
+const boulderPuzzle_1 = require("./boulderPuzzle");
+const boulderPuzzleGenerator_1 = require("./boulderPuzzleGenerator");
+function tryUntilSuccess(f, args) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
             let i = 0;
             function _attempt() {
                 try {
-                    let result = f();
+                    let result = f(args);
                     resolve(result);
                 }
                 catch (e) {
@@ -632,42 +564,6 @@ jquery_1.default(document).ready(() => {
             let fragile = params['fragile'] == "true";
             let crystal = params['crystal'] == "true";
             let pits = params['pits'] == "true";
-            function createPuzzle() {
-                let p = new BoulderPuzzle(size, size);
-                for (let i = 0; i < (fragile ? 1 / 25 : 0) * p.width * p.height; i++) {
-                    let x = randInt(0, p.width);
-                    let y = randInt(0, p.height);
-                    p.grid[x][y] = Tile.Fragile;
-                }
-                for (let i = 0; i < p.width * p.height / 5; i++) {
-                    let x = randInt(0, p.width);
-                    let y = randInt(0, p.height);
-                    p.grid[x][y] = Tile.Brick;
-                }
-                for (let i = 0; i < boulders; i++) {
-                    let x = randInt(0, p.width);
-                    let y = randInt(0, p.height);
-                    p.grid[x][y] = Tile.Target;
-                    p.boulders.push(new Boulder(x, y));
-                }
-                p.use_fragile = fragile;
-                p.use_crystals = crystal;
-                p.use_pits = pits;
-                let stack = p.getStack(depth, true);
-                let solution = stack[0][0].solve();
-                console.log("Min Steps:", solution ? solution.length - 1 : " > 5");
-                if (solution && solution.length < mindepth) {
-                    throw "too short";
-                }
-                let board = stack[0][0];
-                if (crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
-                    throw "No crystals";
-                }
-                if (pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
-                    throw "No Pits";
-                }
-                return [stack[0], stack[1]];
-            }
             let stack = undefined;
             sweetalert2_1.default({
                 title: 'Generating Level',
@@ -679,7 +575,7 @@ jquery_1.default(document).ready(() => {
                 })
             });
             try {
-                stack = yield tryUntilSuccess(createPuzzle);
+                stack = yield tryUntilSuccess(boulderPuzzleGenerator_1.createBoulderPuzzle, { size, boulders, depth, mindepth, fragile, crystal, pits });
                 sweetalert2_1.default.close();
             }
             catch (e) {
@@ -724,16 +620,16 @@ jquery_1.default(document).ready(() => {
                 let move = undefined;
                 switch (e.which) {
                     case 37:
-                        move = BoulderMove.Left;
+                        move = boulderPuzzle_1.BoulderMove.Left;
                         break;
                     case 38:
-                        move = BoulderMove.Up;
+                        move = boulderPuzzle_1.BoulderMove.Up;
                         break;
                     case 39:
-                        move = BoulderMove.Right;
+                        move = boulderPuzzle_1.BoulderMove.Right;
                         break;
                     case 40:
-                        move = BoulderMove.Down;
+                        move = boulderPuzzle_1.BoulderMove.Down;
                         break;
                 }
                 apply_move(move);
@@ -764,7 +660,7 @@ function apply_move(move) {
                     jquery_1.default(e).removeClass('boulder--on-target');
                 }
                 setTimeout(() => {
-                    if (board.getTile(b.x, b.y) == Tile.Target) {
+                    if (board.getTile(b.x, b.y) == boulderPuzzle_1.Tile.Target) {
                         jquery_1.default(e).addClass('boulder--on-target');
                     }
                     if (b.in_pit) {
@@ -779,7 +675,7 @@ function apply_move(move) {
                     if (b.last_contact) {
                         let t = board.getTile(b.last_contact.x, b.last_contact.y);
                         let $t = $tiles[b.last_contact.x][b.last_contact.y];
-                        if ($t && t == Tile.Empty) {
+                        if ($t && t == boulderPuzzle_1.Tile.Empty) {
                             $t.addClass('animated');
                             if (b.last_contact.x > b.x)
                                 $t.addClass('fadeOutRight');
@@ -840,21 +736,21 @@ function create_board(board) {
         for (let y = 0; y < board.height; y++) {
             let t = board.getTile(x, y);
             let layer = "upper";
-            if (t == Tile.Empty) {
+            if (t == boulderPuzzle_1.Tile.Empty) {
                 continue;
             }
             let tileName = 'brick';
-            if (t == Tile.Target) {
+            if (t == boulderPuzzle_1.Tile.Target) {
                 tileName = 'target';
                 layer = "lower";
             }
-            if (t == Tile.Fragile) {
+            if (t == boulderPuzzle_1.Tile.Fragile) {
                 tileName = 'fragile';
             }
-            if (t == Tile.Crystal) {
+            if (t == boulderPuzzle_1.Tile.Crystal) {
                 tileName = 'crystal';
             }
-            if (t == Tile.Pit) {
+            if (t == boulderPuzzle_1.Tile.Pit) {
                 tileName = 'pit';
                 layer = "lower";
             }
@@ -875,28 +771,151 @@ function create_board(board) {
             .data('x', b.x)
             .data('y', b.y)
             .appendTo('.upper-layer');
-        if (board.getTile(b.x, b.y) == Tile.Target) {
+        if (board.getTile(b.x, b.y) == boulderPuzzle_1.Tile.Target) {
             $e.addClass('boulder--on-target');
         }
     }
     var mc = new hammerjs_1.default($wrapper[0]);
     mc.get('swipe').set({ direction: hammerjs_1.default.DIRECTION_ALL });
     mc.on("swipeleft", function () {
-        apply_move(BoulderMove.Left);
+        apply_move(boulderPuzzle_1.BoulderMove.Left);
     });
     mc.on("swiperight", function () {
-        apply_move(BoulderMove.Right);
+        apply_move(boulderPuzzle_1.BoulderMove.Right);
     });
     mc.on("swipeup", function () {
-        apply_move(BoulderMove.Up);
+        apply_move(boulderPuzzle_1.BoulderMove.Up);
     });
     mc.on("swipedown", function () {
-        apply_move(BoulderMove.Down);
+        apply_move(boulderPuzzle_1.BoulderMove.Down);
     });
     return $tiles;
 }
 
-},{"hammerjs":2,"jquery":3,"lodash":4,"sweetalert2":5}],2:[function(require,module,exports){
+},{"./boulderPuzzle":1,"./boulderPuzzleGenerator":2,"hammerjs":5,"jquery":6,"sweetalert2":8}],4:[function(require,module,exports){
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const lodash_1 = __importDefault(require("lodash"));
+class PuzzleState {
+    solve(maxDepth = 5, curDepth = 1) {
+        if (this.isSolved()) {
+            return [this];
+        }
+        if (curDepth >= maxDepth) {
+            return undefined;
+        }
+        let shortestSolution = undefined;
+        let nextDepth = maxDepth;
+        for (let m of this.getMoves()) {
+            let s = this.apply(m);
+            console.log("Trying " + m);
+            if (s.hashString() === this.hashString()) {
+                console.log("No change");
+                continue;
+            }
+            let ss = s.solve(nextDepth, curDepth + 1);
+            if (ss) {
+                if (shortestSolution === undefined || ss.length < shortestSolution.length) {
+                    shortestSolution = ss;
+                    nextDepth = shortestSolution.length - 1;
+                }
+                else {
+                    console.log('Nope');
+                }
+            }
+        }
+        if (shortestSolution) {
+            let arr = [this];
+            arr = arr.concat(shortestSolution);
+            return arr;
+        }
+    }
+    getStack(depth, debug = false) {
+        let bad_states = [];
+        let bad_count = 0;
+        let itr_count = 0;
+        let stack = [this];
+        let moves = [];
+        while (stack.length < depth) {
+            itr_count++;
+            if (itr_count > 1000) {
+                throw "Too many iterations";
+            }
+            let p = stack[stack.length - 1];
+            let nexts = [];
+            for (let move of p.getReverseMoves()) {
+                try {
+                    let next = p.reverse(move);
+                    if (!next.isValid()) {
+                        throw "Invalid state";
+                    }
+                    if (next.hashString() === p.hashString()) {
+                        console.error("Pointless move");
+                        throw "Pointless Move";
+                    }
+                    if (next.apply(move).hashString() != p.hashString()) {
+                        throw {
+                            "name": "FatalError",
+                            "message": "Reversing move and applying move have different results",
+                            "starting-point": next,
+                            "a": next.apply(move),
+                            "b": p,
+                            "a-hash": next.apply(move).hashString(),
+                            "b-hash": p.hashString(),
+                            "move": move
+                        };
+                    }
+                    nexts.push([next, move]);
+                }
+                catch (e) {
+                    if (debug) {
+                        //console.error(e)
+                    }
+                    if (e.name == "FatalError") {
+                        console.error(e);
+                        throw e;
+                    }
+                }
+            }
+            if (nexts.length == 0) {
+                bad_count++;
+                if (bad_count > 30) {
+                    throw "Maximum bad states exceeded";
+                }
+                if (bad_states.indexOf(p.hashString()) === -1) {
+                    stack.pop();
+                    moves.pop();
+                    bad_states.push(p.hashString());
+                    if (stack.length == 0) {
+                        throw "Bad Solution";
+                    }
+                }
+                else {
+                    stack = [this];
+                    moves = [];
+                    if (bad_states.indexOf(this.hashString()) !== -1) {
+                        throw "Bad Solution";
+                    }
+                }
+            }
+            else {
+                let next = lodash_1.default.sample(nexts);
+                if (!next) {
+                    throw "No valid options";
+                }
+                stack.push(next[0]);
+                moves.push(next[1]);
+            }
+        }
+        return [stack.reverse(), moves.reverse()];
+    }
+}
+exports.default = PuzzleState;
+
+},{"lodash":7}],5:[function(require,module,exports){
 /*! Hammer.JS - v2.0.7 - 2016-04-22
  * http://hammerjs.github.io/
  *
@@ -3541,7 +3560,7 @@ if (typeof define === 'function' && define.amd) {
 
 })(window, document, 'Hammer');
 
-},{}],3:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -13907,7 +13926,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],4:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -31008,7 +31027,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],5:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*!
 * sweetalert2 v7.26.10
 * Released under the MIT License.
@@ -34584,4 +34603,4 @@ if (typeof window !== 'undefined' && window.Sweetalert2){  window.swal = window.
 "  100% {\n" +
 "    -webkit-transform: rotate(360deg);\n" +
 "            transform: rotate(360deg); } }");
-},{}]},{},[1]);
+},{}]},{},[3]);
