@@ -10,16 +10,26 @@ abstract class PuzzleState<MOVE>{
   abstract getMoves(): MOVE[];
   abstract getReverseMoves(): MOVE[];
 
-  solve(maxDepth: number = 5, curDepth: number = 1): PuzzleState<MOVE>[] | undefined {
+
+  solve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:PuzzleState<MOVE>[]|null}): PuzzleState<MOVE>[] | null {
+    if(!solutionMap){
+      solutionMap = {};
+    }
+
     if (this.isSolved()) {
       return [this]
     }
 
+    if (solutionMap[this.hashString()] !== undefined){
+    //  return solutionMap[this.hashString()];
+    }
+
     if (curDepth >= maxDepth) {
-      return undefined;
+      solutionMap[this.hashString()] = null;
+      return null;
     }
     let shortestSolution: PuzzleState<MOVE>[] | undefined = undefined;
-    let nextDepth = maxDepth;
+    let nextDepth = curDepth + 1;
     for (let m of this.getMoves()) {
       let s = this.apply(m);
 
@@ -28,11 +38,11 @@ abstract class PuzzleState<MOVE>{
         console.log("No change")
         continue
       }
-      let ss = s.solve(nextDepth, curDepth + 1)
+      let ss = s.solve(nextDepth, curDepth + 1, solutionMap)
       if (ss) {
         if (shortestSolution === undefined || ss.length < shortestSolution.length) {
           shortestSolution = ss;
-          nextDepth = shortestSolution.length - 1;
+          //nextDepth = shortestSolution.length - 1;
         } else {
           console.log('Nope')
         }
@@ -41,9 +51,14 @@ abstract class PuzzleState<MOVE>{
     if (shortestSolution) {
       let arr: PuzzleState<MOVE>[] = [this]
       arr = arr.concat(shortestSolution)
+      solutionMap[this.hashString()] = arr;
       return arr;
+    }else{
+      solutionMap[this.hashString()] = null;
+      return null;
     }
   }
+
   getStack(depth: number, debug: boolean = false): [PuzzleState<MOVE>[], MOVE[]] {
     let bad_states = []
     let bad_count = 0;

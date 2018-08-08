@@ -32,14 +32,6 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
         let y = randInt(0, p.height);
         p.grid[x][y] = Tile.Brick;
       }
-
-      for (let i = 0; i < args.boulders; i++) {
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
-        p.grid[x][y] = Tile.Target
-        p.boulders.push(new Boulder(x, y))
-      }
-
       if(args.decoy_pits){
           for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
           let x = randInt(0, p.width);
@@ -48,16 +40,24 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
         }
       }
 
+      for (let i = 0; i < args.boulders; i++) {
+        let x = randInt(0, p.width);
+        let y = randInt(0, p.height);
+        p.grid[x][y] = Tile.Target
+        p.boulders.push(new Boulder(x, y))
+      }
+
+
+
       p.use_fragile = args.fragile;
       p.use_crystals = args.crystal;
       p.use_pits = args.pits;
 
       let stack = p.getStack(args.depth)
-      let solution = stack[0][0].solve();
-      console.log("Min Steps:", solution ? solution.length - 1 : " > 5")
-      if (solution && solution.length < args.mindepth) {
-        console.error("too short");
-        throw "too short"
+      let solution = stack[0][0].solve(args.depth);
+      if (solution && solution.length < args.mindepth - 1) {
+        console.error("too short", solution.length, args.mindepth -1);
+        throw "too short "
       }
       let board: BoulderPuzzle = stack[0][0] as BoulderPuzzle;
       if (args.crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
@@ -71,6 +71,6 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
           throw "No Pit USED in solution"
         }
       }
-
+      if(solution)alert(solution.length);
       return [stack[0] as BoulderPuzzle[], stack[1] as BoulderMove[]]
     }

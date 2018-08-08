@@ -467,12 +467,6 @@ function createBoulderPuzzle(args) {
         let y = randInt(0, p.height);
         p.grid[x][y] = boulderPuzzle_1.Tile.Brick;
     }
-    for (let i = 0; i < args.boulders; i++) {
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
-        p.grid[x][y] = boulderPuzzle_1.Tile.Target;
-        p.boulders.push(new boulderPuzzle_1.Boulder(x, y));
-    }
     if (args.decoy_pits) {
         for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
             let x = randInt(0, p.width);
@@ -480,15 +474,20 @@ function createBoulderPuzzle(args) {
             p.grid[x][y] = boulderPuzzle_1.Tile.Pit;
         }
     }
+    for (let i = 0; i < args.boulders; i++) {
+        let x = randInt(0, p.width);
+        let y = randInt(0, p.height);
+        p.grid[x][y] = boulderPuzzle_1.Tile.Target;
+        p.boulders.push(new boulderPuzzle_1.Boulder(x, y));
+    }
     p.use_fragile = args.fragile;
     p.use_crystals = args.crystal;
     p.use_pits = args.pits;
     let stack = p.getStack(args.depth);
-    let solution = stack[0][0].solve();
-    console.log("Min Steps:", solution ? solution.length - 1 : " > 5");
-    if (solution && solution.length < args.mindepth) {
-        console.error("too short");
-        throw "too short";
+    let solution = stack[0][0].solve(args.depth);
+    if (solution && solution.length < args.mindepth - 1) {
+        console.error("too short", solution.length, args.mindepth - 1);
+        throw "too short ";
     }
     let board = stack[0][0];
     if (args.crystal && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Crystal))) {
@@ -502,6 +501,8 @@ function createBoulderPuzzle(args) {
             throw "No Pit USED in solution";
         }
     }
+    if (solution)
+        alert(solution.length);
     return [stack[0], stack[1]];
 }
 exports.createBoulderPuzzle = createBoulderPuzzle;
@@ -818,15 +819,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = __importDefault(require("lodash"));
 class PuzzleState {
-    solve(maxDepth = 5, curDepth = 1) {
+    solve(maxDepth = 5, curDepth = 1, solutionMap) {
+        if (!solutionMap) {
+            solutionMap = {};
+        }
         if (this.isSolved()) {
             return [this];
         }
+        if (solutionMap[this.hashString()] !== undefined) {
+            //  return solutionMap[this.hashString()];
+        }
         if (curDepth >= maxDepth) {
-            return undefined;
+            solutionMap[this.hashString()] = null;
+            return null;
         }
         let shortestSolution = undefined;
-        let nextDepth = maxDepth;
+        let nextDepth = curDepth + 1;
         for (let m of this.getMoves()) {
             let s = this.apply(m);
             console.log("Trying " + m);
@@ -834,11 +842,11 @@ class PuzzleState {
                 console.log("No change");
                 continue;
             }
-            let ss = s.solve(nextDepth, curDepth + 1);
+            let ss = s.solve(nextDepth, curDepth + 1, solutionMap);
             if (ss) {
                 if (shortestSolution === undefined || ss.length < shortestSolution.length) {
                     shortestSolution = ss;
-                    nextDepth = shortestSolution.length - 1;
+                    //nextDepth = shortestSolution.length - 1;
                 }
                 else {
                     console.log('Nope');
@@ -848,7 +856,12 @@ class PuzzleState {
         if (shortestSolution) {
             let arr = [this];
             arr = arr.concat(shortestSolution);
+            solutionMap[this.hashString()] = arr;
             return arr;
+        }
+        else {
+            solutionMap[this.hashString()] = null;
+            return null;
         }
     }
     getStack(depth, debug = false) {
