@@ -301,7 +301,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
           throw "Would need to put fragile block on target";
         }
       } else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Pit) {
-        throw "Would need to put fragile block where a pit ia pit is";
+        throw "Would need to put fragile block where a pit is";
       } else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile) {
         throw "Would need to put fragile block where there will already be one";
       }
@@ -369,7 +369,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     return move == BoulderMove.UpPortal || move == BoulderMove.RightPortal || move == BoulderMove.LeftPortal || move == BoulderMove.DownPortal;
   }
   isValid(): boolean {
-    for (var i = 0; i < this.boulders.length - 1; i++) {
+    for (var i = 0; i < this.boulders.length; i++) {
       let b1 = this.boulders[i];
       let tile = this.getTile(b1.x, b1.y);
       if (!this.isTilePassable(tile)) {

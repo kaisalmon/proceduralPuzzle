@@ -52,21 +52,24 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
       p.use_crystals = args.crystal;
       p.use_pits = args.pits;
 
-      let stack = p.getStack(args.depth, true)
+      let stack = p.getStack(args.depth)
       let solution = stack[0][0].solve();
       console.log("Min Steps:", solution ? solution.length - 1 : " > 5")
       if (solution && solution.length < args.mindepth) {
+        console.error("too short");
         throw "too short"
       }
       let board: BoulderPuzzle = stack[0][0] as BoulderPuzzle;
       if (args.crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
         throw "No crystals"
       }
-      if (args.pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
-        throw "No Pits"
-      }
-      if (args.pits && !stack[1].some((m => [BoulderMove.DownPit, BoulderMove.UpPit, BoulderMove.LeftPit, BoulderMove.RightPit].indexOf(m) !== -1))) {
-        throw "No Pit USED in solution"
+      if(args.depth > 2){
+        if (args.pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
+          throw "No Pits"
+        }
+        if (args.pits && !stack[1].some((m => [BoulderMove.DownPit, BoulderMove.UpPit, BoulderMove.LeftPit, BoulderMove.RightPit].indexOf(m) !== -1))) {
+          throw "No Pit USED in solution"
+        }
       }
 
       return [stack[0] as BoulderPuzzle[], stack[1] as BoulderMove[]]

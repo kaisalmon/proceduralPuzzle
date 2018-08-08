@@ -12,10 +12,10 @@ async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS): Promi
         let result = f(args);
         resolve(result)
       } catch (e) {
-        //console.error(e)
+        console.error(e)
         for (var j = 0; j < 10; j++) {
           i++;
-          if (i % 10) {
+          if (i % 100 == 0) {
             console.warn("Over " + i + " attempts..")
           }
           if (i > 5000) {

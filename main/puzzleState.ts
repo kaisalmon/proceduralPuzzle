@@ -65,7 +65,7 @@ abstract class PuzzleState<MOVE>{
           if (!next.isValid()) {
             throw "Invalid state"
           }
-          if (next.hashString() === p.hashString()) {
+          if (nexts.some(m => m[0].hashString() == next.hashString())) {
             console.error("Pointless move")
             throw "Pointless Move"
           }
@@ -84,7 +84,7 @@ abstract class PuzzleState<MOVE>{
           nexts.push([next, move])
         } catch (e) {
           if (debug) {
-            //console.error(e)
+            console.error(e)
           }
           if (e.name == "FatalError") {
             console.error(e)

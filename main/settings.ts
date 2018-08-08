@@ -21,7 +21,7 @@ $(document).ready(()=>{
       'size':parseInt(url_vars["size"]) || 6,
       'boulders': parseInt(url_vars["boulders"]) || 2,
       'brick_density': url_vars['brick_density'] === undefined ? 5 : parseInt(url_vars['brick_density']),
-      'pit_density': url_vars['pit_density'] === undefined ? 5 : parseInt(url_vars['pit_density']),
+      'pit_density': url_vars['pit_density'] === undefined ? 0 : parseInt(url_vars['pit_density']),
       'fragile_brick_density': url_vars['fragile_brick_density'] === undefined ? 5 : parseInt(url_vars['fragile_brick_density']),
       'minmoves': parseInt(url_vars["depth"])  - 1 || 3,
       'no_fragile': url_vars["fragile"] === undefined || url_vars["fragile"] === "true" ? false : true,
@@ -103,7 +103,12 @@ $(document).ready(()=>{
         window.history.replaceState({}, "Settings", base + "?" + settings);
       },
       'play':function(){
-        window.location.href = window.location.href.replace("index", "game");
+        let qstring = window.location.href.match(/\?.*|$/);
+        let base = window.location.pathname;
+        if(base.indexOf("index.html") === -1){
+          base += "/index.html";
+        }
+        window.location.href = base.replace("index", "game") + qstring;
       }
     }
   })

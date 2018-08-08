@@ -288,7 +288,7 @@ class BoulderPuzzle extends puzzleState_1.default {
                 }
             }
             else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Pit) {
-                throw "Would need to put fragile block where a pit ia pit is";
+                throw "Would need to put fragile block where a pit is";
             }
             else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Fragile) {
                 throw "Would need to put fragile block where there will already be one";
@@ -352,7 +352,7 @@ class BoulderPuzzle extends puzzleState_1.default {
         return move == BoulderMove.UpPortal || move == BoulderMove.RightPortal || move == BoulderMove.LeftPortal || move == BoulderMove.DownPortal;
     }
     isValid() {
-        for (var i = 0; i < this.boulders.length - 1; i++) {
+        for (var i = 0; i < this.boulders.length; i++) {
             let b1 = this.boulders[i];
             let tile = this.getTile(b1.x, b1.y);
             if (!this.isTilePassable(tile)) {
@@ -483,21 +483,24 @@ function createBoulderPuzzle(args) {
     p.use_fragile = args.fragile;
     p.use_crystals = args.crystal;
     p.use_pits = args.pits;
-    let stack = p.getStack(args.depth, true);
+    let stack = p.getStack(args.depth);
     let solution = stack[0][0].solve();
     console.log("Min Steps:", solution ? solution.length - 1 : " > 5");
     if (solution && solution.length < args.mindepth) {
+        console.error("too short");
         throw "too short";
     }
     let board = stack[0][0];
     if (args.crystal && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Crystal))) {
         throw "No crystals";
     }
-    if (args.pits && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Pit))) {
-        throw "No Pits";
-    }
-    if (args.pits && !stack[1].some((m => [boulderPuzzle_1.BoulderMove.DownPit, boulderPuzzle_1.BoulderMove.UpPit, boulderPuzzle_1.BoulderMove.LeftPit, boulderPuzzle_1.BoulderMove.RightPit].indexOf(m) !== -1))) {
-        throw "No Pit USED in solution";
+    if (args.depth > 2) {
+        if (args.pits && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Pit))) {
+            throw "No Pits";
+        }
+        if (args.pits && !stack[1].some((m => [boulderPuzzle_1.BoulderMove.DownPit, boulderPuzzle_1.BoulderMove.UpPit, boulderPuzzle_1.BoulderMove.LeftPit, boulderPuzzle_1.BoulderMove.RightPit].indexOf(m) !== -1))) {
+            throw "No Pit USED in solution";
+        }
     }
     return [stack[0], stack[1]];
 }
@@ -532,10 +535,10 @@ function tryUntilSuccess(f, args) {
                     resolve(result);
                 }
                 catch (e) {
-                    //console.error(e)
+                    console.error(e);
                     for (var j = 0; j < 10; j++) {
                         i++;
-                        if (i % 10) {
+                        if (i % 100 == 0) {
                             console.warn("Over " + i + " attempts..");
                         }
                         if (i > 5000) {
@@ -867,7 +870,7 @@ class PuzzleState {
                     if (!next.isValid()) {
                         throw "Invalid state";
                     }
-                    if (next.hashString() === p.hashString()) {
+                    if (nexts.some(m => m[0].hashString() == next.hashString())) {
                         console.error("Pointless move");
                         throw "Pointless Move";
                     }
@@ -887,7 +890,7 @@ class PuzzleState {
                 }
                 catch (e) {
                     if (debug) {
-                        //console.error(e)
+                        console.error(e);
                     }
                     if (e.name == "FatalError") {
                         console.error(e);

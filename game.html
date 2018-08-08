@@ -64,9 +64,16 @@ html, body{
         background: brown;
         border: calc(var(--tsize) * 0.2) outset #c4544a;
     }
+
     .tile--fragile {
-      background: url(assets/cracked64.png);
+      background: url(assets/cracked.png);
       background-size: cover;
+    }
+    @media (max-width: 600px) {
+      .tile--fragile {
+        background: url(assets/cracked64.png);
+        background-size: cover;
+      }
     }
     .tile.tile--pit {
       box-shadow: 1vmin 1vmin 1vmin rgba(0,0,0,0.3) inset;
