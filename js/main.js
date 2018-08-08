@@ -827,14 +827,13 @@ class PuzzleState {
             return [this];
         }
         if (solutionMap[this.hashString()] !== undefined) {
-            //  return solutionMap[this.hashString()];
+            return solutionMap[this.hashString()];
         }
         if (curDepth >= maxDepth) {
             solutionMap[this.hashString()] = null;
             return null;
         }
         let shortestSolution = undefined;
-        let nextDepth = curDepth + 1;
         for (let m of this.getMoves()) {
             let s = this.apply(m);
             console.log("Trying " + m);
@@ -842,7 +841,7 @@ class PuzzleState {
                 console.log("No change");
                 continue;
             }
-            let ss = s.solve(nextDepth, curDepth + 1, solutionMap);
+            let ss = s.solve(maxDepth, curDepth + 1, solutionMap);
             if (ss) {
                 if (shortestSolution === undefined || ss.length < shortestSolution.length) {
                     shortestSolution = ss;

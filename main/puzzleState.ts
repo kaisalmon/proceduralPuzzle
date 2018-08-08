@@ -21,7 +21,7 @@ abstract class PuzzleState<MOVE>{
     }
 
     if (solutionMap[this.hashString()] !== undefined){
-    //  return solutionMap[this.hashString()];
+     return solutionMap[this.hashString()];
     }
 
     if (curDepth >= maxDepth) {
@@ -29,7 +29,6 @@ abstract class PuzzleState<MOVE>{
       return null;
     }
     let shortestSolution: PuzzleState<MOVE>[] | undefined = undefined;
-    let nextDepth = curDepth + 1;
     for (let m of this.getMoves()) {
       let s = this.apply(m);
 
@@ -38,7 +37,7 @@ abstract class PuzzleState<MOVE>{
         console.log("No change")
         continue
       }
-      let ss = s.solve(nextDepth, curDepth + 1, solutionMap)
+      let ss = s.solve(maxDepth, curDepth + 1, solutionMap)
       if (ss) {
         if (shortestSolution === undefined || ss.length < shortestSolution.length) {
           shortestSolution = ss;
