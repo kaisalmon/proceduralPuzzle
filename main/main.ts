@@ -1,8 +1,8 @@
 import $ from 'jquery'
 import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
-import { BoulderPuzzle, Tile, BoulderMove } from './boulderPuzzle'
-import { createBoulderPuzzle as createPuzzle } from './boulderPuzzleGenerator'
+import { OrbPuzzle, Tile, OrbMove } from './orbPuzzle'
+import { createOrbPuzzle as createPuzzle } from './orbPuzzleGenerator'
 
 async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -31,23 +31,23 @@ async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS): Promi
 }
 
 /*
-let stack:BoulderPuzzle[] = []
-let p =new BoulderPuzzle(10,10)
+let stack:OrbPuzzle[] = []
+let p =new OrbPuzzle(10,10)
 p.grid[4][3] = Tile.Pit;
-p.boulders.push(new Boulder(4,4))
+p.orbs.push(new Orb(4,4))
 stack.push(p)
-p = p.reverse(BoulderMove.Up)
+p = p.reverse(OrbMove.Up)
 stack.push(p)
 stack = stack.reverse();
 */
-let board: BoulderPuzzle;
+let board: OrbPuzzle;
 let moving = false;
 let $tiles: JQuery[][];
 $(document).ready(() => {
   (async function() {
     let params = getUrlVars();
     let size: number = parseInt(params['size']) || 10;
-    let boulders: number = parseInt(params['boulders']) || 2;
+    let orbs: number = parseInt(params['orbs']) || 2;
     let brick_density: number = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']) ;
     let pit_density: number = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']) ;
     let fragile_brick_density: number = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']) ;
@@ -58,7 +58,7 @@ $(document).ready(() => {
     let pits: boolean = params['pits'] == "true";
     let decoy_pits: boolean = params['decoy_pits'] == "true";
 
-    let stack: [BoulderPuzzle[], BoulderMove[]] | undefined = undefined;
+    let stack: [OrbPuzzle[], OrbMove[]] | undefined = undefined;
     swal({
       title: 'Generating Level',
       allowOutsideClick: false,
@@ -70,7 +70,7 @@ $(document).ready(() => {
     })
 
     try {
-      stack = await tryUntilSuccess(createPuzzle, {size, boulders, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density});
+      stack = await tryUntilSuccess(createPuzzle, {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density});
       swal.close();
     } catch (e) {
       swal({
@@ -114,19 +114,19 @@ $(document).ready(() => {
     $tiles = create_board(board);
 
     $('body').keyup((e) => {
-      let move: BoulderMove | undefined = undefined;
+      let move: OrbMove | undefined = undefined;
       switch (e.which) {
         case 37:
-          move = BoulderMove.Left;
+          move = OrbMove.Left;
           break;
         case 38:
-          move = BoulderMove.Up;
+          move = OrbMove.Up;
           break;
         case 39:
-          move = BoulderMove.Right;
+          move = OrbMove.Right;
           break;
         case 40:
-          move = BoulderMove.Down;
+          move = OrbMove.Down;
           break;
       }
       apply_move(move)
@@ -146,32 +146,32 @@ $(document).ready(() => {
 
 })
 
-function apply_move(move: BoulderMove | undefined): void {
+function apply_move(move: OrbMove | undefined): void {
   if (move && !moving && board) {
     moving = true;
     board = board.apply(move)
-    $('.puzzle-wrapper .boulder').each((i, e) => {
-      let b = board.boulders[i];
-      if (b && !$(e).hasClass('boulder--in-pit')) {
+    $('.puzzle-wrapper .orb').each((i, e) => {
+      let b = board.orbs[i];
+      if (b && !$(e).hasClass('orb--in-pit')) {
         let s = 0.1 * (b.last_mag || 0);
         let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
         $(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition)
         $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))')
         if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
-          $(e).removeClass('boulder--on-target');
+          $(e).removeClass('orb--on-target');
         }
         setTimeout(() => {
           if (board.getTile(b.x, b.y) == Tile.Target) {
-            $(e).addClass('boulder--on-target');
+            $(e).addClass('orb--on-target');
           }
           if (b.in_pit) {
             setTimeout(() => {
-              $(e).addClass('boulder--in-pit');
-              $(e).removeClass('boulder--on-target');
+              $(e).addClass('orb--in-pit');
+              $(e).removeClass('orb--on-target');
               $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')) scale(0.7)')
             }, 100)
           } else {
-            $(e).removeClass('boulder--in-pit');
+            $(e).removeClass('orb--in-pit');
           }
           if (b.last_contact) {
             let t = board.getTile(b.last_contact.x, b.last_contact.y)
@@ -192,7 +192,7 @@ function apply_move(move: BoulderMove | undefined): void {
         }, s * 1000)
       }
     })
-    let time = board.boulders.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
+    let time = board.orbs.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
     setTimeout(() => {
       moving = false;
       /* for (let x = 0; x < board.width; x++) {
@@ -224,7 +224,7 @@ function apply_move(move: BoulderMove | undefined): void {
   }
 }
 
-function create_board(board: BoulderPuzzle): JQuery[][] {
+function create_board(board: OrbPuzzle): JQuery[][] {
   $('.puzzle-wrapper').remove();
 
   let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
@@ -270,14 +270,14 @@ function create_board(board: BoulderPuzzle): JQuery[][] {
       $tiles[x][y] = $t
     }
   }
-  for (let b of board.boulders) {
-    let $e = $('<div class="boulder"/>')
+  for (let b of board.orbs) {
+    let $e = $('<div class="orb"/>')
       .css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))')
       .data('x', b.x)
       .data('y', b.y)
       .appendTo('.upper-layer')
     if (board.getTile(b.x, b.y) == Tile.Target) {
-      $e.addClass('boulder--on-target');
+      $e.addClass('orb--on-target');
     }
   }
 
@@ -285,16 +285,16 @@ function create_board(board: BoulderPuzzle): JQuery[][] {
   mc.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
 
   mc.on("swipeleft", function() {
-    apply_move(BoulderMove.Left)
+    apply_move(OrbMove.Left)
   });
   mc.on("swiperight", function() {
-    apply_move(BoulderMove.Right)
+    apply_move(OrbMove.Right)
   });
   mc.on("swipeup", function() {
-    apply_move(BoulderMove.Up)
+    apply_move(OrbMove.Up)
   });
   mc.on("swipedown", function() {
-    apply_move(BoulderMove.Down)
+    apply_move(OrbMove.Down)
   });
 
 

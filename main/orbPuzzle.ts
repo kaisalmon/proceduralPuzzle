@@ -11,7 +11,7 @@ export enum Tile {
   Target = '◎'
 }
 
-export enum BoulderMove {
+export enum OrbMove {
   Up = "Up",
   UpPortal = "Up, using portal",
   UpPit = "Up, into pit",
@@ -34,7 +34,7 @@ function randInt(min: number, max: number): number {
 }
 
 
-export class Boulder {
+export class Orb {
   x: number;
   y: number;
   index: number = -1;
@@ -54,9 +54,9 @@ export class Boulder {
   }
 }
 
-export class BoulderPuzzle extends PuzzleState<BoulderMove>{
+export class OrbPuzzle extends PuzzleState<OrbMove>{
   grid: Tile[][]
-  boulders: Boulder[];
+  orbs: Orb[];
   criticalTiles: { x: number, y: number }[] = []
   width: number; height: number;
 
@@ -71,7 +71,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     this.width = width;
     this.height = height;
     this.grid = [];
-    this.boulders = [];
+    this.orbs = [];
 
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
@@ -83,8 +83,8 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     }
   }
 
-  bouldersInVecOrder(vec: number[]): Boulder[] {
-    return this.boulders.sort((a, b) => {
+  orbsInVecOrder(vec: number[]): Orb[] {
+    return this.orbs.sort((a, b) => {
       let aVal = a.x * vec[0] + a.y * vec[1]
       let bVal = b.x * vec[0] + b.y * vec[1]
       if (aVal < bVal) {
@@ -100,13 +100,13 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         if (this.grid[x][y] == Tile.Target) {
-          result += this.boulders.some((b) => b.x == x && b.y == y) ? "✓" : this.grid[x][y]
+          result += this.orbs.some((b) => b.x == x && b.y == y) ? "✓" : this.grid[x][y]
         } else if (this.grid[x][y] == Tile.Empty) {
-          result += this.boulders.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y]
+          result += this.orbs.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y]
         } else if (this.grid[x][y] == Tile.Pit) {
-          result += this.boulders.some((b) => b.x == x && b.y == y) ? Tile.Empty : this.grid[x][y]
+          result += this.orbs.some((b) => b.x == x && b.y == y) ? Tile.Empty : this.grid[x][y]
         } else {
-          result += this.boulders.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y]
+          result += this.orbs.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y]
         }
       }
       result += "\n";
@@ -116,19 +116,19 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
   hashString(): string {
     return this.toString();
   }
-  apply(move: BoulderMove): BoulderPuzzle {
+  apply(move: OrbMove): OrbPuzzle {
     let state = _.cloneDeep(this);
-    for (var i = 0; i < state.boulders.length; i++) {
-      state.boulders[i].index = i;
+    for (var i = 0; i < state.orbs.length; i++) {
+      state.orbs[i].index = i;
     }
-    if (move == BoulderMove.Shatter) {
+    if (move == OrbMove.Shatter) {
       state.grid = state.grid.map((line: Tile[]) => line.map((t: Tile) => t == Tile.Crystal ? Tile.Empty : t))
       return state;
     }
     let vec = this.getVec(move);
 
-    let toBeRemoved: Boulder[] = []
-    for (let b of state.bouldersInVecOrder(vec)) {
+    let toBeRemoved: Orb[] = []
+    for (let b of state.orbsInVecOrder(vec)) {
       b.last_move = [0, 0]
       if (b.is_frozen()) {
         continue;
@@ -141,7 +141,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
           b.y = oy + vec[1] * mag;
         } else {
           let t = state.getTile(ox + vec[0] * mag, oy + vec[1] * mag)
-          if (t == Tile.Pit && !state.any_boulder_at(ox + vec[0] * mag, oy + vec[1] * mag)) {
+          if (t == Tile.Pit && !state.any_orb_at(ox + vec[0] * mag, oy + vec[1] * mag)) {
             b.in_pit = true;
             b.x = ox + vec[0] * mag;
             b.y = oy + vec[1] * mag;
@@ -162,8 +162,8 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         b.last_mag = mag;
       }
     }
-    state.boulders = state.boulders.filter((b: Boulder) => toBeRemoved.indexOf(b) == -1);
-    state.boulders = state.boulders.sort((a: Boulder, b: Boulder) => a.index - b.index);
+    state.orbs = state.orbs.filter((b: Orb) => toBeRemoved.indexOf(b) == -1);
+    state.orbs = state.orbs.sort((a: Orb, b: Orb) => a.index - b.index);
     return state;
   }
   isTilePassable(tile: Tile | undefined): boolean {
@@ -171,13 +171,13 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
   }
   isPassable(x: number, y: number): boolean {
     if (!this.isTilePassable(this.getTile(x, y))) {
-      if (this.getTile(x, y) == Tile.Pit && this.any_boulder_at(x, y)) {
+      if (this.getTile(x, y) == Tile.Pit && this.any_orb_at(x, y)) {
         //that's fine
       } else {
         return false;
       }
     }
-    for (let b of this.boulders) {
+    for (let b of this.orbs) {
       if (b.x == x && b.y == y && !b.in_pit) {
         return false;
       }
@@ -191,12 +191,12 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     return this.grid[x][y];
   }
 
-  any_boulder_at(x: number, y: number): boolean {
-    return (this.boulders.some(b => b.x == x && b.y == y))
+  any_orb_at(x: number, y: number): boolean {
+    return (this.orbs.some(b => b.x == x && b.y == y))
   }
 
 
-  reverseShatter(): BoulderPuzzle {
+  reverseShatter(): OrbPuzzle {
     if (this.criticalTiles.length < 8) {
       throw "Not enough critical tiles for shatter"
     }
@@ -221,9 +221,9 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     return this;
   }
 
-  reverse(move: BoulderMove): BoulderPuzzle {
+  reverse(move: OrbMove): OrbPuzzle {
     let state = _.cloneDeep(this);
-    if (move == BoulderMove.Shatter) {
+    if (move == OrbMove.Shatter) {
       return state.reverseShatter();
     }
 
@@ -231,14 +231,14 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     vec[0] = -vec[0]
     vec[1] = -vec[1]
 
-    let haveMoved: Boulder[] = [];
+    let haveMoved: Orb[] = [];
 
     if (state.isPitMove(move)) {
       let possibleCoords: { x: number, y: number }[] = [];
       for (let coord of this.criticalTiles) {
         if (state.getTile(coord.x, coord.y) == Tile.Empty && state.isPassable(coord.x + vec[0], coord.y + vec[1])) {
-          if (state.boulders.some((b: Boulder) => b.x == coord.x && b.y == coord.y)) {
-            continue; //Don't put a pit under an existing boulder
+          if (state.orbs.some((b: Orb) => b.x == coord.x && b.y == coord.y)) {
+            continue; //Don't put a pit under an existing orb
           }
           possibleCoords.push(coord)
         }
@@ -249,11 +249,11 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
         throw "No pit locations";
       }
       state.grid[pit.x][pit.y] = Tile.Pit;
-      let b = new Boulder(pit.x, pit.y)
-      state.boulders.push(b)
+      let b = new Orb(pit.x, pit.y)
+      state.orbs.push(b)
     }
 
-    for (let b of state.bouldersInVecOrder(vec)) {
+    for (let b of state.orbsInVecOrder(vec)) {
       let ox = b.x;
       let oy = b.y;
       let mags = [];
@@ -362,15 +362,15 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     }
     return false;
   }
-  isPitMove(move: BoulderMove) {
-    return move == BoulderMove.UpPit || move == BoulderMove.RightPit || move == BoulderMove.LeftPit || move == BoulderMove.DownPit;
+  isPitMove(move: OrbMove) {
+    return move == OrbMove.UpPit || move == OrbMove.RightPit || move == OrbMove.LeftPit || move == OrbMove.DownPit;
   }
-  isPortalMove(move: BoulderMove) {
-    return move == BoulderMove.UpPortal || move == BoulderMove.RightPortal || move == BoulderMove.LeftPortal || move == BoulderMove.DownPortal;
+  isPortalMove(move: OrbMove) {
+    return move == OrbMove.UpPortal || move == OrbMove.RightPortal || move == OrbMove.LeftPortal || move == OrbMove.DownPortal;
   }
   isValid(): boolean {
-    for (var i = 0; i < this.boulders.length; i++) {
-      let b1 = this.boulders[i];
+    for (var i = 0; i < this.orbs.length; i++) {
+      let b1 = this.orbs[i];
       let tile = this.getTile(b1.x, b1.y);
       if (!this.isTilePassable(tile)) {
         if (tile == Tile.Pit && b1.in_pit) {
@@ -379,8 +379,8 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
           return false;
         }
       }
-      for (var j = i + 1; j <= this.boulders.length - 1; j++) {
-        let b2 = this.boulders[j];
+      for (var j = i + 1; j <= this.orbs.length - 1; j++) {
+        let b2 = this.orbs[j];
         if (b1.x == b2.x && b1.y == b2.y) {
           return false;
         }
@@ -388,60 +388,60 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     }
     return true;
   }
-  getMoves(): BoulderMove[] {
-    let moves = [BoulderMove.Up, BoulderMove.Down, BoulderMove.Left, BoulderMove.Right]
+  getMoves(): OrbMove[] {
+    let moves = [OrbMove.Up, OrbMove.Down, OrbMove.Left, OrbMove.Right]
     if (this.use_crystals) {
-      moves.push(BoulderMove.Shatter)
+      moves.push(OrbMove.Shatter)
     }
     return moves;
   }
-  getReverseMoves(): BoulderMove[] {
-    let moves = [BoulderMove.Up, BoulderMove.Down, BoulderMove.Left, BoulderMove.Right]
+  getReverseMoves(): OrbMove[] {
+    let moves = [OrbMove.Up, OrbMove.Down, OrbMove.Left, OrbMove.Right]
     if (this.no_basic) {
       moves = []
     }
     if (this.use_crystals) {
-      moves.push(BoulderMove.Shatter)
+      moves.push(OrbMove.Shatter)
     }
     if (this.use_portals && !this.hasPortals() && randInt(0, 3) == 0) {
-      moves.push(BoulderMove.UpPortal)
-      moves.push(BoulderMove.RightPortal)
-      moves.push(BoulderMove.LeftPortal)
-      moves.push(BoulderMove.DownPortal)
+      moves.push(OrbMove.UpPortal)
+      moves.push(OrbMove.RightPortal)
+      moves.push(OrbMove.LeftPortal)
+      moves.push(OrbMove.DownPortal)
     }
     if (this.use_pits) {
-      moves.push(BoulderMove.RightPit)
-      moves.push(BoulderMove.LeftPit)
-      moves.push(BoulderMove.UpPit)
-      moves.push(BoulderMove.DownPit)
+      moves.push(OrbMove.RightPit)
+      moves.push(OrbMove.LeftPit)
+      moves.push(OrbMove.UpPit)
+      moves.push(OrbMove.DownPit)
     }
     return moves;
   }
-  getVec(move: BoulderMove): number[] {
+  getVec(move: OrbMove): number[] {
     switch (move) {
-      case BoulderMove.Right:
+      case OrbMove.Right:
         return [1, 0]
-      case BoulderMove.RightPortal:
+      case OrbMove.RightPortal:
         return [1, 0]
-      case BoulderMove.RightPit:
+      case OrbMove.RightPit:
         return [1, 0]
-      case BoulderMove.Left:
+      case OrbMove.Left:
         return [-1, 0]
-      case BoulderMove.LeftPortal:
+      case OrbMove.LeftPortal:
         return [-1, 0]
-      case BoulderMove.LeftPit:
+      case OrbMove.LeftPit:
         return [-1, 0]
-      case BoulderMove.Up:
+      case OrbMove.Up:
         return [0, -1]
-      case BoulderMove.UpPortal:
+      case OrbMove.UpPortal:
         return [0, -1]
-      case BoulderMove.UpPit:
+      case OrbMove.UpPit:
         return [0, -1]
-      case BoulderMove.Down:
+      case OrbMove.Down:
         return [0, 1]
-      case BoulderMove.DownPortal:
+      case OrbMove.DownPortal:
         return [0, 1]
-      case BoulderMove.DownPit:
+      case OrbMove.DownPit:
         return [0, 1]
       default:
         throw "Error"
@@ -451,7 +451,7 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     for (var x = 0; x < this.width; x++) {
       for (var y = 0; y < this.height; y++) {
         if (this.getTile(x, y) == Tile.Target) {
-          if (!this.boulders.some(b => b.x == x && b.y == y)) {
+          if (!this.orbs.some(b => b.x == x && b.y == y)) {
             return false
           }
         }
@@ -461,10 +461,10 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
   }
 
   isFailed(): boolean {
-    // If there are more targets than unfrozen boulders, the puzzles is a failure
-    let boulders = this.boulders.filter(b => !b.is_frozen()).length;
+    // If there are more targets than unfrozen orbs, the puzzles is a failure
+    let orbs = this.orbs.filter(b => !b.is_frozen()).length;
     let targets = this.grid.reduce((acc, line) => acc + line.filter(t=>t == Tile.Target).length, 0);
-    if(boulders < targets){
+    if(orbs < targets){
       return true;
     }
 

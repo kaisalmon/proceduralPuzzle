@@ -1,5 +1,311 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const jquery_1 = __importDefault(require("jquery"));
+const hammerjs_1 = __importDefault(require("hammerjs"));
+const sweetalert2_1 = __importDefault(require("sweetalert2"));
+const orbPuzzle_1 = require("./orbPuzzle");
+const orbPuzzleGenerator_1 = require("./orbPuzzleGenerator");
+function tryUntilSuccess(f, args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
+            let i = 0;
+            function _attempt() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        let result = yield f(args);
+                        resolve(result);
+                    }
+                    catch (e) {
+                        console.error(e);
+                        for (var j = 0; j < 10; j++) {
+                            i++;
+                            if (i % 100 == 0) {
+                                console.warn("Over " + i + " attempts..");
+                            }
+                            if (i > 5000) {
+                                reject();
+                                return;
+                            }
+                        }
+                        setTimeout(_attempt);
+                    }
+                });
+            }
+            _attempt();
+        });
+    });
+}
+/*
+let stack:OrbPuzzle[] = []
+let p =new OrbPuzzle(10,10)
+p.grid[4][3] = Tile.Pit;
+p.orbs.push(new Orb(4,4))
+stack.push(p)
+p = p.reverse(OrbMove.Up)
+stack.push(p)
+stack = stack.reverse();
+*/
+let board;
+let moving = false;
+let $tiles;
+jquery_1.default(document).ready(() => {
+    (function () {
+        return __awaiter(this, void 0, void 0, function* () {
+            let params = getUrlVars();
+            let size = parseInt(params['size']) || 10;
+            let orbs = parseInt(params['orbs']) || 2;
+            let brick_density = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']);
+            let pit_density = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']);
+            let fragile_brick_density = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']);
+            let depth = parseInt(params['depth']) || 4;
+            let mindepth = parseInt(params['mindepth']) || depth;
+            let fragile = params['fragile'] == "true";
+            let crystal = params['crystal'] == "true";
+            let pits = params['pits'] == "true";
+            let decoy_pits = params['decoy_pits'] == "true";
+            let stack = undefined;
+            sweetalert2_1.default({
+                title: 'Generating Level',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                onOpen: () => __awaiter(this, void 0, void 0, function* () {
+                    sweetalert2_1.default.showLoading();
+                })
+            });
+            try {
+                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, { size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density });
+                sweetalert2_1.default.close();
+            }
+            catch (e) {
+                sweetalert2_1.default({
+                    title: "Couldn't generate level!",
+                    text: "feel free to try a few more times",
+                    type: "error",
+                    showCancelButton: true,
+                    cancelButtonText: "Back to settings",
+                    confirmButtonText: "New Puzzle",
+                    useRejections: true,
+                }).then(() => {
+                    window.location.reload();
+                }).catch(() => {
+                    window.location.href = window.location.href.replace("game", "index");
+                });
+                return;
+            }
+            board = stack[0][0];
+            let solution = stack[1];
+            jquery_1.default('.hint').click(() => {
+                sweetalert2_1.default(solution.join("\n"));
+            });
+            let orig = board;
+            jquery_1.default('.reset').click(() => {
+                sweetalert2_1.default({
+                    title: "Restart puzzle?",
+                    type: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes",
+                    cancelButtonText: "No!",
+                    useRejections: true,
+                    focusCancel: true
+                }).then(() => {
+                    board = orig;
+                    $tiles = create_board(board);
+                    moving = false;
+                });
+            });
+            $tiles = create_board(board);
+            jquery_1.default('body').keyup((e) => {
+                let move = undefined;
+                switch (e.which) {
+                    case 37:
+                        move = orbPuzzle_1.OrbMove.Left;
+                        break;
+                    case 38:
+                        move = orbPuzzle_1.OrbMove.Up;
+                        break;
+                    case 39:
+                        move = orbPuzzle_1.OrbMove.Right;
+                        break;
+                    case 40:
+                        move = orbPuzzle_1.OrbMove.Down;
+                        break;
+                }
+                apply_move(move);
+            });
+            function getUrlVars() {
+                var vars = {};
+                window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function ({}, key, value) {
+                    vars[key] = value;
+                    return "";
+                });
+                return vars;
+            }
+        });
+    })();
+});
+function apply_move(move) {
+    if (move && !moving && board) {
+        moving = true;
+        board = board.apply(move);
+        jquery_1.default('.puzzle-wrapper .orb').each((i, e) => {
+            let b = board.orbs[i];
+            if (b && !jquery_1.default(e).hasClass('orb--in-pit')) {
+                let s = 0.1 * (b.last_mag || 0);
+                let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
+                jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
+                jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))');
+                if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
+                    jquery_1.default(e).removeClass('orb--on-target');
+                }
+                setTimeout(() => {
+                    if (board.getTile(b.x, b.y) == orbPuzzle_1.Tile.Target) {
+                        jquery_1.default(e).addClass('orb--on-target');
+                    }
+                    if (b.in_pit) {
+                        setTimeout(() => {
+                            jquery_1.default(e).addClass('orb--in-pit');
+                            jquery_1.default(e).removeClass('orb--on-target');
+                            jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')) scale(0.7)');
+                        }, 100);
+                    }
+                    else {
+                        jquery_1.default(e).removeClass('orb--in-pit');
+                    }
+                    if (b.last_contact) {
+                        let t = board.getTile(b.last_contact.x, b.last_contact.y);
+                        let $t = $tiles[b.last_contact.x][b.last_contact.y];
+                        if ($t && t == orbPuzzle_1.Tile.Empty) {
+                            $t.addClass('animated');
+                            if (b.last_contact.x > b.x)
+                                $t.addClass('fadeOutRight');
+                            else if (b.last_contact.x < b.x)
+                                $t.addClass('fadeOutLeft');
+                            else if (b.last_contact.y < b.y)
+                                $t.addClass('fadeOutUp');
+                            else if (b.last_contact.y > b.y)
+                                $t.addClass('fadeOutDown');
+                        }
+                        setTimeout(() => $t.remove, 1000);
+                    }
+                }, s * 1000);
+            }
+        });
+        let time = board.orbs.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
+        setTimeout(() => {
+            moving = false;
+            /* for (let x = 0; x < board.width; x++) {
+              for (let y = 0; y < board.height; y++) {
+                let t = board.getTile(x, y)
+                let $t = $tiles[x][y]
+                if ($t && t == Tile.Empty) {
+                  $t.remove();
+                }
+              }
+            } */
+            if (board.isSolved()) {
+                setTimeout(() => {
+                    sweetalert2_1.default({
+                        title: "You win!",
+                        type: "success",
+                        showCancelButton: true,
+                        cancelButtonText: "Back to settings",
+                        confirmButtonText: "New Puzzle",
+                        useRejections: true,
+                    }).then(() => {
+                        window.location.reload();
+                    }).catch(() => {
+                        window.location.href = window.location.href.replace("game", "index");
+                    });
+                }, 400);
+            }
+        }, time);
+    }
+}
+function create_board(board) {
+    jquery_1.default('.puzzle-wrapper').remove();
+    let $wrapper = jquery_1.default('<div/>').addClass('puzzle-wrapper').appendTo('body');
+    jquery_1.default("body").attr("style", "--tsize:calc(var(--bsize) / " + board.width + ")");
+    jquery_1.default('<div/>').addClass('puzzles')
+        .appendTo($wrapper);
+    jquery_1.default('<div/>').addClass('upper-layer')
+        .appendTo($wrapper);
+    var $tiles = [];
+    for (let x = 0; x < board.width; x++) {
+        $tiles[x] = [];
+        for (let y = 0; y < board.height; y++) {
+            let t = board.getTile(x, y);
+            let layer = "upper";
+            if (t == orbPuzzle_1.Tile.Empty) {
+                continue;
+            }
+            let tileName = 'brick';
+            if (t == orbPuzzle_1.Tile.Target) {
+                tileName = 'target';
+                layer = "lower";
+            }
+            if (t == orbPuzzle_1.Tile.Fragile) {
+                tileName = 'fragile';
+            }
+            if (t == orbPuzzle_1.Tile.Crystal) {
+                tileName = 'crystal';
+            }
+            if (t == orbPuzzle_1.Tile.Pit) {
+                tileName = 'pit';
+                layer = "lower";
+            }
+            let $tw = jquery_1.default('<div/>')
+                .addClass('tile-wrapper')
+                .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles')
+                .css('transform', 'translate(calc(var(--tsize) * ' + x + '), calc(var(--tsize) * ' + y + '))');
+            let $t = jquery_1.default('<div/>')
+                .addClass('tile')
+                .addClass('tile--' + tileName)
+                .appendTo($tw);
+            $tiles[x][y] = $t;
+        }
+    }
+    for (let b of board.orbs) {
+        let $e = jquery_1.default('<div class="orb"/>')
+            .css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))')
+            .data('x', b.x)
+            .data('y', b.y)
+            .appendTo('.upper-layer');
+        if (board.getTile(b.x, b.y) == orbPuzzle_1.Tile.Target) {
+            $e.addClass('orb--on-target');
+        }
+    }
+    var mc = new hammerjs_1.default($wrapper[0]);
+    mc.get('swipe').set({ direction: hammerjs_1.default.DIRECTION_ALL });
+    mc.on("swipeleft", function () {
+        apply_move(orbPuzzle_1.OrbMove.Left);
+    });
+    mc.on("swiperight", function () {
+        apply_move(orbPuzzle_1.OrbMove.Right);
+    });
+    mc.on("swipeup", function () {
+        apply_move(orbPuzzle_1.OrbMove.Up);
+    });
+    mc.on("swipedown", function () {
+        apply_move(orbPuzzle_1.OrbMove.Down);
+    });
+    return $tiles;
+}
+
+},{"./orbPuzzle":2,"./orbPuzzleGenerator":3,"hammerjs":5,"jquery":6,"sweetalert2":8}],2:[function(require,module,exports){
+"use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -16,28 +322,28 @@ var Tile;
     Tile["Pit"] = "\u25BC";
     Tile["Target"] = "\u25CE";
 })(Tile = exports.Tile || (exports.Tile = {}));
-var BoulderMove;
-(function (BoulderMove) {
-    BoulderMove["Up"] = "Up";
-    BoulderMove["UpPortal"] = "Up, using portal";
-    BoulderMove["UpPit"] = "Up, into pit";
-    BoulderMove["Down"] = "Down";
-    BoulderMove["DownPortal"] = "Down, using portal";
-    BoulderMove["DownPit"] = "Down, into pit";
-    BoulderMove["Left"] = "Left";
-    BoulderMove["LeftPortal"] = "Left, using portal";
-    BoulderMove["LeftPit"] = "Left, into pit";
-    BoulderMove["Right"] = "Right";
-    BoulderMove["RightPortal"] = "Right, using portal";
-    BoulderMove["RightPit"] = "Right, into pit";
-    BoulderMove["Shatter"] = "Shatter";
-})(BoulderMove = exports.BoulderMove || (exports.BoulderMove = {}));
+var OrbMove;
+(function (OrbMove) {
+    OrbMove["Up"] = "Up";
+    OrbMove["UpPortal"] = "Up, using portal";
+    OrbMove["UpPit"] = "Up, into pit";
+    OrbMove["Down"] = "Down";
+    OrbMove["DownPortal"] = "Down, using portal";
+    OrbMove["DownPit"] = "Down, into pit";
+    OrbMove["Left"] = "Left";
+    OrbMove["LeftPortal"] = "Left, using portal";
+    OrbMove["LeftPit"] = "Left, into pit";
+    OrbMove["Right"] = "Right";
+    OrbMove["RightPortal"] = "Right, using portal";
+    OrbMove["RightPit"] = "Right, into pit";
+    OrbMove["Shatter"] = "Shatter";
+})(OrbMove = exports.OrbMove || (exports.OrbMove = {}));
 function randInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
-class Boulder {
+class Orb {
     constructor(x, y) {
         this.index = -1;
         this.in_pit = false;
@@ -51,8 +357,8 @@ class Boulder {
         return false;
     }
 }
-exports.Boulder = Boulder;
-class BoulderPuzzle extends puzzleState_1.default {
+exports.Orb = Orb;
+class OrbPuzzle extends puzzleState_1.default {
     constructor(width, height) {
         super();
         this.criticalTiles = [];
@@ -64,7 +370,7 @@ class BoulderPuzzle extends puzzleState_1.default {
         this.width = width;
         this.height = height;
         this.grid = [];
-        this.boulders = [];
+        this.orbs = [];
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 if (!this.grid[x]) {
@@ -74,8 +380,8 @@ class BoulderPuzzle extends puzzleState_1.default {
             }
         }
     }
-    bouldersInVecOrder(vec) {
-        return this.boulders.sort((a, b) => {
+    orbsInVecOrder(vec) {
+        return this.orbs.sort((a, b) => {
             let aVal = a.x * vec[0] + a.y * vec[1];
             let bVal = b.x * vec[0] + b.y * vec[1];
             if (aVal < bVal) {
@@ -91,16 +397,16 @@ class BoulderPuzzle extends puzzleState_1.default {
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 if (this.grid[x][y] == Tile.Target) {
-                    result += this.boulders.some((b) => b.x == x && b.y == y) ? "✓" : this.grid[x][y];
+                    result += this.orbs.some((b) => b.x == x && b.y == y) ? "✓" : this.grid[x][y];
                 }
                 else if (this.grid[x][y] == Tile.Empty) {
-                    result += this.boulders.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y];
+                    result += this.orbs.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y];
                 }
                 else if (this.grid[x][y] == Tile.Pit) {
-                    result += this.boulders.some((b) => b.x == x && b.y == y) ? Tile.Empty : this.grid[x][y];
+                    result += this.orbs.some((b) => b.x == x && b.y == y) ? Tile.Empty : this.grid[x][y];
                 }
                 else {
-                    result += this.boulders.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y];
+                    result += this.orbs.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y];
                 }
             }
             result += "\n";
@@ -112,16 +418,16 @@ class BoulderPuzzle extends puzzleState_1.default {
     }
     apply(move) {
         let state = lodash_1.default.cloneDeep(this);
-        for (var i = 0; i < state.boulders.length; i++) {
-            state.boulders[i].index = i;
+        for (var i = 0; i < state.orbs.length; i++) {
+            state.orbs[i].index = i;
         }
-        if (move == BoulderMove.Shatter) {
+        if (move == OrbMove.Shatter) {
             state.grid = state.grid.map((line) => line.map((t) => t == Tile.Crystal ? Tile.Empty : t));
             return state;
         }
         let vec = this.getVec(move);
         let toBeRemoved = [];
-        for (let b of state.bouldersInVecOrder(vec)) {
+        for (let b of state.orbsInVecOrder(vec)) {
             b.last_move = [0, 0];
             if (b.is_frozen()) {
                 continue;
@@ -135,7 +441,7 @@ class BoulderPuzzle extends puzzleState_1.default {
                 }
                 else {
                     let t = state.getTile(ox + vec[0] * mag, oy + vec[1] * mag);
-                    if (t == Tile.Pit && !state.any_boulder_at(ox + vec[0] * mag, oy + vec[1] * mag)) {
+                    if (t == Tile.Pit && !state.any_orb_at(ox + vec[0] * mag, oy + vec[1] * mag)) {
                         b.in_pit = true;
                         b.x = ox + vec[0] * mag;
                         b.y = oy + vec[1] * mag;
@@ -157,8 +463,8 @@ class BoulderPuzzle extends puzzleState_1.default {
                 b.last_mag = mag;
             }
         }
-        state.boulders = state.boulders.filter((b) => toBeRemoved.indexOf(b) == -1);
-        state.boulders = state.boulders.sort((a, b) => a.index - b.index);
+        state.orbs = state.orbs.filter((b) => toBeRemoved.indexOf(b) == -1);
+        state.orbs = state.orbs.sort((a, b) => a.index - b.index);
         return state;
     }
     isTilePassable(tile) {
@@ -166,14 +472,14 @@ class BoulderPuzzle extends puzzleState_1.default {
     }
     isPassable(x, y) {
         if (!this.isTilePassable(this.getTile(x, y))) {
-            if (this.getTile(x, y) == Tile.Pit && this.any_boulder_at(x, y)) {
+            if (this.getTile(x, y) == Tile.Pit && this.any_orb_at(x, y)) {
                 //that's fine
             }
             else {
                 return false;
             }
         }
-        for (let b of this.boulders) {
+        for (let b of this.orbs) {
             if (b.x == x && b.y == y && !b.in_pit) {
                 return false;
             }
@@ -186,8 +492,8 @@ class BoulderPuzzle extends puzzleState_1.default {
         }
         return this.grid[x][y];
     }
-    any_boulder_at(x, y) {
-        return (this.boulders.some(b => b.x == x && b.y == y));
+    any_orb_at(x, y) {
+        return (this.orbs.some(b => b.x == x && b.y == y));
     }
     reverseShatter() {
         if (this.criticalTiles.length < 8) {
@@ -215,7 +521,7 @@ class BoulderPuzzle extends puzzleState_1.default {
     }
     reverse(move) {
         let state = lodash_1.default.cloneDeep(this);
-        if (move == BoulderMove.Shatter) {
+        if (move == OrbMove.Shatter) {
             return state.reverseShatter();
         }
         let vec = this.getVec(move);
@@ -226,8 +532,8 @@ class BoulderPuzzle extends puzzleState_1.default {
             let possibleCoords = [];
             for (let coord of this.criticalTiles) {
                 if (state.getTile(coord.x, coord.y) == Tile.Empty && state.isPassable(coord.x + vec[0], coord.y + vec[1])) {
-                    if (state.boulders.some((b) => b.x == coord.x && b.y == coord.y)) {
-                        continue; //Don't put a pit under an existing boulder
+                    if (state.orbs.some((b) => b.x == coord.x && b.y == coord.y)) {
+                        continue; //Don't put a pit under an existing orb
                     }
                     possibleCoords.push(coord);
                 }
@@ -237,10 +543,10 @@ class BoulderPuzzle extends puzzleState_1.default {
                 throw "No pit locations";
             }
             state.grid[pit.x][pit.y] = Tile.Pit;
-            let b = new Boulder(pit.x, pit.y);
-            state.boulders.push(b);
+            let b = new Orb(pit.x, pit.y);
+            state.orbs.push(b);
         }
-        for (let b of state.bouldersInVecOrder(vec)) {
+        for (let b of state.orbsInVecOrder(vec)) {
             let ox = b.x;
             let oy = b.y;
             let mags = [];
@@ -346,14 +652,14 @@ class BoulderPuzzle extends puzzleState_1.default {
         return false;
     }
     isPitMove(move) {
-        return move == BoulderMove.UpPit || move == BoulderMove.RightPit || move == BoulderMove.LeftPit || move == BoulderMove.DownPit;
+        return move == OrbMove.UpPit || move == OrbMove.RightPit || move == OrbMove.LeftPit || move == OrbMove.DownPit;
     }
     isPortalMove(move) {
-        return move == BoulderMove.UpPortal || move == BoulderMove.RightPortal || move == BoulderMove.LeftPortal || move == BoulderMove.DownPortal;
+        return move == OrbMove.UpPortal || move == OrbMove.RightPortal || move == OrbMove.LeftPortal || move == OrbMove.DownPortal;
     }
     isValid() {
-        for (var i = 0; i < this.boulders.length; i++) {
-            let b1 = this.boulders[i];
+        for (var i = 0; i < this.orbs.length; i++) {
+            let b1 = this.orbs[i];
             let tile = this.getTile(b1.x, b1.y);
             if (!this.isTilePassable(tile)) {
                 if (tile == Tile.Pit && b1.in_pit) {
@@ -363,8 +669,8 @@ class BoulderPuzzle extends puzzleState_1.default {
                     return false;
                 }
             }
-            for (var j = i + 1; j <= this.boulders.length - 1; j++) {
-                let b2 = this.boulders[j];
+            for (var j = i + 1; j <= this.orbs.length - 1; j++) {
+                let b2 = this.orbs[j];
                 if (b1.x == b2.x && b1.y == b2.y) {
                     return false;
                 }
@@ -373,59 +679,59 @@ class BoulderPuzzle extends puzzleState_1.default {
         return true;
     }
     getMoves() {
-        let moves = [BoulderMove.Up, BoulderMove.Down, BoulderMove.Left, BoulderMove.Right];
+        let moves = [OrbMove.Up, OrbMove.Down, OrbMove.Left, OrbMove.Right];
         if (this.use_crystals) {
-            moves.push(BoulderMove.Shatter);
+            moves.push(OrbMove.Shatter);
         }
         return moves;
     }
     getReverseMoves() {
-        let moves = [BoulderMove.Up, BoulderMove.Down, BoulderMove.Left, BoulderMove.Right];
+        let moves = [OrbMove.Up, OrbMove.Down, OrbMove.Left, OrbMove.Right];
         if (this.no_basic) {
             moves = [];
         }
         if (this.use_crystals) {
-            moves.push(BoulderMove.Shatter);
+            moves.push(OrbMove.Shatter);
         }
         if (this.use_portals && !this.hasPortals() && randInt(0, 3) == 0) {
-            moves.push(BoulderMove.UpPortal);
-            moves.push(BoulderMove.RightPortal);
-            moves.push(BoulderMove.LeftPortal);
-            moves.push(BoulderMove.DownPortal);
+            moves.push(OrbMove.UpPortal);
+            moves.push(OrbMove.RightPortal);
+            moves.push(OrbMove.LeftPortal);
+            moves.push(OrbMove.DownPortal);
         }
         if (this.use_pits) {
-            moves.push(BoulderMove.RightPit);
-            moves.push(BoulderMove.LeftPit);
-            moves.push(BoulderMove.UpPit);
-            moves.push(BoulderMove.DownPit);
+            moves.push(OrbMove.RightPit);
+            moves.push(OrbMove.LeftPit);
+            moves.push(OrbMove.UpPit);
+            moves.push(OrbMove.DownPit);
         }
         return moves;
     }
     getVec(move) {
         switch (move) {
-            case BoulderMove.Right:
+            case OrbMove.Right:
                 return [1, 0];
-            case BoulderMove.RightPortal:
+            case OrbMove.RightPortal:
                 return [1, 0];
-            case BoulderMove.RightPit:
+            case OrbMove.RightPit:
                 return [1, 0];
-            case BoulderMove.Left:
+            case OrbMove.Left:
                 return [-1, 0];
-            case BoulderMove.LeftPortal:
+            case OrbMove.LeftPortal:
                 return [-1, 0];
-            case BoulderMove.LeftPit:
+            case OrbMove.LeftPit:
                 return [-1, 0];
-            case BoulderMove.Up:
+            case OrbMove.Up:
                 return [0, -1];
-            case BoulderMove.UpPortal:
+            case OrbMove.UpPortal:
                 return [0, -1];
-            case BoulderMove.UpPit:
+            case OrbMove.UpPit:
                 return [0, -1];
-            case BoulderMove.Down:
+            case OrbMove.Down:
                 return [0, 1];
-            case BoulderMove.DownPortal:
+            case OrbMove.DownPortal:
                 return [0, 1];
-            case BoulderMove.DownPit:
+            case OrbMove.DownPit:
                 return [0, 1];
             default:
                 throw "Error";
@@ -435,7 +741,7 @@ class BoulderPuzzle extends puzzleState_1.default {
         for (var x = 0; x < this.width; x++) {
             for (var y = 0; y < this.height; y++) {
                 if (this.getTile(x, y) == Tile.Target) {
-                    if (!this.boulders.some(b => b.x == x && b.y == y)) {
+                    if (!this.orbs.some(b => b.x == x && b.y == y)) {
                         return false;
                     }
                 }
@@ -444,18 +750,18 @@ class BoulderPuzzle extends puzzleState_1.default {
         return true;
     }
     isFailed() {
-        // If there are more targets than unfrozen boulders, the puzzles is a failure
-        let boulders = this.boulders.filter(b => !b.is_frozen()).length;
+        // If there are more targets than unfrozen orbs, the puzzles is a failure
+        let orbs = this.orbs.filter(b => !b.is_frozen()).length;
         let targets = this.grid.reduce((acc, line) => acc + line.filter(t => t == Tile.Target).length, 0);
-        if (boulders < targets) {
+        if (orbs < targets) {
             return true;
         }
         return false;
     }
 }
-exports.BoulderPuzzle = BoulderPuzzle;
+exports.OrbPuzzle = OrbPuzzle;
 
-},{"./puzzleState":4,"lodash":7}],2:[function(require,module,exports){
+},{"./puzzleState":4,"lodash":7}],3:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -466,375 +772,72 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const boulderPuzzle_1 = require("./boulderPuzzle");
+const orbPuzzle_1 = require("./orbPuzzle");
 function randInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
-function createBoulderPuzzle(args) {
+function createOrbPuzzle(args) {
     return __awaiter(this, void 0, void 0, function* () {
-        let p = new boulderPuzzle_1.BoulderPuzzle(args.size, args.size);
+        let p = new orbPuzzle_1.OrbPuzzle(args.size, args.size);
         for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
             let x = randInt(0, p.width);
             let y = randInt(0, p.height);
-            p.grid[x][y] = boulderPuzzle_1.Tile.Fragile;
+            p.grid[x][y] = orbPuzzle_1.Tile.Fragile;
         }
         for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
             let x = randInt(0, p.width);
             let y = randInt(0, p.height);
-            p.grid[x][y] = boulderPuzzle_1.Tile.Brick;
+            p.grid[x][y] = orbPuzzle_1.Tile.Brick;
         }
         if (args.decoy_pits) {
             for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
                 let x = randInt(0, p.width);
                 let y = randInt(0, p.height);
-                p.grid[x][y] = boulderPuzzle_1.Tile.Pit;
+                p.grid[x][y] = orbPuzzle_1.Tile.Pit;
             }
         }
-        for (let i = 0; i < args.boulders; i++) {
+        for (let i = 0; i < args.orbs; i++) {
             let x = randInt(0, p.width);
             let y = randInt(0, p.height);
-            p.grid[x][y] = boulderPuzzle_1.Tile.Target;
-            p.boulders.push(new boulderPuzzle_1.Boulder(x, y));
+            p.grid[x][y] = orbPuzzle_1.Tile.Target;
+            p.orbs.push(new orbPuzzle_1.Orb(x, y));
         }
         p.use_fragile = args.fragile;
         p.use_crystals = args.crystal;
         p.use_pits = args.pits;
         let stack = p.getStack(args.depth);
-        let solution = yield stack[0][0].solve(args.depth + 2);
-        if (solution && solution.length < args.mindepth) {
-            console.error("too short", solution.length, args.mindepth);
-            throw "too short ";
+        let solutionResult = yield stack[0][0].solve(args.depth);
+        let solution;
+        if (solutionResult) {
+            solution = solutionResult[1];
+            if (solution && solution.length < args.mindepth - 1) {
+                console.error("too short", solution.length, args.mindepth - 1);
+                throw "too short ";
+            }
         }
         let board = stack[0][0];
-        if (args.crystal && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Crystal))) {
+        if (args.crystal && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Crystal))) {
             throw "No crystals";
         }
         if (args.depth > 2) {
-            if (args.pits && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Pit))) {
+            if (args.pits && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Pit))) {
                 throw "No Pits";
             }
-            if (args.pits && !stack[1].some((m => [boulderPuzzle_1.BoulderMove.DownPit, boulderPuzzle_1.BoulderMove.UpPit, boulderPuzzle_1.BoulderMove.LeftPit, boulderPuzzle_1.BoulderMove.RightPit].indexOf(m) !== -1))) {
+            if (args.pits && !stack[1].some((m => [orbPuzzle_1.OrbMove.DownPit, orbPuzzle_1.OrbMove.UpPit, orbPuzzle_1.OrbMove.LeftPit, orbPuzzle_1.OrbMove.RightPit].indexOf(m) !== -1))) {
                 throw "No Pit USED in solution";
             }
         }
-        if (solution)
-            alert(solution.length);
-        else
-            alert("no solution");
-        return [stack[0], stack[1]];
-    });
-}
-exports.createBoulderPuzzle = createBoulderPuzzle;
-
-},{"./boulderPuzzle":1}],3:[function(require,module,exports){
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const jquery_1 = __importDefault(require("jquery"));
-const hammerjs_1 = __importDefault(require("hammerjs"));
-const sweetalert2_1 = __importDefault(require("sweetalert2"));
-const boulderPuzzle_1 = require("./boulderPuzzle");
-const boulderPuzzleGenerator_1 = require("./boulderPuzzleGenerator");
-function tryUntilSuccess(f, args) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve, reject) => {
-            let i = 0;
-            function _attempt() {
-                return __awaiter(this, void 0, void 0, function* () {
-                    try {
-                        let result = yield f(args);
-                        resolve(result);
-                    }
-                    catch (e) {
-                        console.error(e);
-                        for (var j = 0; j < 10; j++) {
-                            i++;
-                            if (i % 100 == 0) {
-                                console.warn("Over " + i + " attempts..");
-                            }
-                            if (i > 5000) {
-                                reject();
-                                return;
-                            }
-                        }
-                        setTimeout(_attempt);
-                    }
-                });
-            }
-            _attempt();
-        });
-    });
-}
-/*
-let stack:BoulderPuzzle[] = []
-let p =new BoulderPuzzle(10,10)
-p.grid[4][3] = Tile.Pit;
-p.boulders.push(new Boulder(4,4))
-stack.push(p)
-p = p.reverse(BoulderMove.Up)
-stack.push(p)
-stack = stack.reverse();
-*/
-let board;
-let moving = false;
-let $tiles;
-jquery_1.default(document).ready(() => {
-    (function () {
-        return __awaiter(this, void 0, void 0, function* () {
-            let params = getUrlVars();
-            let size = parseInt(params['size']) || 10;
-            let boulders = parseInt(params['boulders']) || 2;
-            let brick_density = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']);
-            let pit_density = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']);
-            let fragile_brick_density = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']);
-            let depth = parseInt(params['depth']) || 4;
-            let mindepth = parseInt(params['mindepth']) || depth;
-            let fragile = params['fragile'] == "true";
-            let crystal = params['crystal'] == "true";
-            let pits = params['pits'] == "true";
-            let decoy_pits = params['decoy_pits'] == "true";
-            let stack = undefined;
-            sweetalert2_1.default({
-                title: 'Generating Level',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                onOpen: () => __awaiter(this, void 0, void 0, function* () {
-                    sweetalert2_1.default.showLoading();
-                })
-            });
-            try {
-                stack = yield tryUntilSuccess(boulderPuzzleGenerator_1.createBoulderPuzzle, { size, boulders, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density });
-                sweetalert2_1.default.close();
-            }
-            catch (e) {
-                sweetalert2_1.default({
-                    title: "Couldn't generate level!",
-                    text: "feel free to try a few more times",
-                    type: "error",
-                    showCancelButton: true,
-                    cancelButtonText: "Back to settings",
-                    confirmButtonText: "New Puzzle",
-                    useRejections: true,
-                }).then(() => {
-                    window.location.reload();
-                }).catch(() => {
-                    window.location.href = window.location.href.replace("game", "index");
-                });
-                return;
-            }
-            board = stack[0][0];
-            let solution = stack[1];
-            jquery_1.default('.hint').click(() => {
-                sweetalert2_1.default(solution.join("\n"));
-            });
-            let orig = board;
-            jquery_1.default('.reset').click(() => {
-                sweetalert2_1.default({
-                    title: "Restart puzzle?",
-                    type: "question",
-                    showCancelButton: true,
-                    confirmButtonText: "Yes",
-                    cancelButtonText: "No!",
-                    useRejections: true,
-                    focusCancel: true
-                }).then(() => {
-                    board = orig;
-                    $tiles = create_board(board);
-                    moving = false;
-                });
-            });
-            $tiles = create_board(board);
-            jquery_1.default('body').keyup((e) => {
-                let move = undefined;
-                switch (e.which) {
-                    case 37:
-                        move = boulderPuzzle_1.BoulderMove.Left;
-                        break;
-                    case 38:
-                        move = boulderPuzzle_1.BoulderMove.Up;
-                        break;
-                    case 39:
-                        move = boulderPuzzle_1.BoulderMove.Right;
-                        break;
-                    case 40:
-                        move = boulderPuzzle_1.BoulderMove.Down;
-                        break;
-                }
-                apply_move(move);
-            });
-            function getUrlVars() {
-                var vars = {};
-                window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function ({}, key, value) {
-                    vars[key] = value;
-                    return "";
-                });
-                return vars;
-            }
-        });
-    })();
-});
-function apply_move(move) {
-    if (move && !moving && board) {
-        moving = true;
-        board = board.apply(move);
-        jquery_1.default('.puzzle-wrapper .boulder').each((i, e) => {
-            let b = board.boulders[i];
-            if (b && !jquery_1.default(e).hasClass('boulder--in-pit')) {
-                let s = 0.1 * (b.last_mag || 0);
-                let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
-                jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
-                jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))');
-                if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
-                    jquery_1.default(e).removeClass('boulder--on-target');
-                }
-                setTimeout(() => {
-                    if (board.getTile(b.x, b.y) == boulderPuzzle_1.Tile.Target) {
-                        jquery_1.default(e).addClass('boulder--on-target');
-                    }
-                    if (b.in_pit) {
-                        setTimeout(() => {
-                            jquery_1.default(e).addClass('boulder--in-pit');
-                            jquery_1.default(e).removeClass('boulder--on-target');
-                            jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')) scale(0.7)');
-                        }, 100);
-                    }
-                    else {
-                        jquery_1.default(e).removeClass('boulder--in-pit');
-                    }
-                    if (b.last_contact) {
-                        let t = board.getTile(b.last_contact.x, b.last_contact.y);
-                        let $t = $tiles[b.last_contact.x][b.last_contact.y];
-                        if ($t && t == boulderPuzzle_1.Tile.Empty) {
-                            $t.addClass('animated');
-                            if (b.last_contact.x > b.x)
-                                $t.addClass('fadeOutRight');
-                            else if (b.last_contact.x < b.x)
-                                $t.addClass('fadeOutLeft');
-                            else if (b.last_contact.y < b.y)
-                                $t.addClass('fadeOutUp');
-                            else if (b.last_contact.y > b.y)
-                                $t.addClass('fadeOutDown');
-                        }
-                        setTimeout(() => $t.remove, 1000);
-                    }
-                }, s * 1000);
-            }
-        });
-        let time = board.boulders.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
-        setTimeout(() => {
-            moving = false;
-            /* for (let x = 0; x < board.width; x++) {
-              for (let y = 0; y < board.height; y++) {
-                let t = board.getTile(x, y)
-                let $t = $tiles[x][y]
-                if ($t && t == Tile.Empty) {
-                  $t.remove();
-                }
-              }
-            } */
-            if (board.isSolved()) {
-                setTimeout(() => {
-                    sweetalert2_1.default({
-                        title: "You win!",
-                        type: "success",
-                        showCancelButton: true,
-                        cancelButtonText: "Back to settings",
-                        confirmButtonText: "New Puzzle",
-                        useRejections: true,
-                    }).then(() => {
-                        window.location.reload();
-                    }).catch(() => {
-                        window.location.href = window.location.href.replace("game", "index");
-                    });
-                }, 400);
-            }
-        }, time);
-    }
-}
-function create_board(board) {
-    jquery_1.default('.puzzle-wrapper').remove();
-    let $wrapper = jquery_1.default('<div/>').addClass('puzzle-wrapper').appendTo('body');
-    jquery_1.default("body").attr("style", "--tsize:calc(var(--bsize) / " + board.width + ")");
-    jquery_1.default('<div/>').addClass('puzzles')
-        .appendTo($wrapper);
-    jquery_1.default('<div/>').addClass('upper-layer')
-        .appendTo($wrapper);
-    var $tiles = [];
-    for (let x = 0; x < board.width; x++) {
-        $tiles[x] = [];
-        for (let y = 0; y < board.height; y++) {
-            let t = board.getTile(x, y);
-            let layer = "upper";
-            if (t == boulderPuzzle_1.Tile.Empty) {
-                continue;
-            }
-            let tileName = 'brick';
-            if (t == boulderPuzzle_1.Tile.Target) {
-                tileName = 'target';
-                layer = "lower";
-            }
-            if (t == boulderPuzzle_1.Tile.Fragile) {
-                tileName = 'fragile';
-            }
-            if (t == boulderPuzzle_1.Tile.Crystal) {
-                tileName = 'crystal';
-            }
-            if (t == boulderPuzzle_1.Tile.Pit) {
-                tileName = 'pit';
-                layer = "lower";
-            }
-            let $tw = jquery_1.default('<div/>')
-                .addClass('tile-wrapper')
-                .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles')
-                .css('transform', 'translate(calc(var(--tsize) * ' + x + '), calc(var(--tsize) * ' + y + '))');
-            let $t = jquery_1.default('<div/>')
-                .addClass('tile')
-                .addClass('tile--' + tileName)
-                .appendTo($tw);
-            $tiles[x][y] = $t;
+        if (!solution) {
+            solution = stack[1];
         }
-    }
-    for (let b of board.boulders) {
-        let $e = jquery_1.default('<div class="boulder"/>')
-            .css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))')
-            .data('x', b.x)
-            .data('y', b.y)
-            .appendTo('.upper-layer');
-        if (board.getTile(b.x, b.y) == boulderPuzzle_1.Tile.Target) {
-            $e.addClass('boulder--on-target');
-        }
-    }
-    var mc = new hammerjs_1.default($wrapper[0]);
-    mc.get('swipe').set({ direction: hammerjs_1.default.DIRECTION_ALL });
-    mc.on("swipeleft", function () {
-        apply_move(boulderPuzzle_1.BoulderMove.Left);
+        return [stack[0], solution];
     });
-    mc.on("swiperight", function () {
-        apply_move(boulderPuzzle_1.BoulderMove.Right);
-    });
-    mc.on("swipeup", function () {
-        apply_move(boulderPuzzle_1.BoulderMove.Up);
-    });
-    mc.on("swipedown", function () {
-        apply_move(boulderPuzzle_1.BoulderMove.Down);
-    });
-    return $tiles;
 }
+exports.createOrbPuzzle = createOrbPuzzle;
 
-},{"./boulderPuzzle":1,"./boulderPuzzleGenerator":2,"hammerjs":5,"jquery":6,"sweetalert2":8}],4:[function(require,module,exports){
+},{"./orbPuzzle":2}],4:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -863,7 +866,7 @@ class PuzzleState {
                 solutionMap = {};
             }
             if (this.isSolved()) {
-                return [this];
+                return [[this], []];
             }
             if (this.isFailed()) {
                 return null;
@@ -879,6 +882,7 @@ class PuzzleState {
                 return null;
             }
             let shortestSolution = undefined;
+            let bestMove;
             for (let m of this.getMoves()) {
                 let s = this.apply(m);
                 if (s.hashString() === this.hashString()) {
@@ -889,6 +893,7 @@ class PuzzleState {
                 if (ss) {
                     if (shortestSolution === undefined || ss.length < shortestSolution.length) {
                         shortestSolution = ss;
+                        bestMove = m;
                         nextDepth = shortestSolution.length - 1;
                     }
                     else {
@@ -896,10 +901,15 @@ class PuzzleState {
                 }
             }
             if (shortestSolution) {
+                if (!bestMove) {
+                    throw "Assert there has been a move";
+                }
                 let arr = [this];
-                arr = arr.concat(shortestSolution);
-                solutionMap[this.hashString()] = [maxDepth - curDepth, arr];
-                return arr;
+                let marr = [bestMove];
+                arr = arr.concat(shortestSolution[0]);
+                marr = marr.concat(shortestSolution[1]);
+                solutionMap[this.hashString()] = [maxDepth - curDepth, [arr, marr]];
+                return [arr, marr];
             }
             else {
                 solutionMap[this.hashString()] = [maxDepth - curDepth, null];
@@ -34677,4 +34687,4 @@ if (typeof window !== 'undefined' && window.Sweetalert2){  window.swal = window.
 "  100% {\n" +
 "    -webkit-transform: rotate(360deg);\n" +
 "            transform: rotate(360deg); } }");
-},{}]},{},[3]);
+},{}]},{},[1]);

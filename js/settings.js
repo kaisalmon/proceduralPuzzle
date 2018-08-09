@@ -286,7 +286,7 @@ jquery_1.default(document).ready(() => {
         'el': '#settings',
         'data': {
             'size': parseInt(url_vars["size"]) || 6,
-            'boulders': parseInt(url_vars["boulders"]) || 2,
+            'orbs': parseInt(url_vars["orbs"]) || 2,
             'brick_density': url_vars['brick_density'] === undefined ? 5 : parseInt(url_vars['brick_density']),
             'pit_density': url_vars['pit_density'] === undefined ? 0 : parseInt(url_vars['pit_density']),
             'fragile_brick_density': url_vars['fragile_brick_density'] === undefined ? 5 : parseInt(url_vars['fragile_brick_density']),
@@ -299,7 +299,7 @@ jquery_1.default(document).ready(() => {
             'size': function () {
                 this.setUrl();
             },
-            'boulders': function () {
+            'orbs': function () {
                 this.setUrl();
             }, 'moverange': function () {
                 this.setUrl();
@@ -336,7 +336,7 @@ jquery_1.default(document).ready(() => {
                 return Math.min(this.moverange[0], this.moverange[1]) + " - " + Math.max(this.moverange[0], this.moverange[1]);
             },
             'difficulty': function () {
-                let d = Math.sqrt(this.boulders) * (Math.pow(this.moverange[1], 2) - Math.pow(this.size - 8, 2));
+                let d = Math.sqrt(this.orbs) * (Math.pow(this.moverange[1], 2) - Math.pow(this.size - 8, 2));
                 if (this.pits) {
                     d *= 1.15;
                 }
@@ -370,7 +370,7 @@ jquery_1.default(document).ready(() => {
                 let settings = "size=" + this.size;
                 settings += "&depth=" + this.depth;
                 settings += "&mindepth=" + this.mindepth;
-                settings += "&boulders=" + this.boulders;
+                settings += "&orbs=" + this.orbs;
                 settings += "&fragile=" + this.fragile;
                 settings += "&pits=" + this.pits;
                 settings += "&decoy_pits=" + this.decoy_pits;

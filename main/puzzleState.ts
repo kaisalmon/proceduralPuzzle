@@ -16,7 +16,7 @@ abstract class PuzzleState<MOVE>{
   abstract getReverseMoves(): MOVE[];
 
 
-  async solve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:[number, PuzzleState<MOVE>[]|null]}): Promise<PuzzleState<MOVE>[] | null>{
+  async solve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:[number, [PuzzleState<MOVE>[], MOVE[]]|null]}): Promise<[PuzzleState<MOVE>[], MOVE[]] | null>{
     if(Math.random() < 0.0005){
       console.log("YIELD");
       await sleep(0);
@@ -26,7 +26,7 @@ abstract class PuzzleState<MOVE>{
     }
 
     if (this.isSolved()) {
-      return [this]
+      return [[this], []]
     }
     if (this.isFailed()) {
       return null;
@@ -43,7 +43,8 @@ abstract class PuzzleState<MOVE>{
       solutionMap[this.hashString()] = [maxDepth-curDepth, null];
       return null;
     }
-    let shortestSolution: PuzzleState<MOVE>[] | undefined = undefined;
+    let shortestSolution: [PuzzleState<MOVE>[], MOVE[]] | undefined = undefined;
+    let bestMove:MOVE|undefined;
     for (let m of this.getMoves()) {
       let s = this.apply(m);
 
@@ -55,16 +56,22 @@ abstract class PuzzleState<MOVE>{
       if (ss) {
         if (shortestSolution === undefined || ss.length < shortestSolution.length) {
           shortestSolution = ss;
+          bestMove = m;
           nextDepth = shortestSolution.length - 1;
         } else {
         }
       }
     }
     if (shortestSolution) {
+      if(!bestMove){
+        throw "Assert there has been a move"
+      }
       let arr: PuzzleState<MOVE>[] = [this]
-      arr = arr.concat(shortestSolution)
-      solutionMap[this.hashString()] =  [maxDepth-curDepth, arr];
-      return arr;
+      let marr: MOVE[] = [bestMove];
+      arr = arr.concat(shortestSolution[0])
+      marr = marr.concat(shortestSolution[1])
+      solutionMap[this.hashString()] =  [maxDepth-curDepth, [arr, marr]];
+      return [arr, marr];
     }else{
       solutionMap[this.hashString()] =  [maxDepth-curDepth, null];
       return null;
