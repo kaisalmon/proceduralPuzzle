@@ -293,7 +293,8 @@ jquery_1.default(document).ready(() => {
             'moverange': [parseInt(url_vars["mindepth"]) - 1 || 3, parseInt(url_vars["depth"]) - 1 || 4],
             'no_fragile': url_vars["fragile"] === undefined || url_vars["fragile"] === "true" ? false : true,
             'pits': url_vars["pits"] === undefined || url_vars["pits"] === "false" ? false : true,
-            'decoy_pits': url_vars["decoy_pits"] === undefined || url_vars["decoy_pits"] === "false" ? false : true
+            'decoy_pits': url_vars["decoy_pits"] === undefined || url_vars["decoy_pits"] === "false" ? false : true,
+            'decoy_orbs': url_vars["decoy_orbs"] === undefined || url_vars["decoy_orbs"] === "false" ? false : true
         },
         'watch': {
             'size': function () {
@@ -307,6 +308,9 @@ jquery_1.default(document).ready(() => {
                 if (this.no_fragile) {
                     this.fragile_brick_density = 0;
                 }
+                else {
+                    this.fragile_brick_density = 5;
+                }
                 this.setUrl();
             }, 'pits': function () {
                 this.setUrl();
@@ -314,6 +318,12 @@ jquery_1.default(document).ready(() => {
                 if (!this.decoy_pits) {
                     this.pit_density = 0;
                 }
+                else {
+                    this.pit_density = 5;
+                }
+                this.setUrl();
+            },
+            'decoy_orbs': function () {
                 this.setUrl();
             },
             'brick_density': function () {
@@ -374,6 +384,7 @@ jquery_1.default(document).ready(() => {
                 settings += "&fragile=" + this.fragile;
                 settings += "&pits=" + this.pits;
                 settings += "&decoy_pits=" + this.decoy_pits;
+                settings += "&decoy_orbs=" + this.decoy_orbs;
                 settings += "&brick_density=" + this.brick_density;
                 settings += "&fragile_brick_density=" + this.fragile_brick_density;
                 settings += "&pit_density=" + this.pit_density;

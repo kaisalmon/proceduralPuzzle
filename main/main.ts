@@ -57,6 +57,7 @@ $(document).ready(() => {
     let crystal: boolean = params['crystal'] == "true";
     let pits: boolean = params['pits'] == "true";
     let decoy_pits: boolean = params['decoy_pits'] == "true";
+    let decoy_orbs: boolean = params['decoy_orbs'] == "true";
 
     let stack: [OrbPuzzle[], OrbMove[]] | undefined = undefined;
     swal({
@@ -70,7 +71,7 @@ $(document).ready(() => {
     })
 
     try {
-      stack = await tryUntilSuccess(createPuzzle, {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density});
+      stack = await tryUntilSuccess(createPuzzle, {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs});
       swal.close();
     } catch (e) {
       swal({
