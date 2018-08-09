@@ -1,11 +1,10 @@
 import {OrbPuzzle, Orb, Tile, OrbMove} from './orbPuzzle'
-/*
+
 function randInt(min: number, max: number): number {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
 }
-*/
 
 interface puzzleConfig {
     size: number;
@@ -22,8 +21,22 @@ interface puzzleConfig {
     pit_density: number;
 }
 
-function buggy_solution(): OrbPuzzle{
-  let json = {"criticalTiles":[{"x":1,"y":1},{"x":2,"y":1},{"x":0,"y":1}],"use_crystals":false,"use_pits":false,"use_portals":false,"use_fragile":true,"no_basic":false,"width":6,"height":6,"grid":[[" "," "," "," "," "," "],[" "," "," "," "," "," "],[" ","◎"," "," "," "," "],[" ","□"," "," "," "," "],[" "," "," "," "," "," "],[" "," "," "," "," "," "]],"orbs":[{"index":-1,"in_pit":false,"x":1,"y":1}]}
+interface OrbPuzzleJson{
+  grid: string[][];
+  orbs: any[],
+  "criticalTiles":any[];
+  "use_crystals":boolean;
+  "use_pits":boolean;
+  "use_portals":boolean;
+  "use_fragile":boolean;
+  "no_basic":boolean;
+  "width":number;
+  "height":number;
+}
+export function from_json(json:OrbPuzzleJson): OrbPuzzle{
+  if(!json){
+    json = {"criticalTiles":[{"x":1,"y":1},{"x":2,"y":1},{"x":0,"y":1}],"use_crystals":false,"use_pits":false,"use_portals":false,"use_fragile":true,"no_basic":false,"width":6,"height":6,"grid":[[" "," "," "," "," "," "],[" "," "," "," "," "," "],[" ","◎"," "," "," "," "],[" ","□"," "," "," "," "],[" "," "," "," "," "," "],[" "," "," "," "," "," "]],"orbs":[{"index":-1,"in_pit":false,"x":1,"y":1}]}
+  }
   let o = new OrbPuzzle(json.width, json.height);
   for(var i = 0; i< json.grid.length; i++){
     for(var j = 0; j< json.grid[0].length; j++){
@@ -41,15 +54,14 @@ function buggy_solution(): OrbPuzzle{
 }
 
 export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], OrbMove[]]> {
-      return [[buggy_solution()], []];
-      /*
+
       let p = new OrbPuzzle(args.size, args.size)
       for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
         let x = randInt(0, p.width);
         let y = randInt(0, p.height);
         p.grid[x][y] = Tile.Fragile;
       }
-      for (let i = 0; i < p.width * p.height / 100 * args.br2ick_density; i++) {
+      for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
         let x = randInt(0, p.width);
         let y = randInt(0, p.height);
         p.grid[x][y] = Tile.Brick;
@@ -103,8 +115,5 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
           throw "No Pit USED in solution"
         }
       }
-      console.log(">>>", stack[0][0])
-      console.log(">>>", solution)
       return [stack[0] as OrbPuzzle[], solution]
-      */
     }

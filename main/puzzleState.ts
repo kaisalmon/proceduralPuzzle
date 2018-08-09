@@ -29,13 +29,13 @@ abstract class PuzzleState<MOVE>{
       return [[this], []]
     }
     if (this.isFailed()) {
-      //return null;
+      return null;
     }
 
     if (solutionMap[this.hashString()] !== undefined){
       let entry = solutionMap[this.hashString()];
       if (entry[0] >= (maxDepth-curDepth)){
-      //  return entry[1];
+        return entry[1];
       }
     }
 
@@ -54,10 +54,10 @@ abstract class PuzzleState<MOVE>{
       let nextDepth = curDepth + 1;
       let ss = await s.solve(maxDepth, nextDepth, solutionMap)
       if (ss) {
-        if (shortestSolution === undefined || ss.length < shortestSolution[0].length) {
+        if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
           shortestSolution = ss;
           bestMove = m;
-      //    nextDepth = shortestSolution.length - 1;
+          nextDepth = shortestSolution.length - 1;
         } else {
         }
       }

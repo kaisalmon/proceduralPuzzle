@@ -774,8 +774,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const orbPuzzle_1 = require("./orbPuzzle");
-function buggy_solution() {
-    let json = { "criticalTiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 0, "y": 1 }], "use_crystals": false, "use_pits": false, "use_portals": false, "use_fragile": true, "no_basic": false, "width": 6, "height": 6, "grid": [[" ", " ", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "], [" ", "◎", " ", " ", " ", " "], [" ", "□", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "]], "orbs": [{ "index": -1, "in_pit": false, "x": 1, "y": 1 }] };
+function randInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+function from_json(json) {
+    if (!json) {
+        json = { "criticalTiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 0, "y": 1 }], "use_crystals": false, "use_pits": false, "use_portals": false, "use_fragile": true, "no_basic": false, "width": 6, "height": 6, "grid": [[" ", " ", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "], [" ", "◎", " ", " ", " ", " "], [" ", "□", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "]], "orbs": [{ "index": -1, "in_pit": false, "x": 1, "y": 1 }] };
+    }
     let o = new orbPuzzle_1.OrbPuzzle(json.width, json.height);
     for (var i = 0; i < json.grid.length; i++) {
         for (var j = 0; j < json.grid[0].length; j++) {
@@ -791,74 +798,66 @@ function buggy_solution() {
     });
     return o;
 }
+exports.from_json = from_json;
 function createOrbPuzzle(args) {
     return __awaiter(this, void 0, void 0, function* () {
-        return [[buggy_solution()], []];
-        /*
-        let p = new OrbPuzzle(args.size, args.size)
+        let p = new orbPuzzle_1.OrbPuzzle(args.size, args.size);
         for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
-          let x = randInt(0, p.width);
-          let y = randInt(0, p.height);
-          p.grid[x][y] = Tile.Fragile;
-        }
-        for (let i = 0; i < p.width * p.height / 100 * args.br2ick_density; i++) {
-          let x = randInt(0, p.width);
-          let y = randInt(0, p.height);
-          p.grid[x][y] = Tile.Brick;
-        }
-        if(args.decoy_pits){
-            for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
             let x = randInt(0, p.width);
             let y = randInt(0, p.height);
-            p.grid[x][y] = Tile.Pit;
-          }
+            p.grid[x][y] = orbPuzzle_1.Tile.Fragile;
         }
-  
-        if(args.decoy_orbs){
-          let x = randInt(0, p.width);
-          let y = randInt(0, p.height);
-          p.grid[x][y] = Tile.Empty;
-          p.orbs.push(new Orb(x, y))
+        for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
+            let x = randInt(0, p.width);
+            let y = randInt(0, p.height);
+            p.grid[x][y] = orbPuzzle_1.Tile.Brick;
         }
-  
+        if (args.decoy_pits) {
+            for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
+                let x = randInt(0, p.width);
+                let y = randInt(0, p.height);
+                p.grid[x][y] = orbPuzzle_1.Tile.Pit;
+            }
+        }
+        if (args.decoy_orbs) {
+            let x = randInt(0, p.width);
+            let y = randInt(0, p.height);
+            p.grid[x][y] = orbPuzzle_1.Tile.Empty;
+            p.orbs.push(new orbPuzzle_1.Orb(x, y));
+        }
         for (let i = 0; i < args.orbs; i++) {
-          let x = randInt(0, p.width);
-          let y = randInt(0, p.height);
-          p.grid[x][y] = Tile.Target
-          p.orbs.push(new Orb(x, y))
+            let x = randInt(0, p.width);
+            let y = randInt(0, p.height);
+            p.grid[x][y] = orbPuzzle_1.Tile.Target;
+            p.orbs.push(new orbPuzzle_1.Orb(x, y));
         }
-  
         p.use_fragile = args.fragile;
         p.use_crystals = args.crystal;
         p.use_pits = args.pits;
-  
-        let stack = p.getStack(args.depth)
-        let solutionResult = await stack[0][0].solve(args.depth);
-        if(!solutionResult){
-          throw "Couldn't solve";
+        let stack = p.getStack(args.depth);
+        let solutionResult = yield stack[0][0].solve(args.depth);
+        if (!solutionResult) {
+            throw "Couldn't solve";
         }
-        let solution:OrbMove[];
-        solution = solutionResult[1]
+        let solution;
+        solution = solutionResult[1];
         if (!solution || solution.length < args.mindepth - 1) {
-          console.error("too short", solution.length, args.mindepth);
-          throw "too short "
+            console.error("too short", solution.length, args.mindepth);
+            throw "too short ";
         }
-        let board: OrbPuzzle = stack[0][0] as OrbPuzzle;
-        if (args.crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
-          throw "No crystals"
+        let board = stack[0][0];
+        if (args.crystal && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Crystal))) {
+            throw "No crystals";
         }
-        if(args.depth > 2){
-          if (args.pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
-            throw "No Pits"
-          }
-          if (args.pits && !stack[1].some((m => [OrbMove.DownPit, OrbMove.UpPit, OrbMove.LeftPit, OrbMove.RightPit].indexOf(m) !== -1))) {
-            throw "No Pit USED in solution"
-          }
+        if (args.depth > 2) {
+            if (args.pits && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Pit))) {
+                throw "No Pits";
+            }
+            if (args.pits && !stack[1].some((m => [orbPuzzle_1.OrbMove.DownPit, orbPuzzle_1.OrbMove.UpPit, orbPuzzle_1.OrbMove.LeftPit, orbPuzzle_1.OrbMove.RightPit].indexOf(m) !== -1))) {
+                throw "No Pit USED in solution";
+            }
         }
-        console.log(">>>", stack[0][0])
-        console.log(">>>", solution)
-        return [stack[0] as OrbPuzzle[], solution]
-        */
+        return [stack[0], solution];
     });
 }
 exports.createOrbPuzzle = createOrbPuzzle;
@@ -895,12 +894,12 @@ class PuzzleState {
                 return [[this], []];
             }
             if (this.isFailed()) {
-                //return null;
+                return null;
             }
             if (solutionMap[this.hashString()] !== undefined) {
                 let entry = solutionMap[this.hashString()];
                 if (entry[0] >= (maxDepth - curDepth)) {
-                    //  return entry[1];
+                    return entry[1];
                 }
             }
             if (curDepth >= maxDepth) {
@@ -917,10 +916,10 @@ class PuzzleState {
                 let nextDepth = curDepth + 1;
                 let ss = yield s.solve(maxDepth, nextDepth, solutionMap);
                 if (ss) {
-                    if (shortestSolution === undefined || ss.length < shortestSolution[0].length) {
+                    if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
                         shortestSolution = ss;
                         bestMove = m;
-                        //    nextDepth = shortestSolution.length - 1;
+                        nextDepth = shortestSolution.length - 1;
                     }
                     else {
                     }
