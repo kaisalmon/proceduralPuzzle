@@ -448,6 +448,14 @@ exports.BoulderPuzzle = BoulderPuzzle;
 
 },{"./puzzleState":4,"lodash":7}],2:[function(require,module,exports){
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const boulderPuzzle_1 = require("./boulderPuzzle");
 function randInt(min, max) {
@@ -456,56 +464,58 @@ function randInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 function createBoulderPuzzle(args) {
-    let p = new boulderPuzzle_1.BoulderPuzzle(args.size, args.size);
-    for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
-        p.grid[x][y] = boulderPuzzle_1.Tile.Fragile;
-    }
-    for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
-        p.grid[x][y] = boulderPuzzle_1.Tile.Brick;
-    }
-    if (args.decoy_pits) {
-        for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let p = new boulderPuzzle_1.BoulderPuzzle(args.size, args.size);
+        for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
             let x = randInt(0, p.width);
             let y = randInt(0, p.height);
-            p.grid[x][y] = boulderPuzzle_1.Tile.Pit;
+            p.grid[x][y] = boulderPuzzle_1.Tile.Fragile;
         }
-    }
-    for (let i = 0; i < args.boulders; i++) {
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
-        p.grid[x][y] = boulderPuzzle_1.Tile.Target;
-        p.boulders.push(new boulderPuzzle_1.Boulder(x, y));
-    }
-    p.use_fragile = args.fragile;
-    p.use_crystals = args.crystal;
-    p.use_pits = args.pits;
-    let stack = p.getStack(args.depth);
-    let solution = stack[0][0].solve(args.depth + 2);
-    if (solution && solution.length < args.mindepth) {
-        console.error("too short", solution.length, args.mindepth);
-        throw "too short ";
-    }
-    let board = stack[0][0];
-    if (args.crystal && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Crystal))) {
-        throw "No crystals";
-    }
-    if (args.depth > 2) {
-        if (args.pits && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Pit))) {
-            throw "No Pits";
+        for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
+            let x = randInt(0, p.width);
+            let y = randInt(0, p.height);
+            p.grid[x][y] = boulderPuzzle_1.Tile.Brick;
         }
-        if (args.pits && !stack[1].some((m => [boulderPuzzle_1.BoulderMove.DownPit, boulderPuzzle_1.BoulderMove.UpPit, boulderPuzzle_1.BoulderMove.LeftPit, boulderPuzzle_1.BoulderMove.RightPit].indexOf(m) !== -1))) {
-            throw "No Pit USED in solution";
+        if (args.decoy_pits) {
+            for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
+                let x = randInt(0, p.width);
+                let y = randInt(0, p.height);
+                p.grid[x][y] = boulderPuzzle_1.Tile.Pit;
+            }
         }
-    }
-    if (solution)
-        alert(solution.length);
-    else
-        alert("no solution");
-    return [stack[0], stack[1]];
+        for (let i = 0; i < args.boulders; i++) {
+            let x = randInt(0, p.width);
+            let y = randInt(0, p.height);
+            p.grid[x][y] = boulderPuzzle_1.Tile.Target;
+            p.boulders.push(new boulderPuzzle_1.Boulder(x, y));
+        }
+        p.use_fragile = args.fragile;
+        p.use_crystals = args.crystal;
+        p.use_pits = args.pits;
+        let stack = p.getStack(args.depth);
+        let solution = yield stack[0][0].solve(args.depth + 2);
+        if (solution && solution.length < args.mindepth) {
+            console.error("too short", solution.length, args.mindepth);
+            throw "too short ";
+        }
+        let board = stack[0][0];
+        if (args.crystal && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Crystal))) {
+            throw "No crystals";
+        }
+        if (args.depth > 2) {
+            if (args.pits && !board.grid.some(line => line.some(tile => tile == boulderPuzzle_1.Tile.Pit))) {
+                throw "No Pits";
+            }
+            if (args.pits && !stack[1].some((m => [boulderPuzzle_1.BoulderMove.DownPit, boulderPuzzle_1.BoulderMove.UpPit, boulderPuzzle_1.BoulderMove.LeftPit, boulderPuzzle_1.BoulderMove.RightPit].indexOf(m) !== -1))) {
+                throw "No Pit USED in solution";
+            }
+        }
+        if (solution)
+            alert(solution.length);
+        else
+            alert("no solution");
+        return [stack[0], stack[1]];
+    });
 }
 exports.createBoulderPuzzle = createBoulderPuzzle;
 
@@ -533,24 +543,26 @@ function tryUntilSuccess(f, args) {
         return new Promise((resolve, reject) => {
             let i = 0;
             function _attempt() {
-                try {
-                    let result = f(args);
-                    resolve(result);
-                }
-                catch (e) {
-                    console.error(e);
-                    for (var j = 0; j < 10; j++) {
-                        i++;
-                        if (i % 100 == 0) {
-                            console.warn("Over " + i + " attempts..");
-                        }
-                        if (i > 5000) {
-                            reject();
-                            return;
-                        }
+                return __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        let result = yield f(args);
+                        resolve(result);
                     }
-                    requestAnimationFrame(_attempt);
-                }
+                    catch (e) {
+                        console.error(e);
+                        for (var j = 0; j < 10; j++) {
+                            i++;
+                            if (i % 100 == 0) {
+                                console.warn("Over " + i + " attempts..");
+                            }
+                            if (i > 5000) {
+                                reject();
+                                return;
+                            }
+                        }
+                        setTimeout(_attempt);
+                    }
+                });
             }
             _attempt();
         });
@@ -815,60 +827,73 @@ function create_board(board) {
 
 },{"./boulderPuzzle":1,"./boulderPuzzleGenerator":2,"hammerjs":5,"jquery":6,"sweetalert2":8}],4:[function(require,module,exports){
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = __importDefault(require("lodash"));
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 class PuzzleState {
     solve(maxDepth = 5, curDepth = 1, solutionMap) {
-        if (!solutionMap) {
-            solutionMap = {};
-        }
-        if (this.isSolved()) {
-            return [this];
-        }
-        if (solutionMap[this.hashString()] !== undefined) {
-            let entry = solutionMap[this.hashString()];
-            if (entry[0] >= (maxDepth - curDepth)) {
-                return entry[1];
+        return __awaiter(this, void 0, void 0, function* () {
+            if (Math.random() < 0.0005) {
+                console.log("YIELD");
+                yield sleep(0);
             }
-        }
-        if (curDepth >= maxDepth) {
-            solutionMap[this.hashString()] = [maxDepth - curDepth, null];
-            console.log("Too deep", maxDepth);
-            return null;
-        }
-        let shortestSolution = undefined;
-        for (let m of this.getMoves()) {
-            let s = this.apply(m);
-            console.log("Trying " + m);
-            if (s.hashString() === this.hashString()) {
-                console.log("No change");
-                continue;
+            if (!solutionMap) {
+                solutionMap = {};
             }
-            let nextDepth = curDepth + 1;
-            let ss = s.solve(maxDepth, nextDepth, solutionMap);
-            if (ss) {
-                if (shortestSolution === undefined || ss.length < shortestSolution.length) {
-                    shortestSolution = ss;
-                    nextDepth = shortestSolution.length - 1;
-                }
-                else {
-                    console.log('Nope');
+            if (this.isSolved()) {
+                return [this];
+            }
+            if (solutionMap[this.hashString()] !== undefined) {
+                let entry = solutionMap[this.hashString()];
+                if (entry[0] >= (maxDepth - curDepth)) {
+                    return entry[1];
                 }
             }
-        }
-        if (shortestSolution) {
-            let arr = [this];
-            arr = arr.concat(shortestSolution);
-            solutionMap[this.hashString()] = [maxDepth - curDepth, arr];
-            return arr;
-        }
-        else {
-            solutionMap[this.hashString()] = [maxDepth - curDepth, null];
-            return null;
-        }
+            if (curDepth >= maxDepth) {
+                solutionMap[this.hashString()] = [maxDepth - curDepth, null];
+                return null;
+            }
+            let shortestSolution = undefined;
+            for (let m of this.getMoves()) {
+                let s = this.apply(m);
+                if (s.hashString() === this.hashString()) {
+                    continue;
+                }
+                let nextDepth = curDepth + 1;
+                let ss = yield s.solve(maxDepth, nextDepth, solutionMap);
+                if (ss) {
+                    if (shortestSolution === undefined || ss.length < shortestSolution.length) {
+                        shortestSolution = ss;
+                        nextDepth = shortestSolution.length - 1;
+                    }
+                    else {
+                    }
+                }
+            }
+            if (shortestSolution) {
+                let arr = [this];
+                arr = arr.concat(shortestSolution);
+                solutionMap[this.hashString()] = [maxDepth - curDepth, arr];
+                return arr;
+            }
+            else {
+                solutionMap[this.hashString()] = [maxDepth - curDepth, null];
+                return null;
+            }
+        });
     }
     getStack(depth, debug = false) {
         let bad_states = [];

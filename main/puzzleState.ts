@@ -1,5 +1,9 @@
 import _ from "lodash";
 
+function sleep(ms:number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 abstract class PuzzleState<MOVE>{
   abstract toString(): string;
   abstract hashString(): string;
@@ -11,7 +15,11 @@ abstract class PuzzleState<MOVE>{
   abstract getReverseMoves(): MOVE[];
 
 
-  solve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:[number, PuzzleState<MOVE>[]|null]}): PuzzleState<MOVE>[] | null {
+  async solve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:[number, PuzzleState<MOVE>[]|null]}): Promise<PuzzleState<MOVE>[] | null>{
+    if(Math.random() < 0.0005){
+      console.log("YIELD");
+      await sleep(0);
+    }
     if(!solutionMap){
       solutionMap = {};
     }
@@ -29,26 +37,22 @@ abstract class PuzzleState<MOVE>{
 
     if (curDepth >= maxDepth) {
       solutionMap[this.hashString()] = [maxDepth-curDepth, null];
-      console.log("Too deep", maxDepth);
       return null;
     }
     let shortestSolution: PuzzleState<MOVE>[] | undefined = undefined;
     for (let m of this.getMoves()) {
       let s = this.apply(m);
 
-      console.log("Trying " + m)
       if (s.hashString() === this.hashString()) {
-        console.log("No change")
         continue
       }
       let nextDepth = curDepth + 1;
-      let ss = s.solve(maxDepth, nextDepth, solutionMap)
+      let ss = await s.solve(maxDepth, nextDepth, solutionMap)
       if (ss) {
         if (shortestSolution === undefined || ss.length < shortestSolution.length) {
           shortestSolution = ss;
           nextDepth = shortestSolution.length - 1;
         } else {
-          console.log('Nope')
         }
       }
     }

@@ -20,7 +20,7 @@ interface puzzleConfig {
     pit_density: number;
 }
 
-export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], BoulderMove[]] {
+export async function createBoulderPuzzle(args:puzzleConfig): Promise<[BoulderPuzzle[], BoulderMove[]]> {
       let p = new BoulderPuzzle(args.size, args.size)
       for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
         let x = randInt(0, p.width);
@@ -52,7 +52,7 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
       p.use_pits = args.pits;
 
       let stack = p.getStack(args.depth)
-      let solution = stack[0][0].solve(args.depth+2);
+      let solution = await stack[0][0].solve(args.depth+2);
       if (solution && solution.length < args.mindepth) {
         console.error("too short", solution.length, args.mindepth);
         throw "too short "

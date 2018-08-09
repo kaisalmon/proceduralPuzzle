@@ -7,9 +7,9 @@ import { createBoulderPuzzle as createPuzzle } from './boulderPuzzleGenerator'
 async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     let i = 0;
-    function _attempt(): void {
+    async function  _attempt(): Promise<void> {
       try {
-        let result = f(args);
+        let result = await f(args);
         resolve(result)
       } catch (e) {
         console.error(e)
@@ -23,7 +23,7 @@ async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS): Promi
             return;
           }
         }
-        requestAnimationFrame(_attempt)
+        setTimeout(_attempt)
       }
     }
     _attempt();
