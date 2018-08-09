@@ -11,6 +11,7 @@ abstract class PuzzleState<MOVE>{
   abstract reverse(move: MOVE): PuzzleState<MOVE>;
   abstract isValid(): boolean;
   abstract isSolved(): boolean;
+  abstract isFailed(): boolean;
   abstract getMoves(): MOVE[];
   abstract getReverseMoves(): MOVE[];
 
@@ -26,6 +27,9 @@ abstract class PuzzleState<MOVE>{
 
     if (this.isSolved()) {
       return [this]
+    }
+    if (this.isFailed()) {
+      return null;
     }
 
     if (solutionMap[this.hashString()] !== undefined){

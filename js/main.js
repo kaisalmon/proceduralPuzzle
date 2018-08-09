@@ -443,6 +443,15 @@ class BoulderPuzzle extends puzzleState_1.default {
         }
         return true;
     }
+    isFailed() {
+        // If there are more targets than unfrozen boulders, the puzzles is a failure
+        let boulders = this.boulders.filter(b => !b.is_frozen()).length;
+        let targets = this.grid.reduce((acc, line) => acc + line.filter(t => t == Tile.Target).length, 0);
+        if (boulders < targets) {
+            return true;
+        }
+        return false;
+    }
 }
 exports.BoulderPuzzle = BoulderPuzzle;
 
@@ -855,6 +864,9 @@ class PuzzleState {
             }
             if (this.isSolved()) {
                 return [this];
+            }
+            if (this.isFailed()) {
+                return null;
             }
             if (solutionMap[this.hashString()] !== undefined) {
                 let entry = solutionMap[this.hashString()];

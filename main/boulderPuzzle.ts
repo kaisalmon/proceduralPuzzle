@@ -459,4 +459,15 @@ export class BoulderPuzzle extends PuzzleState<BoulderMove>{
     }
     return true;
   }
+
+  isFailed(): boolean {
+    // If there are more targets than unfrozen boulders, the puzzles is a failure
+    let boulders = this.boulders.filter(b => !b.is_frozen()).length;
+    let targets = this.grid.reduce((acc, line) => acc + line.filter(t=>t == Tile.Target).length, 0);
+    if(boulders < targets){
+      return true;
+    }
+
+    return false;
+  }
 }

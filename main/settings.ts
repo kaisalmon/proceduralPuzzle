@@ -23,7 +23,7 @@ $(document).ready(()=>{
       'brick_density': url_vars['brick_density'] === undefined ? 5 : parseInt(url_vars['brick_density']),
       'pit_density': url_vars['pit_density'] === undefined ? 0 : parseInt(url_vars['pit_density']),
       'fragile_brick_density': url_vars['fragile_brick_density'] === undefined ? 5 : parseInt(url_vars['fragile_brick_density']),
-      'minmoves': parseInt(url_vars["depth"])  - 1 || 3,
+      'moverange': [parseInt(url_vars["mindepth"])  - 1 || 3, parseInt(url_vars["depth"])  - 1 || 4],
       'no_fragile': url_vars["fragile"] === undefined || url_vars["fragile"] === "true" ? false : true,
       'pits': url_vars["pits"] === undefined || url_vars["pits"] === "false" ? false : true,
       'decoy_pits': url_vars["decoy_pits"] === undefined || url_vars["decoy_pits"] === "false" ? false : true
@@ -34,7 +34,7 @@ $(document).ready(()=>{
       },
       'boulders': function(){
         this.setUrl();
-      },'minmoves': function(){
+      },'moverange': function(){
         this.setUrl();
       },'no_fragile': function(){
         if(this.no_fragile){
@@ -63,8 +63,12 @@ $(document).ready(()=>{
       'fragile': function(){
         return !this.no_fragile;
       },
+      'range_label': function(){
+        if(this.moverange[0] == this.moverange[1]) return this.moverange[0];
+        return Math.min(this.moverange[0], this.moverange[1])+" - "+ Math.max(this.moverange[0], this.moverange[1])
+      },
       'difficulty' : function():number{
-        let d = Math.sqrt(this.boulders) * (Math.pow(this.minmoves, 2) -  Math.pow(this.size-8, 2));
+        let d = Math.sqrt(this.boulders) * (Math.pow(this.moverange[1], 2) -  Math.pow(this.size-8, 2));
         if(this.pits){
           d *= 1.15;
         }
@@ -85,7 +89,10 @@ $(document).ready(()=>{
         return (this.difficulty/this.max_difficulty * 100) + "%";
       },
       'depth' : function():number{
-        return this.minmoves*1 + 1;
+        return  Math.max(this.moverange[0], this.moverange[1])*1 + 1;
+      },
+      'mindepth' : function():number{
+        return  Math.min(this.moverange[0], this.moverange[1])*1 + 1;
       }
     },
     'methods': {
@@ -93,6 +100,7 @@ $(document).ready(()=>{
         let base =   window.location.href.split("?")[0]
         let settings = "size="+this.size;
         settings += "&depth="+this.depth;
+        settings += "&mindepth="+this.mindepth;
         settings += "&boulders="+this.boulders;
         settings += "&fragile="+this.fragile;
         settings += "&pits="+this.pits;
