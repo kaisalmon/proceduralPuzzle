@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -484,9 +484,9 @@ function createBoulderPuzzle(args) {
     p.use_crystals = args.crystal;
     p.use_pits = args.pits;
     let stack = p.getStack(args.depth);
-    let solution = stack[0][0].solve(args.depth);
-    if (solution && solution.length < args.mindepth - 1) {
-        console.error("too short", solution.length, args.mindepth - 1);
+    let solution = stack[0][0].solve(args.depth + 2);
+    if (solution && solution.length < args.mindepth) {
+        console.error("too short", solution.length, args.mindepth);
         throw "too short ";
     }
     let board = stack[0][0];
@@ -503,6 +503,8 @@ function createBoulderPuzzle(args) {
     }
     if (solution)
         alert(solution.length);
+    else
+        alert("no solution");
     return [stack[0], stack[1]];
 }
 exports.createBoulderPuzzle = createBoulderPuzzle;
@@ -827,10 +829,14 @@ class PuzzleState {
             return [this];
         }
         if (solutionMap[this.hashString()] !== undefined) {
-            return solutionMap[this.hashString()];
+            let entry = solutionMap[this.hashString()];
+            if (entry[0] >= (maxDepth - curDepth)) {
+                return entry[1];
+            }
         }
         if (curDepth >= maxDepth) {
-            solutionMap[this.hashString()] = null;
+            solutionMap[this.hashString()] = [maxDepth - curDepth, null];
+            console.log("Too deep", maxDepth);
             return null;
         }
         let shortestSolution = undefined;
@@ -841,11 +847,12 @@ class PuzzleState {
                 console.log("No change");
                 continue;
             }
-            let ss = s.solve(maxDepth, curDepth + 1, solutionMap);
+            let nextDepth = curDepth + 1;
+            let ss = s.solve(maxDepth, nextDepth, solutionMap);
             if (ss) {
                 if (shortestSolution === undefined || ss.length < shortestSolution.length) {
                     shortestSolution = ss;
-                    //nextDepth = shortestSolution.length - 1;
+                    nextDepth = shortestSolution.length - 1;
                 }
                 else {
                     console.log('Nope');
@@ -855,11 +862,11 @@ class PuzzleState {
         if (shortestSolution) {
             let arr = [this];
             arr = arr.concat(shortestSolution);
-            solutionMap[this.hashString()] = arr;
+            solutionMap[this.hashString()] = [maxDepth - curDepth, arr];
             return arr;
         }
         else {
-            solutionMap[this.hashString()] = null;
+            solutionMap[this.hashString()] = [maxDepth - curDepth, null];
             return null;
         }
     }

@@ -11,7 +11,7 @@ abstract class PuzzleState<MOVE>{
   abstract getReverseMoves(): MOVE[];
 
 
-  solve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:PuzzleState<MOVE>[]|null}): PuzzleState<MOVE>[] | null {
+  solve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:[number, PuzzleState<MOVE>[]|null]}): PuzzleState<MOVE>[] | null {
     if(!solutionMap){
       solutionMap = {};
     }
@@ -21,11 +21,15 @@ abstract class PuzzleState<MOVE>{
     }
 
     if (solutionMap[this.hashString()] !== undefined){
-     return solutionMap[this.hashString()];
+      let entry = solutionMap[this.hashString()];
+      if (entry[0] >= (maxDepth-curDepth)){
+        return entry[1];
+      }
     }
 
     if (curDepth >= maxDepth) {
-      solutionMap[this.hashString()] = null;
+      solutionMap[this.hashString()] = [maxDepth-curDepth, null];
+      console.log("Too deep", maxDepth);
       return null;
     }
     let shortestSolution: PuzzleState<MOVE>[] | undefined = undefined;
@@ -37,11 +41,12 @@ abstract class PuzzleState<MOVE>{
         console.log("No change")
         continue
       }
-      let ss = s.solve(maxDepth, curDepth + 1, solutionMap)
+      let nextDepth = curDepth + 1;
+      let ss = s.solve(maxDepth, nextDepth, solutionMap)
       if (ss) {
         if (shortestSolution === undefined || ss.length < shortestSolution.length) {
           shortestSolution = ss;
-          //nextDepth = shortestSolution.length - 1;
+          nextDepth = shortestSolution.length - 1;
         } else {
           console.log('Nope')
         }
@@ -50,10 +55,10 @@ abstract class PuzzleState<MOVE>{
     if (shortestSolution) {
       let arr: PuzzleState<MOVE>[] = [this]
       arr = arr.concat(shortestSolution)
-      solutionMap[this.hashString()] = arr;
+      solutionMap[this.hashString()] =  [maxDepth-curDepth, arr];
       return arr;
     }else{
-      solutionMap[this.hashString()] = null;
+      solutionMap[this.hashString()] =  [maxDepth-curDepth, null];
       return null;
     }
   }

@@ -47,16 +47,14 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
         p.boulders.push(new Boulder(x, y))
       }
 
-
-
       p.use_fragile = args.fragile;
       p.use_crystals = args.crystal;
       p.use_pits = args.pits;
 
       let stack = p.getStack(args.depth)
-      let solution = stack[0][0].solve(args.depth);
-      if (solution && solution.length < args.mindepth - 1) {
-        console.error("too short", solution.length, args.mindepth -1);
+      let solution = stack[0][0].solve(args.depth+2);
+      if (solution && solution.length < args.mindepth) {
+        console.error("too short", solution.length, args.mindepth);
         throw "too short "
       }
       let board: BoulderPuzzle = stack[0][0] as BoulderPuzzle;
@@ -72,5 +70,6 @@ export function createBoulderPuzzle(args:puzzleConfig): [BoulderPuzzle[], Boulde
         }
       }
       if(solution)alert(solution.length);
+      else alert("no solution");
       return [stack[0] as BoulderPuzzle[], stack[1] as BoulderMove[]]
     }
