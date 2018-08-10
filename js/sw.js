@@ -9,7 +9,9 @@ self.addEventListener('install', function(event) {
           'https://fonts.googleapis.com/css?family=Josefin+Sans',
           'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css',
           'settings.js',
-          'main.js'
+          'main.js',
+          '../index.html',
+          '../game.html'
         ]
       );
     })
