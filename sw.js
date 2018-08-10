@@ -1,6 +1,8 @@
+console.log("A");
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open("cache").then(function(cache) {
+      console.log("B");
       return cache.addAll(
         [
           './animate.css',
@@ -20,11 +22,14 @@ self.addEventListener('install', function(event) {
     })
   );
 });
+console.log("C");
 
 addEventListener('fetch', function(event) {
+  console.log("D");
   event.respondWith(
     caches.match(event.request)
       .then(function(response) {
+        console.log("E");
         if (response) {
           return response;     // if valid response is found in cache return it
         } else {
@@ -37,6 +42,7 @@ addEventListener('fetch', function(event) {
                 })
             })
             .catch(function(err) {       // fallback mechanism
+              console.log("F");
               return caches.open(CACHE_CONTAINING_ERROR_MESSAGES)
                 .then(function(cache) {
                   return cache.match('/offline.html');
@@ -45,4 +51,5 @@ addEventListener('fetch', function(event) {
         }
       })
   );
-});      
+});
+console.log("G");
