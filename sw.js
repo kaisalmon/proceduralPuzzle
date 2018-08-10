@@ -30,7 +30,7 @@ console.log("C");
 addEventListener('fetch', function(event) {
   console.log("D");
   event.respondWith(
-    caches.match(event.request)
+    caches.match(event.request, {ignoreSearch: true})
       .then(function(response) {
         console.log("E");
         if (response) {
@@ -48,7 +48,7 @@ addEventListener('fetch', function(event) {
               console.log("F");
               return caches.open(CACHE_CONTAINING_ERROR_MESSAGES)
                 .then(function(cache) {
-                  return cache.match('/offline.html');
+                  return cache.match('./index.html');
                 });
             });
         }
