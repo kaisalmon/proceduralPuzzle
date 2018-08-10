@@ -11,6 +11,7 @@ self.addEventListener('install', function(event) {
           'js/settings.js',
           'js/main.js',
           'index.html',
+          'cracked.png',
           'game.html'
         ]
       );
