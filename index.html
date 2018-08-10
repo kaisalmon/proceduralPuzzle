@@ -106,29 +106,17 @@
 </div>
 
 <script>
-self.addEventListener('install', function(event) {
-  event.waitUntil(
-    caches.open("cache").then(function(cache) {
-      return cache.addAll(
-        [
-          'animate.css',
-          'material-switch.css',
-          'bootstrap.min.css',
-          'https://fonts.googleapis.com/css?family=Josefin+Sans',
-          'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css',
-          'js/settings.js'
-        ]
-      );
-    })
-  );
-});
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    fetch(event.request).catch(function() {
-      return caches.match(event.request);
-    })
-  );
-});
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/js/sw.js').then(function(registration) {
+      // Registration was successful
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }, function(err) {
+      // registration failed :(
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
 </script>
 
 <script src="js/settings.js"></script>
