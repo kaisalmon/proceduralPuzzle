@@ -2,23 +2,26 @@ console.log("A");
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open("cache").then(function(cache) {
-      console.log("B");
-      return cache.addAll(
-        [
-          './animate.css',
-          './material-switch.css',
-          './bootstrap.min.css',
-          'https://fonts.googleapis.com/css?family=Josefin+Sans',
-          'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css',
-          './js/settings.js',
-          './js/main.js',
-          './index.html',
-          './',
-          './cracked.png',
-          './cracked64.png',
-          './game.html'
-        ]
-      );
+      let arr = [
+        './animate.css',
+        './material-switch.css',
+        './bootstrap.min.css',
+        'https://fonts.googleapis.com/css?family=Josefin+Sans',
+        'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css',
+        './js/settings.js',
+        './js/main.js',
+        './index.html',
+        './',
+        './cracked.png',
+        './cracked64.png',
+        './game.html'
+      ];
+      for(var i in arr){
+        let e = arr[i]
+        console.log("caching", e);
+        cache.add(e)
+      }
+      return cache;
     })
   );
 });
