@@ -12,8 +12,8 @@ self.addEventListener('install', function(event) {
         './js/main.js',
         './index.html',
         './',
-        './cracked.png',
-        './cracked64.png',
+        'assets/cracked.png',
+        'assets/cracked64.png',
         './game.html'
       ];
       for(var i in arr){
