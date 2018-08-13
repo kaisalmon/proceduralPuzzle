@@ -4,25 +4,33 @@
 <meta charset="utf-8">
   <meta name="viewport"
      content="width=device-width, initial-scale=1, user-scalable=yes">
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/>
-<link href="https://fonts.googleapis.com/css?family=Josefin+Sans" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="fonts/all.min.css">
+<link rel="stylesheet" type="text/css" href="fonts/fontawesome.css">
 <link rel="stylesheet" type="text/css" href="animate.css">
 <link rel="stylesheet" type="text/css" href="material-switch.css">
 <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
 
 
 <style>
-
   body{
       font-family: 'Josefin Sans', sans-serif;
       background: #333;
       --bsize: 80vmin;
   }
-
+  @font-face {
+      font-family:'Josefin Sans';
+      src: url("fonts/JosefinSans-Regular.ttf");
+  }
+  @font-face {
+      font-family: 'Josefin Sans';
+      src: url("fonts/JosefinSans-Bold.ttf");
+      font-weight: bold;
+  }
   #settings{
     position: absolute;
     transform: translateY(-50%);
     top: 50%;
+    max-height: 100vh;
   }
   .vue-slider-component .vue-slider-tooltip{
     opacity: 0;
