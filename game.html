@@ -3,8 +3,8 @@
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<link rel="stylesheet" type="text/css" href="fontawesome/css/all.min.css">
-<link rel="stylesheet" type="text/css" href="animate.css">
+<link rel="preload" type="text/css" href="fontawesome/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+<link rel="preload" type="text/css" href="animate.css" as="style" onload="this.rel='stylesheet'">
 <style>
 html, body{
     height: 100%;
@@ -174,7 +174,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 </script>
-<script src="js/main.min.js"></script>
+<script src="js/main.min.js" async></script>
 <noscript><h1>Your browser does not support JavaScript!</h1></noscript>
 <div class="buttons">
   <!--
