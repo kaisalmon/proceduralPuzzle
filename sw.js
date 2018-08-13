@@ -37,8 +37,10 @@ addEventListener('fetch', function (event) {
       ignoreSearch: true
     }).then(function (response) {
       if (response) {
+        console.log("From cache!")
         return response // if valid response is found in cache return it
       } else {
+        console.log("Fetch from internet!")
         return fetch(event.request) // fetch from internet
           .then(function (res) {
             return caches.open('cache')
