@@ -470,4 +470,8 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
 
     return false;
   }
+
+  getHeuristic(): number{
+    return this.orbs.filter(o => this.getTile(o.x, o.y) === Tile.Target).length;
+  }
 }

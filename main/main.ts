@@ -2,7 +2,7 @@ import $ from 'jquery'
 import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 import { OrbPuzzle, Tile, OrbMove } from './orbPuzzle'
-import { createOrbPuzzle as createPuzzle } from './orbPuzzleGenerator'
+import { from_json as createPuzzle } from './orbPuzzleGenerator'
 
 async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -71,7 +71,10 @@ $(document).ready(() => {
     })
 
     try {
-      stack = await tryUntilSuccess(createPuzzle, {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs});
+      let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs};
+      console.log("ignoring",args);
+      stack = await tryUntilSuccess(createPuzzle, undefined);
+    //  stack = await tryUntilSuccess(createPuzzle, args);
       swal.close();
     } catch (e) {
       swal({

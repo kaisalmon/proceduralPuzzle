@@ -33,9 +33,12 @@ interface OrbPuzzleJson{
   "width":number;
   "height":number;
 }
-export function from_json(json:OrbPuzzleJson): OrbPuzzle{
+export async function from_json(json?:OrbPuzzleJson):  Promise<[OrbPuzzle[], OrbMove[]]>{
   if(!json){
-    json = {"criticalTiles":[{"x":1,"y":1},{"x":2,"y":1},{"x":0,"y":1}],"use_crystals":false,"use_pits":false,"use_portals":false,"use_fragile":true,"no_basic":false,"width":6,"height":6,"grid":[[" "," "," "," "," "," "],[" "," "," "," "," "," "],[" ","◎"," "," "," "," "],[" ","□"," "," "," "," "],[" "," "," "," "," "," "],[" "," "," "," "," "," "]],"orbs":[{"index":-1,"in_pit":false,"x":1,"y":1}]}
+    json = require("../levels/test.json");
+    if(!json){
+      throw "Couldn't load file"
+    }
   }
   let o = new OrbPuzzle(json.width, json.height);
   for(var i = 0; i< json.grid.length; i++){
@@ -46,11 +49,11 @@ export function from_json(json:OrbPuzzleJson): OrbPuzzle{
   for(let orb of json.orbs){
     o.orbs.push(new Orb(orb.x, orb.y));
   }
-  o.solve(5).then((r)=>{
-    if(r)
-      console.log(r[1].join(", "))
-  })
-  return o;
+  let s = await o.solve(9);
+  if(s === null){
+    throw "Unsolvable";
+  }
+  return [s[0] as OrbPuzzle[], s[1]]
 }
 
 export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], OrbMove[]]> {
@@ -102,7 +105,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       if (!solution || solution.length < args.mindepth - 1) {
         console.error("too short", solution.length, args.mindepth);
         throw "too short "
-      }
+      }9
       let board: OrbPuzzle = stack[0][0] as OrbPuzzle;
       if (args.crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
         throw "No crystals"
@@ -115,5 +118,6 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
           throw "No Pit USED in solution"
         }
       }
+      console.log(">>>", stack[0][0])
       return [stack[0] as OrbPuzzle[], solution]
     }

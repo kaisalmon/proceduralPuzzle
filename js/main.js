@@ -1,4 +1,239 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+module.exports={
+  "criticalTiles": [{
+    "x": 13,
+    "y": 5
+  }, {
+    "x": 9,
+    "y": 8
+  }, {
+    "x": 8,
+    "y": 8
+  }, {
+    "x": 7,
+    "y": 8
+  }, {
+    "x": 6,
+    "y": 8
+  }, {
+    "x": 8,
+    "y": 11
+  }, {
+    "x": 7,
+    "y": 11
+  }, {
+    "x": 6,
+    "y": 11
+  }, {
+    "x": 5,
+    "y": 13
+  }, {
+    "x": 4,
+    "y": 13
+  }, {
+    "x": 1,
+    "y": 11
+  }, {
+    "x": 0,
+    "y": 11
+  }, {
+    "x": 6,
+    "y": 13
+  }, {
+    "x": 9,
+    "y": 12
+  }, {
+    "x": 9,
+    "y": 11
+  }, {
+    "x": 2,
+    "y": 11
+  }, {
+    "x": 10,
+    "y": 11
+  }, {
+    "x": 10,
+    "y": 10
+  }, {
+    "x": 10,
+    "y": 9
+  }, {
+    "x": 10,
+    "y": 8
+  }, {
+    "x": 14,
+    "y": 6
+  }, {
+    "x": 14,
+    "y": 5
+  }, {
+    "x": 2,
+    "y": 12
+  }, {
+    "x": 5,
+    "y": 14
+  }, {
+    "x": 6,
+    "y": 14
+  }, {
+    "x": 7,
+    "y": 13
+  }, {
+    "x": 8,
+    "y": 13
+  }, {
+    "x": 9,
+    "y": 13
+  }, {
+    "x": 10,
+    "y": 12
+  }, {
+    "x": 14,
+    "y": 7
+  }, {
+    "x": 1,
+    "y": 12
+  }, {
+    "x": 4,
+    "y": 14
+  }, {
+    "x": 5,
+    "y": 13
+  }, {
+    "x": 6,
+    "y": 13
+  }, {
+    "x": 9,
+    "y": 12
+  }, {
+    "x": 13,
+    "y": 7
+  }, {
+    "x": 12,
+    "y": 7
+  }, {
+    "x": 0,
+    "y": 4
+  }, {
+    "x": 0,
+    "y": 5
+  }, {
+    "x": 0,
+    "y": 6
+  }, {
+    "x": 0,
+    "y": 7
+  }, {
+    "x": 0,
+    "y": 8
+  }, {
+    "x": 0,
+    "y": 9
+  }, {
+    "x": 0,
+    "y": 10
+  }, {
+    "x": 0,
+    "y": 11
+  }, {
+    "x": 0,
+    "y": 12
+  }, {
+    "x": 8,
+    "y": 12
+  }, {
+    "x": 4,
+    "y": 11
+  }, {
+    "x": 4,
+    "y": 12
+  }, {
+    "x": 4,
+    "y": 13
+  }, {
+    "x": 12,
+    "y": 6
+  }, {
+    "x": 12,
+    "y": 11
+  }, {
+    "x": 11,
+    "y": 11
+  }, {
+    "x": 10,
+    "y": 11
+  }, {
+    "x": 9,
+    "y": 11
+  }, {
+    "x": 8,
+    "y": 11
+  }, {
+    "x": 4,
+    "y": 10
+  }, {
+    "x": 13,
+    "y": 6
+  }, {
+    "x": 13,
+    "y": 11
+  }, {
+    "x": 5,
+    "y": 10
+  }],
+  "use_crystals": false,
+  "use_pits": false,
+  "use_portals": false,
+  "use_fragile": true,
+  "no_basic": false,
+  "width": 15,
+  "height": 15,
+  "grid": [
+    ["■", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "◎", " ", "□", "■"],
+    [" ", " ", " ", "■", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", "■", " ", " ", " ", "□", " ", "□", " ", " ", "□", " ", "□", " ", "■"],
+    [" ", " ", " ", " ", " ", "■", " ", " ", " ", " ", "□", "□", "□", "□", " "],
+    [" ", " ", "□", " ", "■", " ", "□", " ", " ", " ", "□", " ", " ", "◎", "□"],
+    [" ", " ", " ", " ", " ", " ", " ", " ", "□", " ", " ", "□", " ", " ", "□"],
+    [" ", " ", "■", " ", " ", " ", " ", " ", "◎", " ", " ", "◎", "□", " ", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "□", "□", "□", "□"],
+    ["□", " ", " ", " ", " ", " ", " ", " ", " ", " ", "□", " ", " ", "□", " "],
+    ["■", " ", " ", " ", " ", " ", " ", " ", " ", " ", "□", " ", " ", " ", "□"],
+    [" ", " ", " ", " ", " ", " ", " ", "□", " ", " ", " ", " ", "□", "□", "□"],
+    [" ", " ", " ", "■", " ", " ", "□", " ", " ", " ", " ", " ", "□", " ", "■"],
+    [" ", "□", " ", " ", " ", "□", "□", " ", "□", " ", " ", "□", " ", " ", " "],
+    [" ", " ", " ", " ", " ", "◎", " ", " ", " ", " ", " ", " ", " ", "□", " "],
+    [" ", " ", " ", " ", "□", " ", " ", "□", "■", " ", " ", " ", " ", " ", " "]
+  ],
+  "orbs": [{
+    "index": -1,
+    "in_pit": false,
+    "x": 14,
+    "y": 6
+  }, {
+    "index": -1,
+    "in_pit": false,
+    "x": 14,
+    "y": 11
+  }, {
+    "index": -1,
+    "in_pit": false,
+    "x": 6,
+    "y": 10
+  }, {
+    "index": -1,
+    "in_pit": false,
+    "x": 3,
+    "y": 14
+  }, {
+    "index": -1,
+    "in_pit": false,
+    "x": 0,
+    "y": 3
+  }]
+}
+
+},{}],2:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -87,7 +322,10 @@ jquery_1.default(document).ready(() => {
                 })
             });
             try {
-                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, { size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs });
+                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs };
+                console.log("ignoring", args);
+                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.from_json, undefined);
+                //  stack = await tryUntilSuccess(createPuzzle, args);
                 sweetalert2_1.default.close();
             }
             catch (e) {
@@ -308,7 +546,7 @@ function create_board(board) {
     return $tiles;
 }
 
-},{"./orbPuzzle":2,"./orbPuzzleGenerator":3,"hammerjs":5,"jquery":6,"sweetalert2":8}],2:[function(require,module,exports){
+},{"./orbPuzzle":3,"./orbPuzzleGenerator":4,"hammerjs":6,"jquery":7,"sweetalert2":9}],3:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -762,10 +1000,13 @@ class OrbPuzzle extends puzzleState_1.default {
         }
         return false;
     }
+    getHeuristic() {
+        return this.orbs.filter(o => this.getTile(o.x, o.y) === Tile.Target).length;
+    }
 }
 exports.OrbPuzzle = OrbPuzzle;
 
-},{"./puzzleState":4,"lodash":7}],3:[function(require,module,exports){
+},{"./puzzleState":5,"lodash":8}],4:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -783,23 +1024,28 @@ function randInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 function from_json(json) {
-    if (!json) {
-        json = { "criticalTiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 0, "y": 1 }], "use_crystals": false, "use_pits": false, "use_portals": false, "use_fragile": true, "no_basic": false, "width": 6, "height": 6, "grid": [[" ", " ", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "], [" ", "◎", " ", " ", " ", " "], [" ", "□", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "], [" ", " ", " ", " ", " ", " "]], "orbs": [{ "index": -1, "in_pit": false, "x": 1, "y": 1 }] };
-    }
-    let o = new orbPuzzle_1.OrbPuzzle(json.width, json.height);
-    for (var i = 0; i < json.grid.length; i++) {
-        for (var j = 0; j < json.grid[0].length; j++) {
-            o.grid[i][j] = json.grid[i][j];
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!json) {
+            json = require("../levels/test.json");
+            if (!json) {
+                throw "Couldn't load file";
+            }
         }
-    }
-    for (let orb of json.orbs) {
-        o.orbs.push(new orbPuzzle_1.Orb(orb.x, orb.y));
-    }
-    o.solve(5).then((r) => {
-        if (r)
-            console.log(r[1].join(", "));
+        let o = new orbPuzzle_1.OrbPuzzle(json.width, json.height);
+        for (var i = 0; i < json.grid.length; i++) {
+            for (var j = 0; j < json.grid[0].length; j++) {
+                o.grid[i][j] = json.grid[i][j];
+            }
+        }
+        for (let orb of json.orbs) {
+            o.orbs.push(new orbPuzzle_1.Orb(orb.x, orb.y));
+        }
+        let s = yield o.solve(9);
+        if (s === null) {
+            throw "Unsolvable";
+        }
+        return [s[0], s[1]];
     });
-    return o;
 }
 exports.from_json = from_json;
 function createOrbPuzzle(args) {
@@ -860,12 +1106,13 @@ function createOrbPuzzle(args) {
                 throw "No Pit USED in solution";
             }
         }
+        console.log(">>>", stack[0][0]);
         return [stack[0], solution];
     });
 }
 exports.createOrbPuzzle = createOrbPuzzle;
 
-},{"./orbPuzzle":2}],4:[function(require,module,exports){
+},{"../levels/test.json":1,"./orbPuzzle":3}],5:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -883,151 +1130,185 @@ const lodash_1 = __importDefault(require("lodash"));
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+function randInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+}
 class PuzzleState {
     solve(maxDepth = 5, curDepth = 1, solutionMap) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (Math.random() < 0.0005) {
-                console.log("YIELD");
-                yield sleep(0);
+            if (curDepth == 1) {
+                console.log("start solve");
             }
-            if (!solutionMap) {
-                solutionMap = {};
-            }
-            if (this.isSolved()) {
-                return [[this], []];
-            }
-            if (this.isFailed()) {
-                return null;
-            }
-            if (solutionMap[this.hashString()] !== undefined) {
-                let entry = solutionMap[this.hashString()];
-                if (entry[0] >= (maxDepth - curDepth)) {
-                    return entry[1];
+            console.log(curDepth + "/" + maxDepth);
+            try {
+                if (Math.random() < 0.002) {
+                    console.log("YIELD");
+                    yield sleep(0);
                 }
-            }
-            if (curDepth >= maxDepth) {
-                solutionMap[this.hashString()] = [maxDepth - curDepth, null];
-                return null;
-            }
-            let shortestSolution = undefined;
-            let bestMove;
-            for (let m of this.getMoves()) {
-                let s = this.apply(m);
-                if (s.hashString() === this.hashString()) {
-                    continue;
+                if (!solutionMap) {
+                    solutionMap = {};
                 }
-                let nextDepth = curDepth + 1;
-                let ss = yield s.solve(maxDepth, nextDepth, solutionMap);
-                if (ss) {
-                    if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
-                        shortestSolution = ss;
-                        bestMove = m;
-                        nextDepth = shortestSolution.length - 1;
-                    }
-                    else {
+                if (this.isSolved()) {
+                    return [[this], []];
+                }
+                if (this.isFailed()) {
+                    return null;
+                }
+                if (solutionMap[this.hashString()] !== undefined) {
+                    let entry = solutionMap[this.hashString()];
+                    if (entry[0] >= (maxDepth - curDepth)) {
+                        return entry[1];
                     }
                 }
-            }
-            if (shortestSolution) {
-                if (!bestMove) {
-                    throw "Assert there has been a move";
+                if (curDepth >= maxDepth) {
+                    solutionMap[this.hashString()] = [maxDepth - curDepth, null];
+                    return null;
                 }
-                let arr = [this];
-                let marr = [bestMove];
-                arr = arr.concat(shortestSolution[0]);
-                marr = marr.concat(shortestSolution[1]);
-                solutionMap[this.hashString()] = [maxDepth - curDepth, [arr, marr]];
-                return [arr, marr];
+                let shortestSolution = undefined;
+                let bestMove;
+                let nexts = this.getMoves().map(m => {
+                    return {
+                        "move": m,
+                        "state": this.apply(m),
+                        "value": 0 //placeholder
+                    };
+                });
+                nexts = nexts.map(n => {
+                    return {
+                        "move": n.move,
+                        "state": n.state,
+                        "value": n.state.getHeuristic()
+                    };
+                });
+                nexts = nexts.sort((a, b) => {
+                    return a.value - b.value;
+                });
+                for (let n of nexts) {
+                    console.log(curDepth, "~", n.value);
+                    let s = n.state;
+                    if (s.hashString() === this.hashString()) {
+                        continue;
+                    }
+                    let ss = yield s.solve(maxDepth, curDepth + 1, solutionMap);
+                    if (ss) {
+                        if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
+                            shortestSolution = ss;
+                            bestMove = n.move;
+                            console.log("Depth", maxDepth, "->", (curDepth + shortestSolution.length));
+                            maxDepth = curDepth + shortestSolution.length;
+                        }
+                    }
+                }
+                if (shortestSolution) {
+                    if (!bestMove) {
+                        throw "Assert there has been a move";
+                    }
+                    let arr = [this];
+                    let marr = [bestMove];
+                    arr = arr.concat(shortestSolution[0]);
+                    marr = marr.concat(shortestSolution[1]);
+                    solutionMap[this.hashString()] = [maxDepth - curDepth, [arr, marr]];
+                    return [arr, marr];
+                }
+                else {
+                    solutionMap[this.hashString()] = [maxDepth - curDepth, null];
+                    return null;
+                }
             }
-            else {
-                solutionMap[this.hashString()] = [maxDepth - curDepth, null];
-                return null;
+            finally {
+                if (curDepth == 1) {
+                    console.log("end solve");
+                }
             }
         });
     }
     getStack(depth, debug = false) {
-        let bad_states = [];
-        let bad_count = 0;
-        let itr_count = 0;
-        let stack = [this];
-        let moves = [];
-        while (stack.length < depth) {
-            itr_count++;
-            if (itr_count > 1000) {
-                throw "Too many iterations";
-            }
-            let p = stack[stack.length - 1];
-            let nexts = [];
-            for (let move of p.getReverseMoves()) {
-                try {
-                    let next = p.reverse(move);
-                    if (!next.isValid()) {
-                        throw "Invalid state";
-                    }
-                    if (nexts.some(m => m[0].hashString() == next.hashString())) {
-                        console.error("Pointless move");
-                        throw "Pointless Move";
-                    }
-                    if (next.apply(move).hashString() != p.hashString()) {
-                        throw {
-                            "name": "FatalError",
-                            "message": "Reversing move and applying move have different results",
-                            "starting-point": next,
-                            "a": next.apply(move),
-                            "b": p,
-                            "a-hash": next.apply(move).hashString(),
-                            "b-hash": p.hashString(),
-                            "move": move
-                        };
-                    }
-                    nexts.push([next, move]);
+        console.log("start stack");
+        try {
+            let bad_states = [];
+            let bad_count = 0;
+            let itr_count = 0;
+            let stack = [this];
+            let moves = [];
+            while (stack.length < depth) {
+                itr_count++;
+                if (itr_count > 1000) {
+                    throw "Too many iterations";
                 }
-                catch (e) {
-                    if (debug) {
-                        console.error(e);
+                let p = stack[stack.length - 1];
+                let nexts = [];
+                for (let move of p.getReverseMoves()) {
+                    try {
+                        let next = p.reverse(move);
+                        if (!next.isValid()) {
+                            throw "Invalid state";
+                        }
+                        if (nexts.some(m => m[0].hashString() == next.hashString())) {
+                            console.error("Pointless move");
+                            throw "Pointless Move";
+                        }
+                        if (next.apply(move).hashString() != p.hashString()) {
+                            throw {
+                                "name": "FatalError",
+                                "message": "Reversing move and applying move have different results",
+                                "starting-point": next,
+                                "a": next.apply(move),
+                                "b": p,
+                                "a-hash": next.apply(move).hashString(),
+                                "b-hash": p.hashString(),
+                                "move": move
+                            };
+                        }
+                        nexts.push([next, move]);
                     }
-                    if (e.name == "FatalError") {
-                        console.error(e);
-                        throw e;
+                    catch (e) {
+                        if (debug) {
+                            console.error(e);
+                        }
+                        if (e.name == "FatalError") {
+                            console.error(e);
+                            throw e;
+                        }
                     }
                 }
-            }
-            if (nexts.length == 0) {
-                bad_count++;
-                if (bad_count > 30) {
-                    throw "Maximum bad states exceeded";
-                }
-                if (bad_states.indexOf(p.hashString()) === -1) {
-                    stack.pop();
-                    moves.pop();
-                    bad_states.push(p.hashString());
-                    if (stack.length == 0) {
-                        throw "Bad Solution";
+                if (nexts.length == 0) {
+                    bad_count++;
+                    if (bad_count > 100) {
+                        throw "Maximum bad states exceeded";
+                    }
+                    if (bad_states.indexOf(p.hashString()) === -1) {
+                        bad_states.push(p.hashString());
+                    }
+                    let to_remove = randInt(1, stack.length - 1);
+                    for (var i = 0; i < to_remove; i++) {
+                        stack.pop();
+                        moves.pop();
+                    }
+                    if (bad_states.indexOf(this.hashString()) !== -1) {
+                        throw "Bad Solution State";
                     }
                 }
                 else {
-                    stack = [this];
-                    moves = [];
-                    if (bad_states.indexOf(this.hashString()) !== -1) {
-                        throw "Bad Solution";
+                    let next = lodash_1.default.sample(nexts);
+                    if (!next) {
+                        throw "No valid options";
                     }
+                    stack.push(next[0]);
+                    moves.push(next[1]);
                 }
             }
-            else {
-                let next = lodash_1.default.sample(nexts);
-                if (!next) {
-                    throw "No valid options";
-                }
-                stack.push(next[0]);
-                moves.push(next[1]);
-            }
+            return [stack.reverse(), moves.reverse()];
         }
-        return [stack.reverse(), moves.reverse()];
+        finally {
+            console.log("end stack");
+        }
     }
 }
 exports.default = PuzzleState;
 
-},{"lodash":7}],5:[function(require,module,exports){
+},{"lodash":8}],6:[function(require,module,exports){
 /*! Hammer.JS - v2.0.7 - 2016-04-22
  * http://hammerjs.github.io/
  *
@@ -3672,7 +3953,7 @@ if (typeof define === 'function' && define.amd) {
 
 })(window, document, 'Hammer');
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -14038,7 +14319,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -31139,7 +31420,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*!
 * sweetalert2 v7.26.10
 * Released under the MIT License.
@@ -34715,4 +34996,4 @@ if (typeof window !== 'undefined' && window.Sweetalert2){  window.swal = window.
 "  100% {\n" +
 "    -webkit-transform: rotate(360deg);\n" +
 "            transform: rotate(360deg); } }");
-},{}]},{},[1]);
+},{}]},{},[2]);
