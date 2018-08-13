@@ -18,9 +18,9 @@ self.addEventListener('install', function (event) {
         './game.html',
         'fonts/JosefinSans-Regular.ttf',
         'fonts/JosefinSans-Bold.ttf',
-        'fontawesome/all.min.css',
+        'fontawesome/css/all.min.css',
         'fontawesome/webfonts/fa-solid-900.woff2',
-        'fontawesom/ewebfonts/fa-regular-400.woff2'
+        'fontawesome/webfonts/fa-regular-400.woff2'
       ]
       for (var i in arr) {
         let e = arr[i]
@@ -36,20 +36,20 @@ addEventListener('fetch', function (event) {
     caches.match(event.request, {
       ignoreSearch: true
     }).then(function (response) {
-      console.log('E')
       if (response) {
         return response // if valid response is found in cache return it
       } else {
         return fetch(event.request) // fetch from internet
           .then(function (res) {
-            return caches.open(CACHE_DYNAMIC_NAME)
+            return caches.open('cache')
               .then(function (cache) {
                 cache.put(event.request.url, res.clone()) // save the response for future
                 return res // return the fetched data
               })
           })
-          .catch(function () { // fallback mechanism
-            return caches.open(CACHE_CONTAINING_ERROR_MESSAGES)
+          .catch(function (err) { // fallback mechanism
+            console.error(err)
+            return caches.open('cache')
               .then(function (cache) {
                 return cache.match('./index.html')
               })
