@@ -3,8 +3,7 @@
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<link rel="stylesheet" type="text/css" href="fonts/all.min.css">
-<link rel="stylesheet" type="text/css" href="fonts/fontawesome.css">
+<link rel="stylesheet" type="text/css" href="fontawesome/css/all.min.css">
 <link rel="stylesheet" type="text/css" href="animate.css">
 <style>
 html, body{
@@ -128,6 +127,12 @@ html, body{
       position: absolute;
         bottom:10px;
         right: 10px;
+      text-align: right;
+      width:100%;
+    }
+    .buttons .back{
+      float: left;
+      margin-left: 20px;
     }
     .buttons .fa-stack{
       color: white;
@@ -159,6 +164,7 @@ html, body{
 
 </style>
 <script src="js/main.js"></script>
+
 <div class="buttons">
   <!--
   <span class="fa-stack fa-lg">
@@ -167,11 +173,15 @@ html, body{
   </span>
   -->
   <span class="hint fa-stack fa-lg">
-    <i class="fa fa-circle-thin fa-stack-2x"></i>
-    <i class="fa fa-lightbulb-o fa-stack-1x"></i>
+    <i class="far fa-circle fa-stack-2x"></i>
+    <i class="fas fa-lightbulb fa-stack-1x"></i>
   </span>
   <span class="reset fa-stack fa-lg">
-    <i class="fa fa-circle-thin fa-stack-2x"></i>
-    <i class="fa fa-refresh fa-stack-1x"></i>
+    <i class="far fa-circle fa-stack-2x"></i>
+    <i class="fas fa-sync fa-stack-1x"></i>
+  </span>
+  <span class="back fa-stack fa-lg">
+    <i class="far fa-circle fa-stack-2x"></i>
+    <i class="fas fa-arrow-left fa-stack-1x"></i>
   </span>
 </div>

@@ -95,6 +95,9 @@ $(document).ready(() => {
     $('.hint').click(() => {
       swal(solution.join("\n"))
     });
+    $('.back').click(() => {
+      window.location.href = window.location.href.replace("game", "index");
+    });
     let orig = board;
     $('.reset').click(() => {
       swal({

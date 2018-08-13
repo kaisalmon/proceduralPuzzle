@@ -18,9 +18,9 @@ self.addEventListener('install', function (event) {
         './game.html',
         'fonts/JosefinSans-Regular.ttf',
         'fonts/JosefinSans-Bold.ttf',
-        'fonts/all.min.css',
-        'fonts/fontawesome.css',
-        'webfonts/fa-solid-900.ttf'
+        'fontawesome/all.min.css',
+        'fontawesome/webfonts/fa-solid-900.woff2',
+        'fontawesom/ewebfonts/fa-regular-400.woff2'
       ]
       for (var i in arr) {
         let e = arr[i]
