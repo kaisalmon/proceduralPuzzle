@@ -75,6 +75,24 @@ html, body{
         border: calc(var(--tsize) * 0.2) outset #c4544a;
     }
 
+    .tile--bomb{
+        background: #333;
+        border: calc(var(--tsize) * 0.2) outset #7d6767;
+        color: #a52a2a;
+        text-align: center;
+        padding-top: 7px;
+        font-size: 27px;
+        transition: background 0.5s, color 0.5s, border 0.5s;
+    }
+    .tile--bomb.lit{
+        background: white;
+        border: calc(var(--tsize) * 0.2) outset white;
+        color: white;
+        text-align: center;
+        padding-top: 7px;
+        font-size: 27px;
+    }
+
     .tile--fragile {
       background: url(assets/cracked.png);
       background-size: cover;

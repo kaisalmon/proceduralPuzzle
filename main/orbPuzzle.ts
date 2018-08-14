@@ -8,7 +8,8 @@ export enum Tile {
   Crystal = '◇',
   Portal = '℗',
   Pit = '▼',
-  Target = '◎'
+  Target = '◎',
+  Bomb = '⚠'
 }
 
 export enum OrbMove {
@@ -39,6 +40,7 @@ export class Orb {
   y: number;
   index: number = -1;
   in_pit: boolean = false;
+  exploded: boolean = false;
   last_move: [number, number] | undefined;
   last_mag: number | undefined;
   last_contact: { x: number, y: number } | undefined;
@@ -47,7 +49,7 @@ export class Orb {
     this.y = y;
   }
   is_frozen(): boolean {
-    if (this.in_pit) {
+    if (this.in_pit||this.exploded) {
       return true;
     }
     return false;
@@ -59,6 +61,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   orbs: Orb[];
   criticalTiles: { x: number, y: number }[] = []
   width: number; height: number;
+  midpoint: OrbPuzzle|null;
 
   use_crystals: boolean = false;
   use_pits: boolean = false;
@@ -118,6 +121,8 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   }
   apply(move: OrbMove): OrbPuzzle {
     let state = _.cloneDeep(this);
+
+    // FIRST PASS
     for (var i = 0; i < state.orbs.length; i++) {
       state.orbs[i].index = i;
     }
@@ -125,9 +130,11 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       state.grid = state.grid.map((line: Tile[]) => line.map((t: Tile) => t == Tile.Crystal ? Tile.Empty : t))
       return state;
     }
+
+    let detonations:{x:number, y:number}[]  = [];
+
     let vec = this.getVec(move);
 
-    let toBeRemoved: Orb[] = []
     for (let b of state.orbsInVecOrder(vec)) {
       b.last_move = [0, 0]
       if (b.is_frozen()) {
@@ -151,6 +158,9 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
           if (mag > 1 && t == Tile.Fragile) {
             state.grid[ox + vec[0] * mag][oy + vec[1] * mag] = Tile.Empty;
           }
+          if (mag > 1 && t == Tile.Bomb) {
+            detonations.push({x: ox + vec[0] * mag, y:oy + vec[1] * mag});
+          }
           break;
         }
         b.last_move = [vec[0] * mag, vec[1] * mag];
@@ -162,7 +172,23 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         b.last_mag = mag;
       }
     }
-    state.orbs = state.orbs.filter((b: Orb) => toBeRemoved.indexOf(b) == -1);
+
+    state.midpoint = _.cloneDeep(state);
+    state.midpoint.midpoint = null; // We don't need to keep a horrid growing tree here
+
+    // SECOND PASS
+    for(let d of detonations){
+      for(let x of [d.x-1, d.x, d.x+1]){
+        for(let y of [d.y-1, d.y, d.y+1]){
+          let t = state.getTile(x,y);
+          if(t == Tile.Fragile || t == Tile.Brick || t == Tile.Bomb){
+            state.setTile(x, y, Tile.Empty);
+          }
+          this.orbs.filter(b => b.x == x && b.y == y).forEach(b => b.exploded = true);
+        }
+      }
+    }
+
     state.orbs = state.orbs.sort((a: Orb, b: Orb) => a.index - b.index);
     return state;
   }
@@ -183,6 +209,12 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       }
     }
     return true;
+  }
+  setTile(x: number, y: number, t:Tile): void{
+    if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+      return
+    }
+    this.grid[x][y] = t;
   }
   getTile(x: number, y: number): Tile | undefined {
     if (x < 0 || x >= this.width || y < 0 || y >= this.height) {

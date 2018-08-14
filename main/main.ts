@@ -97,6 +97,9 @@ $(document).ready(() => {
     }
 
     board = stack[0][0];
+    //DELETE ME ///////////////////////////////////////
+    board.grid[2][2] = Tile.Bomb;
+    ////////////////////////////////////////////////
     let solution = stack[1]
     $('.hint').click(() => {
       swal(solution.join("\n"))
@@ -186,18 +189,23 @@ function apply_move(move: OrbMove | undefined): void {
           if (b.last_contact) {
             let t = board.getTile(b.last_contact.x, b.last_contact.y)
             let $t = $tiles[b.last_contact.x][b.last_contact.y]
-            if ($t && t == Tile.Empty) {
-              $t.addClass('animated');
-              if (b.last_contact.x > b.x)
-                $t.addClass('fadeOutRight')
-              else if (b.last_contact.x < b.x)
-                $t.addClass('fadeOutLeft')
-              else if (b.last_contact.y < b.y)
-                $t.addClass('fadeOutUp')
-              else if (b.last_contact.y > b.y)
-                $t.addClass('fadeOutDown')
+            if ($t) {
+              if($t.hasClass('tile--fragile') && t == Tile.Empty){
+                $t.addClass('animated');
+                if (b.last_contact.x > b.x)
+                    $t.addClass('fadeOutRight')
+                else if (b.last_contact.x < b.x)
+                    $t.addClass('fadeOutLeft')
+                else if (b.last_contact.y < b.y)
+                    $t.addClass('fadeOutUp')
+                else if (b.last_contact.y > b.y)
+                    $t.addClass('fadeOutDown')
+                setTimeout(() => $t.remove, 1000)
+              }else if($t.hasClass('tile--bomb')){
+                  $t.addClass('animated');
+                  $t.addClass('lit shake')
+              }
             }
-            setTimeout(() => $t.remove, 1000)
           }
         }, s * 1000)
       }
@@ -205,15 +213,19 @@ function apply_move(move: OrbMove | undefined): void {
     let time = board.orbs.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
     setTimeout(() => {
       moving = false;
-      /* for (let x = 0; x < board.width; x++) {
+       for (let x = 0; x < board.width; x++) {
         for (let y = 0; y < board.height; y++) {
           let t = board.getTile(x, y)
           let $t = $tiles[x][y]
-          if ($t && t == Tile.Empty) {
+          if ($t && t == Tile.Empty && !$t.hasClass('animated')) {
             $t.remove();
           }
+          if ($t && t == Tile.Empty && $t.hasClass('lit')) {
+            $t.addClass('fadeOut')
+            setTimeout(() => $t.remove, 1000)
+          }
         }
-      } */
+      }
       if (board.isSolved()) {
         setTimeout(() => {
           swal({
@@ -255,6 +267,7 @@ function create_board(board: OrbPuzzle): JQuery[][] {
         continue;
       }
       let tileName = 'brick';
+      let html = '';
       if (t == Tile.Target) {
         tileName = 'target';
         layer = "lower";
@@ -264,6 +277,10 @@ function create_board(board: OrbPuzzle): JQuery[][] {
       }
       if (t == Tile.Crystal) {
         tileName = 'crystal';
+      }
+      if (t == Tile.Bomb) {
+        tileName = 'bomb';
+        html = '<i class="fas fa-exclamation-triangle"></i>'
       }
       if (t == Tile.Pit) {
         tileName = 'pit';
@@ -277,6 +294,7 @@ function create_board(board: OrbPuzzle): JQuery[][] {
         .addClass('tile')
         .addClass('tile--' + tileName)
         .appendTo($tw)
+        .html(html);
       $tiles[x][y] = $t
     }
   }

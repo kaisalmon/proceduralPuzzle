@@ -145,6 +145,9 @@ jquery_1.default(document).ready(() => {
                 return;
             }
             board = stack[0][0];
+            //DELETE ME ///////////////////////////////////////
+            board.grid[2][2] = orbPuzzle_1.Tile.Bomb;
+            ////////////////////////////////////////////////
             let solution = stack[1];
             jquery_1.default('.hint').click(() => {
                 sweetalert2_1.default(solution.join("\n"));
@@ -229,18 +232,24 @@ function apply_move(move) {
                     if (b.last_contact) {
                         let t = board.getTile(b.last_contact.x, b.last_contact.y);
                         let $t = $tiles[b.last_contact.x][b.last_contact.y];
-                        if ($t && t == orbPuzzle_1.Tile.Empty) {
-                            $t.addClass('animated');
-                            if (b.last_contact.x > b.x)
-                                $t.addClass('fadeOutRight');
-                            else if (b.last_contact.x < b.x)
-                                $t.addClass('fadeOutLeft');
-                            else if (b.last_contact.y < b.y)
-                                $t.addClass('fadeOutUp');
-                            else if (b.last_contact.y > b.y)
-                                $t.addClass('fadeOutDown');
+                        if ($t) {
+                            if ($t.hasClass('tile--fragile') && t == orbPuzzle_1.Tile.Empty) {
+                                $t.addClass('animated');
+                                if (b.last_contact.x > b.x)
+                                    $t.addClass('fadeOutRight');
+                                else if (b.last_contact.x < b.x)
+                                    $t.addClass('fadeOutLeft');
+                                else if (b.last_contact.y < b.y)
+                                    $t.addClass('fadeOutUp');
+                                else if (b.last_contact.y > b.y)
+                                    $t.addClass('fadeOutDown');
+                                setTimeout(() => $t.remove, 1000);
+                            }
+                            else if ($t.hasClass('tile--bomb')) {
+                                $t.addClass('animated');
+                                $t.addClass('lit shake');
+                            }
                         }
-                        setTimeout(() => $t.remove, 1000);
                     }
                 }, s * 1000);
             }
@@ -248,15 +257,19 @@ function apply_move(move) {
         let time = board.orbs.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
         setTimeout(() => {
             moving = false;
-            /* for (let x = 0; x < board.width; x++) {
-              for (let y = 0; y < board.height; y++) {
-                let t = board.getTile(x, y)
-                let $t = $tiles[x][y]
-                if ($t && t == Tile.Empty) {
-                  $t.remove();
+            for (let x = 0; x < board.width; x++) {
+                for (let y = 0; y < board.height; y++) {
+                    let t = board.getTile(x, y);
+                    let $t = $tiles[x][y];
+                    if ($t && t == orbPuzzle_1.Tile.Empty && !$t.hasClass('animated')) {
+                        $t.remove();
+                    }
+                    if ($t && t == orbPuzzle_1.Tile.Empty && $t.hasClass('lit')) {
+                        $t.addClass('fadeOut');
+                        setTimeout(() => $t.remove, 1000);
+                    }
                 }
-              }
-            } */
+            }
             if (board.isSolved()) {
                 setTimeout(() => {
                     sweetalert2_1.default({
@@ -294,6 +307,7 @@ function create_board(board) {
                 continue;
             }
             let tileName = 'brick';
+            let html = '';
             if (t == orbPuzzle_1.Tile.Target) {
                 tileName = 'target';
                 layer = "lower";
@@ -303,6 +317,10 @@ function create_board(board) {
             }
             if (t == orbPuzzle_1.Tile.Crystal) {
                 tileName = 'crystal';
+            }
+            if (t == orbPuzzle_1.Tile.Bomb) {
+                tileName = 'bomb';
+                html = '<i class="fas fa-exclamation-triangle"></i>';
             }
             if (t == orbPuzzle_1.Tile.Pit) {
                 tileName = 'pit';
@@ -315,7 +333,8 @@ function create_board(board) {
             let $t = jquery_1.default('<div/>')
                 .addClass('tile')
                 .addClass('tile--' + tileName)
-                .appendTo($tw);
+                .appendTo($tw)
+                .html(html);
             $tiles[x][y] = $t;
         }
     }
@@ -363,6 +382,7 @@ var Tile;
     Tile["Portal"] = "\u2117";
     Tile["Pit"] = "\u25BC";
     Tile["Target"] = "\u25CE";
+    Tile["Bomb"] = "\u26A0";
 })(Tile = exports.Tile || (exports.Tile = {}));
 var OrbMove;
 (function (OrbMove) {
@@ -389,11 +409,12 @@ class Orb {
     constructor(x, y) {
         this.index = -1;
         this.in_pit = false;
+        this.exploded = false;
         this.x = x;
         this.y = y;
     }
     is_frozen() {
-        if (this.in_pit) {
+        if (this.in_pit || this.exploded) {
             return true;
         }
         return false;
@@ -460,6 +481,7 @@ class OrbPuzzle extends puzzleState_1.default {
     }
     apply(move) {
         let state = lodash_1.default.cloneDeep(this);
+        // FIRST PASS
         for (var i = 0; i < state.orbs.length; i++) {
             state.orbs[i].index = i;
         }
@@ -467,8 +489,8 @@ class OrbPuzzle extends puzzleState_1.default {
             state.grid = state.grid.map((line) => line.map((t) => t == Tile.Crystal ? Tile.Empty : t));
             return state;
         }
+        let detonations = [];
         let vec = this.getVec(move);
-        let toBeRemoved = [];
         for (let b of state.orbsInVecOrder(vec)) {
             b.last_move = [0, 0];
             if (b.is_frozen()) {
@@ -493,6 +515,9 @@ class OrbPuzzle extends puzzleState_1.default {
                     if (mag > 1 && t == Tile.Fragile) {
                         state.grid[ox + vec[0] * mag][oy + vec[1] * mag] = Tile.Empty;
                     }
+                    if (mag > 1 && t == Tile.Bomb) {
+                        detonations.push({ x: ox + vec[0] * mag, y: oy + vec[1] * mag });
+                    }
                     break;
                 }
                 b.last_move = [vec[0] * mag, vec[1] * mag];
@@ -505,7 +530,20 @@ class OrbPuzzle extends puzzleState_1.default {
                 b.last_mag = mag;
             }
         }
-        state.orbs = state.orbs.filter((b) => toBeRemoved.indexOf(b) == -1);
+        state.midpoint = lodash_1.default.cloneDeep(state);
+        state.midpoint.midpoint = null; // We don't need to keep a horrid growing tree here
+        // SECOND PASS
+        for (let d of detonations) {
+            for (let x of [d.x - 1, d.x, d.x + 1]) {
+                for (let y of [d.y - 1, d.y, d.y + 1]) {
+                    let t = state.getTile(x, y);
+                    if (t == Tile.Fragile || t == Tile.Brick || t == Tile.Bomb) {
+                        state.setTile(x, y, Tile.Empty);
+                    }
+                    this.orbs.filter(b => b.x == x && b.y == y).forEach(b => b.exploded = true);
+                }
+            }
+        }
         state.orbs = state.orbs.sort((a, b) => a.index - b.index);
         return state;
     }
@@ -527,6 +565,12 @@ class OrbPuzzle extends puzzleState_1.default {
             }
         }
         return true;
+    }
+    setTile(x, y, t) {
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+            return;
+        }
+        this.grid[x][y] = t;
     }
     getTile(x, y) {
         if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
