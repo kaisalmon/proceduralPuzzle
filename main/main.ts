@@ -2,17 +2,20 @@ import $ from 'jquery'
 import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 import { OrbPuzzle, Tile, OrbMove } from './orbPuzzle'
-import { from_json as createPuzzle } from './orbPuzzleGenerator'
+import { createOrbPuzzle as createPuzzle } from './orbPuzzleGenerator'
 
-async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS): Promise<T> {
+async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:boolean = false): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     let i = 0;
+    var t0 = performance.now();
     async function  _attempt(): Promise<void> {
       try {
         let result = await f(args);
         resolve(result)
+        var t1 = performance.now();
+        swal("Generation took " + (t1 - t0)/1000 + " seconds.");
       } catch (e) {
-        console.error(e)
+        if(debug)console.error(e)
         for (var j = 0; j < 10; j++) {
           i++;
           if (i % 100 == 0) {
@@ -72,10 +75,10 @@ $(document).ready(() => {
 
     try {
       let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs};
-      console.log("ignoring",args);
-      stack = await tryUntilSuccess(createPuzzle, undefined);
-    //  stack = await tryUntilSuccess(createPuzzle, args);
-      swal.close();
+      //console.log(args);
+      //stack = await tryUntilSuccess(createPuzzle, undefined);
+      stack = await tryUntilSuccess(createPuzzle, args, true);
+      //swal.close();
     } catch (e) {
       swal({
         title: "Couldn't generate level!",

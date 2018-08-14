@@ -1,5 +1,5 @@
 /*
-global caches, self, addEventListener, CACHE_DYNAMIC_NAME, CACHE_CONTAINING_ERROR_MESSAGES, fetch
+global caches, self, addEventListener, fetch
 */
 
 self.addEventListener('install', function (event) {

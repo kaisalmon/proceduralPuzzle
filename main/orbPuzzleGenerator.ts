@@ -35,7 +35,7 @@ interface OrbPuzzleJson{
 }
 export async function from_json(json?:OrbPuzzleJson):  Promise<[OrbPuzzle[], OrbMove[]]>{
   if(!json){
-    json = require("../levels/test.json");
+    json = require("../levels/test2.json");
     if(!json){
       throw "Couldn't load file"
     }
@@ -49,7 +49,8 @@ export async function from_json(json?:OrbPuzzleJson):  Promise<[OrbPuzzle[], Orb
   for(let orb of json.orbs){
     o.orbs.push(new Orb(orb.x, orb.y));
   }
-  let s = await o.solve(9);
+  let s = await o.solve();
+
   if(s === null){
     throw "Unsolvable";
   }
@@ -96,7 +97,12 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       p.use_pits = args.pits;
 
       let stack = p.getStack(args.depth)
-      let solutionResult = await stack[0][0].solve(args.depth);
+
+      //var t0 = performance.now();
+      let solutionResult = await stack[0][0].solve();
+      //var t1 = performance.now();
+      //alert("Call to solve took " + (t1 - t0)/1000 + "seconds.")
+
       if(!solutionResult){
         throw "Couldn't solve";
       }
@@ -105,7 +111,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       if (!solution || solution.length < args.mindepth - 1) {
         console.error("too short", solution.length, args.mindepth);
         throw "too short "
-      }9
+      }
       let board: OrbPuzzle = stack[0][0] as OrbPuzzle;
       if (args.crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
         throw "No crystals"

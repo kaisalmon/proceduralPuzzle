@@ -20,8 +20,98 @@ abstract class PuzzleState<MOVE>{
   abstract getHeuristic(): number;
   abstract getReverseMoves(): MOVE[];
 
+  async solve(): Promise<[PuzzleState<MOVE>[], MOVE[]] | null>{
+    interface Edge{
+        from: StateEntry,
+        to: PuzzleState<MOVE>
+        move: MOVE
+        cost: number
+    }
+    interface StateEntry{
+        state: PuzzleState<MOVE>
+        totalcost: number,
+        estimatedcost: number,
+        bestedge: Edge|null
+    }
 
-  async solve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:[number, [PuzzleState<MOVE>[], MOVE[]]|null]}): Promise<[PuzzleState<MOVE>[], MOVE[]] | null>{
+    let closedList:{[hash:string]: StateEntry} = {};
+    let openList:{[hash:string]: StateEntry}  = {};
+    openList[this.hashString()] = {state:this, totalcost:0, bestedge:null, estimatedcost:this.getHeuristic()}
+
+    while(Object.keys(openList).length > 0){
+      if(Math.random() < 0.01){
+        console.log("YIELD");
+        await sleep(0);
+      }
+
+      let current:StateEntry =  Object.keys(openList).map(hash=>openList[hash]).reduce(function(prev, current) {
+          return (prev.estimatedcost < current.estimatedcost) ? prev : current
+      })
+
+      console.log(current.state.toString())
+      console.log(current.totalcost, current.estimatedcost, Object.keys(closedList).length, Object.keys(openList).length);
+      if(current.state.isSolved()){
+        console.log("Solved!")
+        let moves:MOVE[] = [];
+        let states:PuzzleState<MOVE>[] = [current.state];
+        while(true){
+          let e = current.bestedge;
+          if(!e){
+            for(let s of states){
+              console.log(s.toString());
+            }
+            return [states.reverse(), moves.reverse()]
+          }
+          moves.push(e.move);
+          states.push(e.to);
+          current = e.from;
+        }
+      }
+
+      let edges = current.state.getMoves().map(m=>{
+        return {
+          from: current,
+          to: current.state.apply(m),
+          move: m,
+          cost: 1
+        }
+      })
+
+      for (let e of edges) {
+        let ehash = e.to.hashString();
+        if (openList[ehash]) {
+          if(openList[ehash].totalcost <= current.totalcost + e.cost){
+            continue
+          }
+        } else if (closedList[ehash]) {
+          if(closedList[ehash].totalcost <= current.totalcost + e.cost){
+            continue
+          }
+          openList[ehash] = closedList[ehash]
+          delete closedList[ehash]
+        } else {
+          let entry = {
+            state: e.to,
+            totalcost: current.totalcost + e.cost,
+            estimatedcost: current.totalcost + e.cost + e.to.getHeuristic(),
+            bestedge: null
+          }
+          openList[ehash] = entry;
+        }
+        openList[ehash].totalcost = current.totalcost + e.cost;
+        openList[ehash].bestedge = e
+      }
+
+      let hash = current.state.hashString();
+      closedList[hash] = openList[hash]
+      delete openList[hash]
+    }
+
+    return null;
+  }
+
+
+  async recsolve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:[number, [PuzzleState<MOVE>[], MOVE[]]|null]}): Promise<[PuzzleState<MOVE>[], MOVE[]] | null>{
     if(curDepth==1){
       console.log("start solve");
     }
@@ -82,7 +172,7 @@ abstract class PuzzleState<MOVE>{
         if (s.hashString() === this.hashString()) {
           continue
         }
-        let ss = await s.solve(maxDepth, curDepth + 1, solutionMap)
+        let ss = await s.recsolve(maxDepth, curDepth + 1, solutionMap)
         if (ss) {
           if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
             shortestSolution = ss;

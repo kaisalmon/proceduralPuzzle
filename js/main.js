@@ -1,235 +1,37 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports={
-  "criticalTiles": [{
-    "x": 13,
-    "y": 5
-  }, {
-    "x": 9,
-    "y": 8
-  }, {
-    "x": 8,
-    "y": 8
-  }, {
-    "x": 7,
-    "y": 8
-  }, {
-    "x": 6,
-    "y": 8
-  }, {
-    "x": 8,
-    "y": 11
-  }, {
-    "x": 7,
-    "y": 11
-  }, {
-    "x": 6,
-    "y": 11
-  }, {
-    "x": 5,
-    "y": 13
-  }, {
-    "x": 4,
-    "y": 13
-  }, {
-    "x": 1,
-    "y": 11
-  }, {
-    "x": 0,
-    "y": 11
-  }, {
-    "x": 6,
-    "y": 13
-  }, {
-    "x": 9,
-    "y": 12
-  }, {
-    "x": 9,
-    "y": 11
-  }, {
-    "x": 2,
-    "y": 11
-  }, {
-    "x": 10,
-    "y": 11
-  }, {
-    "x": 10,
-    "y": 10
-  }, {
-    "x": 10,
-    "y": 9
-  }, {
-    "x": 10,
-    "y": 8
-  }, {
-    "x": 14,
-    "y": 6
-  }, {
-    "x": 14,
-    "y": 5
-  }, {
-    "x": 2,
-    "y": 12
-  }, {
-    "x": 5,
-    "y": 14
-  }, {
-    "x": 6,
-    "y": 14
-  }, {
-    "x": 7,
-    "y": 13
-  }, {
-    "x": 8,
-    "y": 13
-  }, {
-    "x": 9,
-    "y": 13
-  }, {
-    "x": 10,
-    "y": 12
-  }, {
-    "x": 14,
-    "y": 7
-  }, {
-    "x": 1,
-    "y": 12
-  }, {
-    "x": 4,
-    "y": 14
-  }, {
-    "x": 5,
-    "y": 13
-  }, {
-    "x": 6,
-    "y": 13
-  }, {
-    "x": 9,
-    "y": 12
-  }, {
-    "x": 13,
-    "y": 7
-  }, {
-    "x": 12,
-    "y": 7
-  }, {
-    "x": 0,
-    "y": 4
-  }, {
-    "x": 0,
-    "y": 5
-  }, {
-    "x": 0,
-    "y": 6
-  }, {
-    "x": 0,
-    "y": 7
-  }, {
-    "x": 0,
-    "y": 8
-  }, {
-    "x": 0,
-    "y": 9
-  }, {
-    "x": 0,
-    "y": 10
-  }, {
-    "x": 0,
-    "y": 11
-  }, {
-    "x": 0,
-    "y": 12
-  }, {
-    "x": 8,
-    "y": 12
-  }, {
-    "x": 4,
-    "y": 11
-  }, {
-    "x": 4,
-    "y": 12
-  }, {
-    "x": 4,
-    "y": 13
-  }, {
-    "x": 12,
-    "y": 6
-  }, {
-    "x": 12,
-    "y": 11
-  }, {
-    "x": 11,
-    "y": 11
-  }, {
-    "x": 10,
-    "y": 11
-  }, {
-    "x": 9,
-    "y": 11
-  }, {
-    "x": 8,
-    "y": 11
-  }, {
-    "x": 4,
-    "y": 10
-  }, {
-    "x": 13,
-    "y": 6
-  }, {
-    "x": 13,
-    "y": 11
-  }, {
-    "x": 5,
-    "y": 10
-  }],
+  "criticalTiles": [],
   "use_crystals": false,
   "use_pits": false,
   "use_portals": false,
   "use_fragile": true,
   "no_basic": false,
-  "width": 15,
-  "height": 15,
+  "width": 12,
+  "height": 12,
   "grid": [
-    ["■", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "◎", " ", "□", "■"],
-    [" ", " ", " ", "■", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", "■", " ", " ", " ", "□", " ", "□", " ", " ", "□", " ", "□", " ", "■"],
-    [" ", " ", " ", " ", " ", "■", " ", " ", " ", " ", "□", "□", "□", "□", " "],
-    [" ", " ", "□", " ", "■", " ", "□", " ", " ", " ", "□", " ", " ", "◎", "□"],
-    [" ", " ", " ", " ", " ", " ", " ", " ", "□", " ", " ", "□", " ", " ", "□"],
-    [" ", " ", "■", " ", " ", " ", " ", " ", "◎", " ", " ", "◎", "□", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "□", "□", "□", "□"],
-    ["□", " ", " ", " ", " ", " ", " ", " ", " ", " ", "□", " ", " ", "□", " "],
-    ["■", " ", " ", " ", " ", " ", " ", " ", " ", " ", "□", " ", " ", " ", "□"],
-    [" ", " ", " ", " ", " ", " ", " ", "□", " ", " ", " ", " ", "□", "□", "□"],
-    [" ", " ", " ", "■", " ", " ", "□", " ", " ", " ", " ", " ", "□", " ", "■"],
-    [" ", "□", " ", " ", " ", "□", "□", " ", "□", " ", " ", "□", " ", " ", " "],
-    [" ", " ", " ", " ", " ", "◎", " ", " ", " ", " ", " ", " ", " ", "□", " "],
-    [" ", " ", " ", " ", "□", " ", " ", "□", "■", " ", " ", " ", " ", " ", " "]
+    ["■", " ", "■", " ", " ", " ", " ", " ", " ", "□", " ", " "],
+    [" ", " ", " ", " ", " ", "□", " ", " ", " ", " ", " ", "□"],
+    [" ", "■", " ", " ", "□", " ", " ", " ", " ", " ", " ", "□"],
+    [" ", " ", " ", " ", "□", " ", " ", "□", " ", " ", " ", " "],
+    [" ", " ", " ", "□", " ", "□", "■", "□", " ", "□", "□", " "],
+    [" ", " ", "□", " ", "◎", "□", "□", " ", " ", " ", " ", " "],
+    [" ", " ", " ", " ", "□", " ", " ", " ", " ", " ", "□", " "],
+    ["■", " ", " ", " ", " ", "□", " ", "◎", " ", " ", "■", " "],
+    [" ", " ", " ", " ", " ", " ", " ", "□", "■", " ", " ", "□"],
+    [" ", " ", " ", " ", " ", "■", " ", " ", " ", " ", "□", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "]
   ],
   "orbs": [{
     "index": -1,
     "in_pit": false,
-    "x": 14,
-    "y": 6
-  }, {
-    "index": -1,
-    "in_pit": false,
-    "x": 14,
-    "y": 11
-  }, {
-    "index": -1,
-    "in_pit": false,
-    "x": 6,
-    "y": 10
-  }, {
-    "index": -1,
-    "in_pit": false,
-    "x": 3,
-    "y": 14
+    "x": 9,
+    "y": 7
   }, {
     "index": -1,
     "in_pit": false,
     "x": 0,
-    "y": 3
+    "y": 10
   }]
 }
 
@@ -252,18 +54,22 @@ const hammerjs_1 = __importDefault(require("hammerjs"));
 const sweetalert2_1 = __importDefault(require("sweetalert2"));
 const orbPuzzle_1 = require("./orbPuzzle");
 const orbPuzzleGenerator_1 = require("./orbPuzzleGenerator");
-function tryUntilSuccess(f, args) {
+function tryUntilSuccess(f, args, debug = false) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
             let i = 0;
+            var t0 = performance.now();
             function _attempt() {
                 return __awaiter(this, void 0, void 0, function* () {
                     try {
                         let result = yield f(args);
                         resolve(result);
+                        var t1 = performance.now();
+                        sweetalert2_1.default("Generation took " + (t1 - t0) / 1000 + " seconds.");
                     }
                     catch (e) {
-                        console.error(e);
+                        if (debug)
+                            console.error(e);
                         for (var j = 0; j < 10; j++) {
                             i++;
                             if (i % 100 == 0) {
@@ -323,10 +129,10 @@ jquery_1.default(document).ready(() => {
             });
             try {
                 let args = { size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs };
-                console.log("ignoring", args);
-                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.from_json, undefined);
-                //  stack = await tryUntilSuccess(createPuzzle, args);
-                sweetalert2_1.default.close();
+                //console.log(args);
+                //stack = await tryUntilSuccess(createPuzzle, undefined);
+                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, true);
+                //swal.close();
             }
             catch (e) {
                 sweetalert2_1.default({
@@ -1001,7 +807,24 @@ class OrbPuzzle extends puzzleState_1.default {
         return false;
     }
     getHeuristic() {
-        return this.orbs.filter(o => this.getTile(o.x, o.y) === Tile.Target).length;
+        let v = 0;
+        for (let o of this.orbs.filter(o => !o.is_frozen())) {
+            let shortestDistance = Number.POSITIVE_INFINITY;
+            for (var x = 0; x < this.width; x++) {
+                for (var y = 0; y < this.height; y++) {
+                    if (this.getTile(x, y) == Tile.Target) {
+                        let dx = x - o.x;
+                        let dy = y - o.y;
+                        let dist = Math.abs(dx) + Math.abs(dy);
+                        if (dist < shortestDistance) {
+                            shortestDistance = dist;
+                        }
+                    }
+                }
+            }
+            v = Math.max(shortestDistance, v);
+        }
+        return v / this.width / this.height * 50;
     }
 }
 exports.OrbPuzzle = OrbPuzzle;
@@ -1026,7 +849,7 @@ function randInt(min, max) {
 function from_json(json) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!json) {
-            json = require("../levels/test.json");
+            json = require("../levels/test2.json");
             if (!json) {
                 throw "Couldn't load file";
             }
@@ -1040,7 +863,7 @@ function from_json(json) {
         for (let orb of json.orbs) {
             o.orbs.push(new orbPuzzle_1.Orb(orb.x, orb.y));
         }
-        let s = yield o.solve(9);
+        let s = yield o.solve();
         if (s === null) {
             throw "Unsolvable";
         }
@@ -1084,7 +907,10 @@ function createOrbPuzzle(args) {
         p.use_crystals = args.crystal;
         p.use_pits = args.pits;
         let stack = p.getStack(args.depth);
-        let solutionResult = yield stack[0][0].solve(args.depth);
+        //var t0 = performance.now();
+        let solutionResult = yield stack[0][0].solve();
+        //var t1 = performance.now();
+        //alert("Call to solve took " + (t1 - t0)/1000 + "seconds.")
         if (!solutionResult) {
             throw "Couldn't solve";
         }
@@ -1112,7 +938,7 @@ function createOrbPuzzle(args) {
 }
 exports.createOrbPuzzle = createOrbPuzzle;
 
-},{"../levels/test.json":1,"./orbPuzzle":3}],5:[function(require,module,exports){
+},{"../levels/test2.json":1,"./orbPuzzle":3}],5:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1136,7 +962,80 @@ function randInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 class PuzzleState {
-    solve(maxDepth = 5, curDepth = 1, solutionMap) {
+    solve() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let closedList = {};
+            let openList = {};
+            openList[this.hashString()] = { state: this, totalcost: 0, bestedge: null, estimatedcost: this.getHeuristic() };
+            while (Object.keys(openList).length > 0) {
+                if (Math.random() < 0.01) {
+                    console.log("YIELD");
+                    yield sleep(0);
+                }
+                let current = Object.keys(openList).map(hash => openList[hash]).reduce(function (prev, current) {
+                    return (prev.estimatedcost < current.estimatedcost) ? prev : current;
+                });
+                console.log(current.state.toString());
+                console.log(current.totalcost, current.estimatedcost, Object.keys(closedList).length, Object.keys(openList).length);
+                if (current.state.isSolved()) {
+                    console.log("Solved!");
+                    let moves = [];
+                    let states = [current.state];
+                    while (true) {
+                        let e = current.bestedge;
+                        if (!e) {
+                            for (let s of states) {
+                                console.log(s.toString());
+                            }
+                            return [states.reverse(), moves.reverse()];
+                        }
+                        moves.push(e.move);
+                        states.push(e.to);
+                        current = e.from;
+                    }
+                }
+                let edges = current.state.getMoves().map(m => {
+                    return {
+                        from: current,
+                        to: current.state.apply(m),
+                        move: m,
+                        cost: 1
+                    };
+                });
+                for (let e of edges) {
+                    let ehash = e.to.hashString();
+                    if (openList[ehash]) {
+                        if (openList[ehash].totalcost <= current.totalcost + e.cost) {
+                            continue;
+                        }
+                    }
+                    else if (closedList[ehash]) {
+                        if (closedList[ehash].totalcost <= current.totalcost + e.cost) {
+                            continue;
+                        }
+                        openList[ehash] = closedList[ehash];
+                        delete closedList[ehash];
+                    }
+                    else {
+                        let entry = {
+                            state: e.to,
+                            totalcost: current.totalcost + e.cost,
+                            estimatedcost: current.totalcost + e.cost + e.to.getHeuristic(),
+                            bestedge: null
+                        };
+                        openList[ehash] = entry;
+                    }
+                    openList[ehash].totalcost = current.totalcost + e.cost;
+                    openList[ehash].bestedge = e;
+                }
+                let hash = current.state.hashString();
+                closedList[hash] = openList[hash];
+                delete openList[hash];
+            }
+            return null;
+        });
+    }
+    recsolve(maxDepth = 5, curDepth = 1, solutionMap) {
         return __awaiter(this, void 0, void 0, function* () {
             if (curDepth == 1) {
                 console.log("start solve");
@@ -1191,7 +1090,7 @@ class PuzzleState {
                     if (s.hashString() === this.hashString()) {
                         continue;
                     }
-                    let ss = yield s.solve(maxDepth, curDepth + 1, solutionMap);
+                    let ss = yield s.recsolve(maxDepth, curDepth + 1, solutionMap);
                     if (ss) {
                         if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
                             shortestSolution = ss;

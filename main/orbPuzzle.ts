@@ -472,6 +472,23 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   }
 
   getHeuristic(): number{
-    return this.orbs.filter(o => this.getTile(o.x, o.y) === Tile.Target).length;
+    let v= 0;
+    for(let o of this.orbs.filter(o => !o.is_frozen())){
+      let shortestDistance = Number.POSITIVE_INFINITY;
+      for (var x = 0; x < this.width; x++) {
+        for (var y = 0; y < this.height; y++) {
+          if (this.getTile(x, y) == Tile.Target) {
+            let dx = x-o.x;
+            let dy = y-o.y
+            let dist = Math.abs(dx)+Math.abs(dy);
+            if(dist < shortestDistance){
+              shortestDistance = dist;
+            }
+          }
+        }
+      }
+      v = Math.max(shortestDistance, v);
+    }
+    return v/this.width/this.height * 50
   }
 }
