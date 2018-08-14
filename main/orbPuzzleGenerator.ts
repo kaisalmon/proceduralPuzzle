@@ -35,7 +35,7 @@ interface OrbPuzzleJson{
 }
 export async function from_json(json?:OrbPuzzleJson):  Promise<[OrbPuzzle[], OrbMove[]]>{
   if(!json){
-    json = require("../levels/test2.json");
+    json = require("../levels/small.json");
     if(!json){
       throw "Couldn't load file"
     }

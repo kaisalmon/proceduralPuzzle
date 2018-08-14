@@ -12,8 +12,10 @@ async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:
       try {
         let result = await f(args);
         resolve(result)
-        var t1 = performance.now();
-        swal("Generation took " + (t1 - t0)/1000 + " seconds.");
+        if(debug){
+          var t1 = performance.now();
+          swal("Generation took " + (t1 - t0)/1000 + " seconds.");
+        }
       } catch (e) {
         if(debug)console.error(e)
         for (var j = 0; j < 10; j++) {
@@ -75,10 +77,8 @@ $(document).ready(() => {
 
     try {
       let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs};
-      //console.log(args);
-      //stack = await tryUntilSuccess(createPuzzle, undefined);
-      stack = await tryUntilSuccess(createPuzzle, args, true);
-      //swal.close();
+      stack = await tryUntilSuccess(createPuzzle, args, false);
+      swal.close();
     } catch (e) {
       swal({
         title: "Couldn't generate level!",

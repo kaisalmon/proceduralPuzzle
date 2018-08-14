@@ -6,32 +6,26 @@ module.exports={
   "use_portals": false,
   "use_fragile": true,
   "no_basic": false,
-  "width": 12,
-  "height": 12,
+  "width": 6,
+  "height": 6,
   "grid": [
-    ["■", " ", "■", " ", " ", " ", " ", " ", " ", "□", " ", " "],
-    [" ", " ", " ", " ", " ", "□", " ", " ", " ", " ", " ", "□"],
-    [" ", "■", " ", " ", "□", " ", " ", " ", " ", " ", " ", "□"],
-    [" ", " ", " ", " ", "□", " ", " ", "□", " ", " ", " ", " "],
-    [" ", " ", " ", "□", " ", "□", "■", "□", " ", "□", "□", " "],
-    [" ", " ", "□", " ", "◎", "□", "□", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", "□", " ", " ", " ", " ", " ", "□", " "],
-    ["■", " ", " ", " ", " ", "□", " ", "◎", " ", " ", "■", " "],
-    [" ", " ", " ", " ", " ", " ", " ", "□", "■", " ", " ", "□"],
-    [" ", " ", " ", " ", " ", "■", " ", " ", " ", " ", "□", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "]
+    ["■", " ", " ", " ", " ", "■"],
+    ["■", " ", " ", " ", "□", "■"],
+    ["■", " ", " ", " ", " ", "■"],
+    ["■", "□", "◎", " ", " ", "■"],
+    ["■", "□", "◎", " ", " ", "■"],
+    ["■", " ", " ", " ", "□", "■"]
   ],
   "orbs": [{
     "index": -1,
     "in_pit": false,
-    "x": 9,
-    "y": 7
+    "x": 0,
+    "y": 3
   }, {
     "index": -1,
     "in_pit": false,
-    "x": 0,
-    "y": 10
+    "x": 1,
+    "y": 3
   }]
 }
 
@@ -64,8 +58,10 @@ function tryUntilSuccess(f, args, debug = false) {
                     try {
                         let result = yield f(args);
                         resolve(result);
-                        var t1 = performance.now();
-                        sweetalert2_1.default("Generation took " + (t1 - t0) / 1000 + " seconds.");
+                        if (debug) {
+                            var t1 = performance.now();
+                            sweetalert2_1.default("Generation took " + (t1 - t0) / 1000 + " seconds.");
+                        }
                     }
                     catch (e) {
                         if (debug)
@@ -129,10 +125,8 @@ jquery_1.default(document).ready(() => {
             });
             try {
                 let args = { size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs };
-                //console.log(args);
-                //stack = await tryUntilSuccess(createPuzzle, undefined);
-                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, true);
-                //swal.close();
+                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
+                sweetalert2_1.default.close();
             }
             catch (e) {
                 sweetalert2_1.default({
@@ -849,7 +843,7 @@ function randInt(min, max) {
 function from_json(json) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!json) {
-            json = require("../levels/test2.json");
+            json = require("../levels/small.json");
             if (!json) {
                 throw "Couldn't load file";
             }
@@ -938,7 +932,7 @@ function createOrbPuzzle(args) {
 }
 exports.createOrbPuzzle = createOrbPuzzle;
 
-},{"../levels/test2.json":1,"./orbPuzzle":3}],5:[function(require,module,exports){
+},{"../levels/small.json":1,"./orbPuzzle":3}],5:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -980,17 +974,14 @@ class PuzzleState {
                 if (current.state.isSolved()) {
                     console.log("Solved!");
                     let moves = [];
-                    let states = [current.state];
+                    let states = [];
                     while (true) {
                         let e = current.bestedge;
-                        if (!e) {
-                            for (let s of states) {
-                                console.log(s.toString());
-                            }
+                        if (!e || e.to.hashString() === this.hashString()) {
                             return [states.reverse(), moves.reverse()];
                         }
                         moves.push(e.move);
-                        states.push(e.to);
+                        states.push(e.from.state);
                         current = e.from;
                     }
                 }
@@ -1133,7 +1124,7 @@ class PuzzleState {
             let moves = [];
             while (stack.length < depth) {
                 itr_count++;
-                if (itr_count > 1000) {
+                if (itr_count > 2000) {
                     throw "Too many iterations";
                 }
                 let p = stack[stack.length - 1];
@@ -1174,7 +1165,7 @@ class PuzzleState {
                 }
                 if (nexts.length == 0) {
                     bad_count++;
-                    if (bad_count > 100) {
+                    if (bad_count > 1000) {
                         throw "Maximum bad states exceeded";
                     }
                     if (bad_states.indexOf(p.hashString()) === -1) {

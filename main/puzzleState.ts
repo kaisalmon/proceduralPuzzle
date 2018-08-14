@@ -53,17 +53,14 @@ abstract class PuzzleState<MOVE>{
       if(current.state.isSolved()){
         console.log("Solved!")
         let moves:MOVE[] = [];
-        let states:PuzzleState<MOVE>[] = [current.state];
+        let states:PuzzleState<MOVE>[] = [];
         while(true){
           let e = current.bestedge;
-          if(!e){
-            for(let s of states){
-              console.log(s.toString());
-            }
+          if(!e || e.to.hashString() === this.hashString()){
             return [states.reverse(), moves.reverse()]
           }
           moves.push(e.move);
-          states.push(e.to);
+          states.push(e.from.state);
           current = e.from;
         }
       }
@@ -213,7 +210,7 @@ abstract class PuzzleState<MOVE>{
       let moves: MOVE[] = [];
       while (stack.length < depth) {
         itr_count++;
-        if (itr_count > 1000) {
+        if (itr_count > 2000) {
           throw "Too many iterations"
         }
 
@@ -255,7 +252,7 @@ abstract class PuzzleState<MOVE>{
         }
         if (nexts.length == 0) {
           bad_count++;
-          if (bad_count > 100) {
+          if (bad_count > 1000) {
             throw "Maximum bad states exceeded"
           }
 
