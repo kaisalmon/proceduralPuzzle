@@ -1,20 +1,17 @@
 /*
 global caches, self, addEventListener, fetch
 */
-self.addEventListener('activate', function (event) {
+
+self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.keys().then(function (cacheNames) {
       return Promise.all(
-        cacheNames
-          .map(function (cacheName) {
-            return caches.delete(cacheName)
-          })
+        cacheNames.map(function (cacheName) {
+          return caches.delete(cacheName)
+        })
       )
     })
   )
-})
-
-self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open('cache').then(function (cache) {
       let arr = [
@@ -51,7 +48,7 @@ addEventListener('fetch', function (event) {
         if (response) {
           return response // if valid response is found in cache return it
         } else {
-          return // fetch from internet
+          // fetch from internet
           fetch(event.request)
             .then(function (res) {
               return caches.open('cache').then(function (cache) {
