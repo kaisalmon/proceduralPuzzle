@@ -96,6 +96,14 @@ function createOrbPuzzle(args) {
         if (!solutionResult) {
             throw "Couldn't solve";
         }
+        let fastestSolvedState = solutionResult[0].pop();
+        if (fastestSolvedState) {
+            if (!args.decoy_bombs) {
+                if (fastestSolvedState.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Bomb))) {
+                    throw "Unused Bombs";
+                }
+            }
+        }
         let solution;
         solution = solutionResult[1];
         if (!solution || solution.length < args.mindepth - 1) {

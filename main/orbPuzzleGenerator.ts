@@ -121,6 +121,15 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       if(!solutionResult){
         throw "Couldn't solve";
       }
+      let fastestSolvedState = solutionResult[0].pop() as OrbPuzzle;
+      if(fastestSolvedState){
+        if(!args.decoy_bombs){
+          if (fastestSolvedState.grid.some(line => line.some(tile => tile == Tile.Bomb))) {
+            throw "Unused Bombs"
+          }
+        }
+      }
+
       let solution:OrbMove[];
       solution = solutionResult[1]
       if (!solution || solution.length < args.mindepth - 1) {
