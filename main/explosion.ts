@@ -10,13 +10,11 @@
 
   function setCanvasSize() {
     if(!canvasEl)throw "no canvas"
-    canvasEl.width = window.innerWidth * 2;
-    canvasEl.height = window.innerHeight * 2;
-    canvasEl.style.width = window.innerWidth + 'px';
-    canvasEl.style.height = window.innerHeight + 'px';
+    canvasEl.width = canvasEl.offsetWidth * 2
+    canvasEl.height = canvasEl.offsetHeight * 2;
     let ctx = canvasEl.getContext('2d');
     if(!ctx) throw "no ctx";
-    ctx.scale(2, 2);
+    ctx.scale(2,2)
   }
 
   function setParticuleDirection(p:Particle):{x:number, y:number} {

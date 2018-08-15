@@ -12,10 +12,8 @@ var colors = ['#DD3300', '#882200', '#FF6600', '#666666'];
 function setCanvasSize() {
     if (!canvasEl)
         throw "no canvas";
-    canvasEl.width = window.innerWidth * 2;
-    canvasEl.height = window.innerHeight * 2;
-    canvasEl.style.width = window.innerWidth + 'px';
-    canvasEl.style.height = window.innerHeight + 'px';
+    canvasEl.width = canvasEl.offsetWidth * 2;
+    canvasEl.height = canvasEl.offsetHeight * 2;
     let ctx = canvasEl.getContext('2d');
     if (!ctx)
         throw "no ctx";
