@@ -184,7 +184,9 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
           if(t == Tile.Fragile || t == Tile.Brick || t == Tile.Bomb){
             state.setTile(x, y, Tile.Empty);
           }
-          this.orbs.filter(b => b.x == x && b.y == y).forEach(b => b.exploded = true);
+          state.orbs.filter(b => b.x == x && b.y == y).forEach(b => {
+            b.exploded = true
+          });
         }
       }
     }
@@ -204,7 +206,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       }
     }
     for (let b of this.orbs) {
-      if (b.x == x && b.y == y && !b.in_pit) {
+      if (b.x == x && b.y == y && !(b.in_pit||b.exploded)) {
         return false;
       }
     }
@@ -505,6 +507,9 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
 
   getHeuristic(): number{
     let v= 0;
+    if(this.isFailed()){
+      return Number.POSITIVE_INFINITY;
+    }
     for(let o of this.orbs.filter(o => !o.is_frozen())){
       let shortestDistance = Number.POSITIVE_INFINITY;
       for (var x = 0; x < this.width; x++) {

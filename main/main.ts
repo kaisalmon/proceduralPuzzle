@@ -65,6 +65,7 @@ $(document).ready(() => {
     let pits: boolean = params['pits'] == "true";
     let decoy_pits: boolean = params['decoy_pits'] == "true";
     let decoy_orbs: boolean = params['decoy_orbs'] == "true";
+    let decoy_bombs: boolean = params['decoy_bombs'] == "true";
 
     let stack: [OrbPuzzle[], OrbMove[]] | undefined = undefined;
     swal({
@@ -78,7 +79,7 @@ $(document).ready(() => {
     })
 
     try {
-      let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs};
+      let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs};
       stack = await tryUntilSuccess(createPuzzle, args, false);
       swal.close();
     } catch (e) {
@@ -99,9 +100,6 @@ $(document).ready(() => {
     }
 
     board = stack[0][0];
-    //DELETE ME ///////////////////////////////////////
-    board.grid[2][2] = Tile.Bomb;
-    ////////////////////////////////////////////////
     let solution = stack[1]
     $('.hint').click(() => {
       swal(solution.join("\n"))
@@ -215,7 +213,7 @@ function apply_move(move: OrbMove | undefined): void {
     let time = board.orbs.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
     setTimeout(() => {
       moving = false;
-       for (let x = 0; x < board.width; x++) {
+      for (let x = 0; x < board.width; x++) {
         for (let y = 0; y < board.height; y++) {
           let t = board.getTile(x, y)
           let $t = $tiles[x][y]
@@ -236,10 +234,18 @@ function apply_move(move: OrbMove | undefined): void {
               animateParticules(x, y)
             }
             setTimeout(() => $t.remove, 1000)
-            setTimeout(() => $t.removeClass("lit"), 1000)
+            setTimeout(() => $t.removeClass("lit tile--bomb"), 1000)
           }
         }
       }
+
+      $('.puzzle-wrapper .orb').each((i, e) => {
+        let b = board.orbs[i];
+        if(b.exploded && !$(e).hasClass("fadeOut")){
+          $(e).addClass("animated fadeOut")
+        }
+      });
+
       if (board.isSolved()) {
         setTimeout(() => {
           swal({

@@ -6,9 +6,6 @@
   if(!canvasEl) throw "Can't find canvas"
   var ctx = canvasEl.getContext('2d');
   var numberOfParticules = 30;
-  var pointerX = 0;
-  var pointerY = 0;
-  var tap = ('ontouchstart' in window || navigator.msMaxTouchPoints) ? 'touchstart' : 'mousedown';
   var colors = ['#DD3300', '#882200', '#FF6600', '#666666'];
 
   function setCanvasSize() {
@@ -20,11 +17,6 @@
     let ctx = canvasEl.getContext('2d');
     if(!ctx) throw "no ctx";
     ctx.scale(2, 2);
-  }
-
-  function updateCoords(e:any) {
-    pointerX = e.clientX || e.touches[0].clientX;
-    pointerY = e.clientY || e.touches[0].clientY;
   }
 
   function setParticuleDirection(p:Particle):{x:number, y:number} {
@@ -124,12 +116,7 @@
   });
 
 export function setUpExplosions(): void {
-  document.addEventListener(tap, function(e) {
-    render.play();
-    updateCoords(e);
-    animateParticules(pointerX, pointerY);
-  }, false);
-
+  render.play();
   setCanvasSize();
   window.addEventListener('resize', setCanvasSize, false);
 }

@@ -69,9 +69,6 @@ if (!canvasEl)
     throw "Can't find canvas";
 var ctx = canvasEl.getContext('2d');
 var numberOfParticules = 30;
-var pointerX = 0;
-var pointerY = 0;
-var tap = ('ontouchstart' in window || navigator.msMaxTouchPoints) ? 'touchstart' : 'mousedown';
 var colors = ['#DD3300', '#882200', '#FF6600', '#666666'];
 function setCanvasSize() {
     if (!canvasEl)
@@ -84,10 +81,6 @@ function setCanvasSize() {
     if (!ctx)
         throw "no ctx";
     ctx.scale(2, 2);
-}
-function updateCoords(e) {
-    pointerX = e.clientX || e.touches[0].clientX;
-    pointerY = e.clientY || e.touches[0].clientY;
 }
 function setParticuleDirection(p) {
     var angle = anime.random(0, 360) * Math.PI / 180;
@@ -184,11 +177,7 @@ var render = anime({
     }
 });
 function setUpExplosions() {
-    document.addEventListener(tap, function (e) {
-        render.play();
-        updateCoords(e);
-        animateParticules(pointerX, pointerY);
-    }, false);
+    render.play();
     setCanvasSize();
     window.addEventListener('resize', setCanvasSize, false);
 }
@@ -280,6 +269,7 @@ jquery_1.default(document).ready(() => {
             let pits = params['pits'] == "true";
             let decoy_pits = params['decoy_pits'] == "true";
             let decoy_orbs = params['decoy_orbs'] == "true";
+            let decoy_bombs = params['decoy_bombs'] == "true";
             let stack = undefined;
             sweetalert2_1.default({
                 title: 'Generating Level',
@@ -291,7 +281,7 @@ jquery_1.default(document).ready(() => {
                 })
             });
             try {
-                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs };
+                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs };
                 stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
                 sweetalert2_1.default.close();
             }
@@ -312,9 +302,6 @@ jquery_1.default(document).ready(() => {
                 return;
             }
             board = stack[0][0];
-            //DELETE ME ///////////////////////////////////////
-            board.grid[2][2] = orbPuzzle_1.Tile.Bomb;
-            ////////////////////////////////////////////////
             let solution = stack[1];
             jquery_1.default('.hint').click(() => {
                 sweetalert2_1.default(solution.join("\n"));
@@ -447,10 +434,16 @@ function apply_move(move) {
                             explosion_1.animateParticules(x, y);
                         }
                         setTimeout(() => $t.remove, 1000);
-                        setTimeout(() => $t.removeClass("lit"), 1000);
+                        setTimeout(() => $t.removeClass("lit tile--bomb"), 1000);
                     }
                 }
             }
+            jquery_1.default('.puzzle-wrapper .orb').each((i, e) => {
+                let b = board.orbs[i];
+                if (b.exploded && !jquery_1.default(e).hasClass("fadeOut")) {
+                    jquery_1.default(e).addClass("animated fadeOut");
+                }
+            });
             if (board.isSolved()) {
                 setTimeout(() => {
                     sweetalert2_1.default({
@@ -721,7 +714,9 @@ class OrbPuzzle extends puzzleState_1.default {
                     if (t == Tile.Fragile || t == Tile.Brick || t == Tile.Bomb) {
                         state.setTile(x, y, Tile.Empty);
                     }
-                    this.orbs.filter(b => b.x == x && b.y == y).forEach(b => b.exploded = true);
+                    state.orbs.filter(b => b.x == x && b.y == y).forEach(b => {
+                        b.exploded = true;
+                    });
                 }
             }
         }
@@ -741,7 +736,7 @@ class OrbPuzzle extends puzzleState_1.default {
             }
         }
         for (let b of this.orbs) {
-            if (b.x == x && b.y == y && !b.in_pit) {
+            if (b.x == x && b.y == y && !(b.in_pit || b.exploded)) {
                 return false;
             }
         }
@@ -1027,6 +1022,9 @@ class OrbPuzzle extends puzzleState_1.default {
     }
     getHeuristic() {
         let v = 0;
+        if (this.isFailed()) {
+            return Number.POSITIVE_INFINITY;
+        }
         for (let o of this.orbs.filter(o => !o.is_frozen())) {
             let shortestDistance = Number.POSITIVE_INFINITY;
             for (var x = 0; x < this.width; x++) {
@@ -1108,6 +1106,14 @@ function createOrbPuzzle(args) {
                 let x = randInt(0, p.width);
                 let y = randInt(0, p.height);
                 p.grid[x][y] = orbPuzzle_1.Tile.Pit;
+            }
+        }
+        let bomb_density = 3;
+        if (args.decoy_bombs) {
+            for (let i = 0; i < p.width * p.height / 100 * bomb_density; i++) {
+                let x = randInt(0, p.width);
+                let y = randInt(0, p.height);
+                p.grid[x][y] = orbPuzzle_1.Tile.Bomb;
             }
         }
         if (args.decoy_orbs) {

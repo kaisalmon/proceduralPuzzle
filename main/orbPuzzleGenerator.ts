@@ -16,6 +16,7 @@ interface puzzleConfig {
     mindepth: number;
     decoy_pits: boolean;
     decoy_orbs: boolean;
+    decoy_bombs: boolean;
     brick_density: number;
     fragile_brick_density: number;
     pit_density: number;
@@ -75,6 +76,15 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
           let x = randInt(0, p.width);
           let y = randInt(0, p.height);
           p.grid[x][y] = Tile.Pit;
+        }
+      }
+
+      let bomb_density = 3;
+      if(args.decoy_bombs){
+          for (let i = 0; i < p.width * p.height / 100 * bomb_density; i++) {
+          let x = randInt(0, p.width);
+          let y = randInt(0, p.height);
+          p.grid[x][y] = Tile.Bomb;
         }
       }
 
