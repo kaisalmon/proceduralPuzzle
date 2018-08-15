@@ -80,17 +80,14 @@ html, body{
         border: calc(var(--tsize) * 0.2) outset #7d6767;
         color: #a52a2a;
         text-align: center;
-        padding-top: 7px;
-        font-size: 27px;
+        padding-top: calc(var(--tsize) * 0.125);
+        font-size: calc(var(--tsize) * 0.4);
         transition: background 0.5s, color 0.5s, border 0.5s;
     }
     .tile--bomb.lit{
         background: white;
         border: calc(var(--tsize) * 0.2) outset white;
         color: white;
-        text-align: center;
-        padding-top: 7px;
-        font-size: 27px;
     }
 
     .tile--fragile {
@@ -180,6 +177,12 @@ html, body{
       height: var(--t-size);
     }
 
+    canvas,.fakecanvas{
+      position: absolute;
+      z-index: 10;
+      pointer-events: none;
+    }
+
 </style>
 <script>
 if ('serviceWorker' in navigator) {
@@ -194,6 +197,7 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="js/main.min.js" async></script>
 <noscript><h1>Your browser does not support JavaScript!</h1></noscript>
+<canvas width="2000" height="2000"></canvas>
 <div class="buttons">
   <!--
   <span class="fa-stack fa-lg">

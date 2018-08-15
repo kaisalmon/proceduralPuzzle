@@ -2,6 +2,7 @@ import $ from 'jquery'
 import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 import { OrbPuzzle, Tile, OrbMove } from './orbPuzzle'
+import {animateParticules, setUpExplosions } from './explosion'
 import { createOrbPuzzle as createPuzzle } from './orbPuzzleGenerator'
 
 async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:boolean = false): Promise<T> {
@@ -49,6 +50,7 @@ let board: OrbPuzzle;
 let moving = false;
 let $tiles: JQuery[][];
 $(document).ready(() => {
+  setUpExplosions();
   (async function() {
     let params = getUrlVars();
     let size: number = parseInt(params['size']) || 10;
@@ -222,7 +224,19 @@ function apply_move(move: OrbMove | undefined): void {
           }
           if ($t && t == Tile.Empty && $t.hasClass('lit')) {
             $t.addClass('fadeOut')
+            var curTransform = new WebKitCSSMatrix($t.css('transform'));
+            let offset =$t.offset();
+            if(offset){
+              let x = offset.left + curTransform.m41;
+              let y = offset.top + curTransform.m42;
+              let h = $t.height();
+              let w = $t.width();
+              if(h) y += h;
+              if(w) x += w;
+              animateParticules(x, y)
+            }
             setTimeout(() => $t.remove, 1000)
+            setTimeout(() => $t.removeClass("lit"), 1000)
           }
         }
       }
