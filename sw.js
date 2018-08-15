@@ -3,15 +3,7 @@ global caches, self, addEventListener, fetch
 */
 
 self.addEventListener('install', function (event) {
-  event.waitUntil(
-    caches.keys().then(function (cacheNames) {
-      return Promise.all(
-        cacheNames.map(function (cacheName) {
-          return caches.delete(cacheName)
-        })
-      )
-    })
-  )
+
   event.waitUntil(
     caches.open('cache').then(function (cache) {
       let arr = [
@@ -48,8 +40,7 @@ addEventListener('fetch', function (event) {
         if (response) {
           return response // if valid response is found in cache return it
         } else {
-          // fetch from internet
-          fetch(event.request)
+          return fetch(event.request)
             .then(function (res) {
               return caches.open('cache').then(function (cache) {
                 cache.put(event.request.url, res.clone())
