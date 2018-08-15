@@ -26,6 +26,7 @@ $(document).ready(()=>{
       'moverange': [parseInt(url_vars["mindepth"])  - 1 || 3, parseInt(url_vars["depth"])  - 1 || 4],
       'no_fragile': url_vars["fragile"] === undefined || url_vars["fragile"] === "true" ? false : true,
       'pits': url_vars["pits"] === undefined || url_vars["pits"] === "false" ? false : true,
+      'bombs': url_vars["bombs"] === undefined || url_vars["bombs"] === "false" ? false : true,
       'decoy_pits': url_vars["decoy_pits"] === undefined || url_vars["decoy_pits"] === "false" ? false : true,
       'decoy_orbs': url_vars["decoy_orbs"] === undefined || url_vars["decoy_orbs"] === "false" ? false : true,
       'decoy_bombs': url_vars["decoy_bombs"] === undefined || url_vars["decoy_bombs"] === "false" ? false : true
@@ -46,6 +47,8 @@ $(document).ready(()=>{
         }
         this.setUrl();
       },'pits': function(){
+        this.setUrl();
+      },'bombs': function(){
         this.setUrl();
       },'decoy_pits': function(){
         if(!this.decoy_pits){
@@ -116,6 +119,7 @@ $(document).ready(()=>{
         settings += "&orbs="+this.orbs;
         settings += "&fragile="+this.fragile;
         settings += "&pits="+this.pits;
+        settings += "&bombs="+this.bombs;
         settings += "&decoy_pits="+this.decoy_pits;
         settings += "&decoy_orbs="+this.decoy_orbs;
         settings += "&decoy_bombs="+this.decoy_bombs;

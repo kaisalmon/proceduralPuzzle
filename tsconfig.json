@@ -17,6 +17,7 @@
   },
   "include": [
     "main/*.ts",
+    "cmd/*.ts",
     "typings/**/*.d.ts"
   ],
   "exclude":[

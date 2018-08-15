@@ -12,6 +12,7 @@ interface puzzleConfig {
     orbs: number;
     pits: boolean;
     crystal: boolean;
+    bombs: boolean;
     depth: number;
     mindepth: number;
     decoy_pits: boolean;
@@ -34,7 +35,7 @@ interface OrbPuzzleJson{
   "width":number;
   "height":number;
 }
-export async function from_json(json?:OrbPuzzleJson):  Promise<[OrbPuzzle[], OrbMove[]]>{
+export async function from_json(json?:OrbPuzzleJson, solve:boolean = true):  Promise<[OrbPuzzle[], OrbMove[]]>{
   if(!json){
     json = require("../levels/small.json");
     if(!json){
@@ -50,12 +51,15 @@ export async function from_json(json?:OrbPuzzleJson):  Promise<[OrbPuzzle[], Orb
   for(let orb of json.orbs){
     o.orbs.push(new Orb(orb.x, orb.y));
   }
-  let s = await o.solve();
-
-  if(s === null){
-    throw "Unsolvable";
+  if(solve){
+    let s = await o.solve();
+    if(s === null){
+      throw "Unsolvable";
+    }
+    return [s[0] as OrbPuzzle[], s[1]]
+  }else{
+    return [[o], []]
   }
-  return [s[0] as OrbPuzzle[], s[1]]
 }
 
 export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], OrbMove[]]> {
@@ -105,6 +109,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       p.use_fragile = args.fragile;
       p.use_crystals = args.crystal;
       p.use_pits = args.pits;
+      p.use_bombs = args.bombs;
 
       let stack = p.getStack(args.depth)
 
@@ -130,8 +135,14 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
         if (args.pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
           throw "No Pits"
         }
+        if (p.use_bombs && !board.grid.some(line => line.some(tile => tile == Tile.Bomb))) {
+          throw "No Bombs"
+        }
         if (args.pits && !stack[1].some((m => [OrbMove.DownPit, OrbMove.UpPit, OrbMove.LeftPit, OrbMove.RightPit].indexOf(m) !== -1))) {
           throw "No Pit USED in solution"
+        }
+        if (p.use_bombs && !stack[1].some((m => [OrbMove.DownBomb, OrbMove.UpBomb, OrbMove.LeftBomb, OrbMove.RightBomb].indexOf(m) !== -1))) {
+          throw "No Bombs"
         }
       }
       console.log(">>>", stack[0][0])

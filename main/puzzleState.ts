@@ -42,7 +42,7 @@ abstract class PuzzleState<MOVE>{
       if(Math.random() < 0.01){
         console.log("YIELD");
         await sleep(0);
-      }
+      };
 
       let current:StateEntry =  Object.keys(openList).map(hash=>openList[hash]).reduce(function(prev, current) {
           return (prev.estimatedcost < current.estimatedcost) ? prev : current

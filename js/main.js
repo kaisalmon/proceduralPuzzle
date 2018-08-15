@@ -267,6 +267,7 @@ jquery_1.default(document).ready(() => {
             let fragile = params['fragile'] == "true";
             let crystal = params['crystal'] == "true";
             let pits = params['pits'] == "true";
+            let bombs = params['bombs'] == "true";
             let decoy_pits = params['decoy_pits'] == "true";
             let decoy_orbs = params['decoy_orbs'] == "true";
             let decoy_bombs = params['decoy_bombs'] == "true";
@@ -281,7 +282,7 @@ jquery_1.default(document).ready(() => {
                 })
             });
             try {
-                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs };
+                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs };
                 stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
                 sweetalert2_1.default.close();
             }
@@ -563,15 +564,19 @@ var OrbMove;
     OrbMove["Up"] = "Up";
     OrbMove["UpPortal"] = "Up, using portal";
     OrbMove["UpPit"] = "Up, into pit";
+    OrbMove["UpBomb"] = "Up, into a bomb";
     OrbMove["Down"] = "Down";
     OrbMove["DownPortal"] = "Down, using portal";
     OrbMove["DownPit"] = "Down, into pit";
+    OrbMove["DownBomb"] = "Down, into a bomb";
     OrbMove["Left"] = "Left";
     OrbMove["LeftPortal"] = "Left, using portal";
     OrbMove["LeftPit"] = "Left, into pit";
+    OrbMove["LeftBomb"] = "Left, into a bomb";
     OrbMove["Right"] = "Right";
     OrbMove["RightPortal"] = "Right, using portal";
     OrbMove["RightPit"] = "Right, into pit";
+    OrbMove["RightBomb"] = "Right, into a bomb";
     OrbMove["Shatter"] = "Shatter";
 })(OrbMove = exports.OrbMove || (exports.OrbMove = {}));
 function randInt(min, max) {
@@ -582,6 +587,7 @@ function randInt(min, max) {
 class Orb {
     constructor(x, y) {
         this.index = -1;
+        this.decoy = false; // TO DO DECOYS DON'T DRAW CRITICAL LINES
         this.in_pit = false;
         this.exploded = false;
         this.x = x;
@@ -601,6 +607,7 @@ class OrbPuzzle extends puzzleState_1.default {
         this.criticalTiles = [];
         this.use_crystals = false;
         this.use_pits = false;
+        this.use_bombs = false;
         this.use_portals = false;
         this.use_fragile = false;
         this.no_basic = false;
@@ -629,21 +636,26 @@ class OrbPuzzle extends puzzleState_1.default {
             }
         });
     }
-    toString() {
+    toString(showCritical = false) {
         let result = "";
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 if (this.grid[x][y] == Tile.Target) {
-                    result += this.orbs.some((b) => b.x == x && b.y == y) ? "✓" : this.grid[x][y];
+                    result += this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen()) ? "✓" : this.grid[x][y];
                 }
                 else if (this.grid[x][y] == Tile.Empty) {
-                    result += this.orbs.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y];
+                    result +=
+                        this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen())
+                            ? "o"
+                            : showCritical && this.criticalTiles.some((ct) => ct.x == x && ct.y == y)
+                                ? "."
+                                : this.grid[x][y];
                 }
                 else if (this.grid[x][y] == Tile.Pit) {
                     result += this.orbs.some((b) => b.x == x && b.y == y) ? Tile.Empty : this.grid[x][y];
                 }
                 else {
-                    result += this.orbs.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y];
+                    result += this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen()) ? "o" : this.grid[x][y];
                 }
             }
             result += "\n";
@@ -654,7 +666,7 @@ class OrbPuzzle extends puzzleState_1.default {
         return this.toString();
     }
     apply(move) {
-        let state = lodash_1.default.cloneDeep(this);
+        let state = this.clone();
         // FIRST PASS
         for (var i = 0; i < state.orbs.length; i++) {
             state.orbs[i].index = i;
@@ -704,7 +716,7 @@ class OrbPuzzle extends puzzleState_1.default {
                 b.last_mag = mag;
             }
         }
-        state.midpoint = lodash_1.default.cloneDeep(state);
+        state.midpoint = state.clone();
         state.midpoint.midpoint = null; // We don't need to keep a horrid growing tree here
         // SECOND PASS
         for (let d of detonations) {
@@ -725,6 +737,28 @@ class OrbPuzzle extends puzzleState_1.default {
     }
     isTilePassable(tile) {
         return tile == Tile.Empty || tile == Tile.Target;
+    }
+    clone() {
+        let r = Object.create(this); //Shallow clone
+        // Remove all pointers from shallow clone
+        r.criticalTiles = [];
+        r.orbs = [];
+        r.grid = [];
+        r.midpoint = null;
+        for (let ct of this.criticalTiles) {
+            r.criticalTiles.push(ct);
+        }
+        for (var x = 0; x < this.width; x++) {
+            r.grid[x] = [];
+            for (var y = 0; y < this.height; y++) {
+                r.grid[x][y] = this.grid[x][y];
+            }
+        }
+        for (let o of this.orbs) {
+            let new_o = Object.create(o);
+            r.orbs.push(new_o);
+        }
+        return r;
     }
     isPassable(x, y) {
         if (!this.isTilePassable(this.getTile(x, y))) {
@@ -755,7 +789,7 @@ class OrbPuzzle extends puzzleState_1.default {
         return this.grid[x][y];
     }
     any_orb_at(x, y) {
-        return (this.orbs.some(b => b.x == x && b.y == y));
+        return (this.orbs.filter(b => b.x == x && b.y == y)).pop();
     }
     reverseShatter() {
         if (this.criticalTiles.length < 8) {
@@ -781,14 +815,76 @@ class OrbPuzzle extends puzzleState_1.default {
         }
         return this;
     }
+    reverseBomb(vec) {
+        let positions = [];
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                if (!this.criticalTiles.some(ct => ct.x == x && ct.y == y)) {
+                    continue;
+                }
+                if (this.getTile(x, y) !== Tile.Empty) {
+                    continue;
+                }
+                let invalid = false;
+                for (let check_x of [x - 1, x, x + 1]) {
+                    for (let check_y of [y - 1, y, y + 1]) {
+                        if (this.getTile(check_x, check_y) == Tile.Brick || this.getTile(check_x, check_y) == Tile.Fragile) {
+                            invalid = true;
+                            break;
+                        }
+                        if (this.any_orb_at(check_x, check_y)) {
+                            invalid = true;
+                            break;
+                        }
+                    }
+                    if (invalid) {
+                        break;
+                    }
+                }
+                if (invalid) {
+                    continue;
+                }
+                positions.push({ x, y });
+            }
+        }
+        let p = lodash_1.default.sample(positions);
+        if (!p)
+            throw "No valid bomb locations";
+        this.setTile(p.x, p.y, Tile.Bomb);
+        this.orbs.push(new Orb(p.x + vec[0], p.y + vec[1]));
+        for (let create_x of [p.x - 1, p.x, p.x + 1]) {
+            for (let create_y of [p.y - 1, p.y, p.y + 1]) {
+                if (create_x == p.x && create_y == p.y)
+                    continue;
+                if (this.any_orb_at(create_x, create_y))
+                    continue;
+                if (this.getTile(create_x, create_y) !== Tile.Empty)
+                    continue;
+                if (Math.random() > 0.3) {
+                    this.setTile(create_x, create_y, Tile.Brick);
+                }
+                else if (Math.random() > 0.3) {
+                    if (this.use_fragile) {
+                        this.setTile(create_x, create_y, Tile.Fragile);
+                    }
+                    else {
+                        this.setTile(create_x, create_y, Tile.Brick);
+                    }
+                }
+            }
+        }
+    }
     reverse(move) {
-        let state = lodash_1.default.cloneDeep(this);
+        let state = this.clone();
         if (move == OrbMove.Shatter) {
             return state.reverseShatter();
         }
         let vec = this.getVec(move);
         vec[0] = -vec[0];
         vec[1] = -vec[1];
+        if (state.isBombMove(move)) {
+            state.reverseBomb(vec);
+        }
         let haveMoved = [];
         if (state.isPitMove(move)) {
             let possibleCoords = [];
@@ -827,7 +923,7 @@ class OrbPuzzle extends puzzleState_1.default {
                     break;
                 }
             }
-            if (!state.isPassable(ox - vec[0], oy - vec[1])) {
+            if (!state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox - vec[0], oy - vec[1]) !== Tile.Bomb) {
                 mags.push(0);
             }
             let mag = lodash_1.default.sample(mags);
@@ -916,6 +1012,9 @@ class OrbPuzzle extends puzzleState_1.default {
     isPitMove(move) {
         return move == OrbMove.UpPit || move == OrbMove.RightPit || move == OrbMove.LeftPit || move == OrbMove.DownPit;
     }
+    isBombMove(move) {
+        return move == OrbMove.UpBomb || move == OrbMove.RightBomb || move == OrbMove.LeftBomb || move == OrbMove.DownBomb;
+    }
     isPortalMove(move) {
         return move == OrbMove.UpPortal || move == OrbMove.RightPortal || move == OrbMove.LeftPortal || move == OrbMove.DownPortal;
     }
@@ -967,6 +1066,12 @@ class OrbPuzzle extends puzzleState_1.default {
             moves.push(OrbMove.UpPit);
             moves.push(OrbMove.DownPit);
         }
+        if (this.use_bombs) {
+            moves.push(OrbMove.RightBomb);
+            moves.push(OrbMove.LeftBomb);
+            moves.push(OrbMove.UpBomb);
+            moves.push(OrbMove.DownBomb);
+        }
         return moves;
     }
     getVec(move) {
@@ -977,11 +1082,15 @@ class OrbPuzzle extends puzzleState_1.default {
                 return [1, 0];
             case OrbMove.RightPit:
                 return [1, 0];
+            case OrbMove.RightBomb:
+                return [1, 0];
             case OrbMove.Left:
                 return [-1, 0];
             case OrbMove.LeftPortal:
                 return [-1, 0];
             case OrbMove.LeftPit:
+                return [-1, 0];
+            case OrbMove.LeftBomb:
                 return [-1, 0];
             case OrbMove.Up:
                 return [0, -1];
@@ -989,14 +1098,18 @@ class OrbPuzzle extends puzzleState_1.default {
                 return [0, -1];
             case OrbMove.UpPit:
                 return [0, -1];
+            case OrbMove.UpBomb:
+                return [0, -1];
             case OrbMove.Down:
                 return [0, 1];
             case OrbMove.DownPortal:
                 return [0, 1];
             case OrbMove.DownPit:
                 return [0, 1];
+            case OrbMove.DownBomb:
+                return [0, 1];
             default:
-                throw "Error";
+                throw "Cannot calculate vector";
         }
     }
     isSolved() {
@@ -1063,7 +1176,7 @@ function randInt(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
-function from_json(json) {
+function from_json(json, solve = true) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!json) {
             json = require("../levels/small.json");
@@ -1080,11 +1193,16 @@ function from_json(json) {
         for (let orb of json.orbs) {
             o.orbs.push(new orbPuzzle_1.Orb(orb.x, orb.y));
         }
-        let s = yield o.solve();
-        if (s === null) {
-            throw "Unsolvable";
+        if (solve) {
+            let s = yield o.solve();
+            if (s === null) {
+                throw "Unsolvable";
+            }
+            return [s[0], s[1]];
         }
-        return [s[0], s[1]];
+        else {
+            return [[o], []];
+        }
     });
 }
 exports.from_json = from_json;
@@ -1131,6 +1249,7 @@ function createOrbPuzzle(args) {
         p.use_fragile = args.fragile;
         p.use_crystals = args.crystal;
         p.use_pits = args.pits;
+        p.use_bombs = args.bombs;
         let stack = p.getStack(args.depth);
         //var t0 = performance.now();
         let solutionResult = yield stack[0][0].solve();
@@ -1153,8 +1272,14 @@ function createOrbPuzzle(args) {
             if (args.pits && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Pit))) {
                 throw "No Pits";
             }
+            if (p.use_bombs && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Bomb))) {
+                throw "No Bombs";
+            }
             if (args.pits && !stack[1].some((m => [orbPuzzle_1.OrbMove.DownPit, orbPuzzle_1.OrbMove.UpPit, orbPuzzle_1.OrbMove.LeftPit, orbPuzzle_1.OrbMove.RightPit].indexOf(m) !== -1))) {
                 throw "No Pit USED in solution";
+            }
+            if (p.use_bombs && !stack[1].some((m => [orbPuzzle_1.OrbMove.DownBomb, orbPuzzle_1.OrbMove.UpBomb, orbPuzzle_1.OrbMove.LeftBomb, orbPuzzle_1.OrbMove.RightBomb].indexOf(m) !== -1))) {
+                throw "No Bombs";
             }
         }
         console.log(">>>", stack[0][0]);
@@ -1197,6 +1322,7 @@ class PuzzleState {
                     console.log("YIELD");
                     yield sleep(0);
                 }
+                ;
                 let current = Object.keys(openList).map(hash => openList[hash]).reduce(function (prev, current) {
                     return (prev.estimatedcost < current.estimatedcost) ? prev : current;
                 });

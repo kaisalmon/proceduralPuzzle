@@ -63,6 +63,7 @@ $(document).ready(() => {
     let fragile: boolean = params['fragile'] == "true";
     let crystal: boolean = params['crystal'] == "true";
     let pits: boolean = params['pits'] == "true";
+    let bombs: boolean = params['bombs'] == "true";
     let decoy_pits: boolean = params['decoy_pits'] == "true";
     let decoy_orbs: boolean = params['decoy_orbs'] == "true";
     let decoy_bombs: boolean = params['decoy_bombs'] == "true";
@@ -79,7 +80,7 @@ $(document).ready(() => {
     })
 
     try {
-      let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs};
+      let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, bombs, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs};
       stack = await tryUntilSuccess(createPuzzle, args, false);
       swal.close();
     } catch (e) {

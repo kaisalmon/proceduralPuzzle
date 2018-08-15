@@ -16,15 +16,19 @@ export enum OrbMove {
   Up = "Up",
   UpPortal = "Up, using portal",
   UpPit = "Up, into pit",
+  UpBomb = "Up, into a bomb",
   Down = "Down",
   DownPortal = "Down, using portal",
   DownPit = "Down, into pit",
+  DownBomb = "Down, into a bomb",
   Left = "Left",
   LeftPortal = "Left, using portal",
   LeftPit = "Left, into pit",
+  LeftBomb = "Left, into a bomb",
   Right = "Right",
   RightPortal = "Right, using portal",
   RightPit = "Right, into pit",
+  RightBomb = "Right, into a bomb",
   Shatter = "Shatter",
 }
 
@@ -39,6 +43,7 @@ export class Orb {
   x: number;
   y: number;
   index: number = -1;
+  decoy: boolean = false; // TO DO DECOYS DON'T DRAW CRITICAL LINES
   in_pit: boolean = false;
   exploded: boolean = false;
   last_move: [number, number] | undefined;
@@ -65,6 +70,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
 
   use_crystals: boolean = false;
   use_pits: boolean = false;
+  use_bombs: boolean = false;
   use_portals: boolean = false;
   use_fragile: boolean = false;
   no_basic: boolean = false;
@@ -98,18 +104,23 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     })
   }
 
-  toString(): string {
+  toString(showCritical:boolean=false): string {
     let result = "";
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         if (this.grid[x][y] == Tile.Target) {
-          result += this.orbs.some((b) => b.x == x && b.y == y) ? "✓" : this.grid[x][y]
+          result += this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen()) ? "✓" : this.grid[x][y]
         } else if (this.grid[x][y] == Tile.Empty) {
-          result += this.orbs.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y]
+          result +=
+            this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen())
+            ? "o"
+            : showCritical && this.criticalTiles.some((ct) => ct.x == x && ct.y == y)
+              ? "."
+              : this.grid[x][y]
         } else if (this.grid[x][y] == Tile.Pit) {
           result += this.orbs.some((b) => b.x == x && b.y == y) ? Tile.Empty : this.grid[x][y]
         } else {
-          result += this.orbs.some((b) => b.x == x && b.y == y) ? "o" : this.grid[x][y]
+          result += this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen()) ? "o" : this.grid[x][y]
         }
       }
       result += "\n";
@@ -120,7 +131,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     return this.toString();
   }
   apply(move: OrbMove): OrbPuzzle {
-    let state = _.cloneDeep(this);
+    let state = this.clone()
 
     // FIRST PASS
     for (var i = 0; i < state.orbs.length; i++) {
@@ -173,7 +184,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       }
     }
 
-    state.midpoint = _.cloneDeep(state);
+    state.midpoint = state.clone()
     state.midpoint.midpoint = null; // We don't need to keep a horrid growing tree here
 
     // SECOND PASS
@@ -196,6 +207,31 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   }
   isTilePassable(tile: Tile | undefined): boolean {
     return tile == Tile.Empty || tile == Tile.Target
+  }
+  clone(): OrbPuzzle{
+    let r:OrbPuzzle = Object.create(this); //Shallow clone
+
+    // Remove all pointers from shallow clone
+    r.criticalTiles = [];
+    r.orbs = [];
+    r.grid = [];
+    r.midpoint = null;
+
+    for(let ct of this.criticalTiles){
+      r.criticalTiles.push(ct);
+    }
+    for (var x = 0; x < this.width; x++) {
+      r.grid[x] = []
+      for (var y = 0; y < this.height; y++) {
+        r.grid[x][y] = this.grid[x][y];
+      }
+    }
+    for(let o of this.orbs){
+      let new_o:Orb = Object.create(o);
+      r.orbs.push(new_o)
+    }
+
+    return r;
   }
   isPassable(x: number, y: number): boolean {
     if (!this.isTilePassable(this.getTile(x, y))) {
@@ -225,8 +261,8 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     return this.grid[x][y];
   }
 
-  any_orb_at(x: number, y: number): boolean {
-    return (this.orbs.some(b => b.x == x && b.y == y))
+  any_orb_at(x: number, y: number): Orb|undefined {
+    return (this.orbs.filter(b => b.x == x && b.y == y)).pop()
   }
 
 
@@ -255,15 +291,73 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     return this;
   }
 
+  reverseBomb(vec:[number, number]): void{
+    let positions:{x:number, y:number}[] = []
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        if(!this.criticalTiles.some(ct=>ct.x == x && ct.y == y)){
+          continue
+        }
+        if(this.getTile(x,y) !== Tile.Empty){
+          continue;
+        }
+        let invalid = false;
+        for(let check_x of [x-1, x, x+1]){
+          for(let check_y of [y-1, y, y+1]){
+            if(this.getTile(check_x, check_y) == Tile.Brick || this.getTile(check_x, check_y) == Tile.Fragile){
+              invalid = true;
+              break;
+            }
+            if(this.any_orb_at(check_x, check_y)){
+              invalid = true;
+              break;
+            }
+          }
+          if(invalid){
+            break
+          }
+        }
+        if(invalid){
+          continue
+        }
+        positions.push({x, y});
+      }
+    }
+    let p = _.sample(positions);
+    if(!p) throw "No valid bomb locations"
+    this.setTile(p.x, p.y, Tile.Bomb);
+    this.orbs.push(new Orb(p.x + vec[0], p.y + vec[1]));
+
+    for(let create_x of [p.x-1, p.x, p.x+1]){
+      for(let create_y of [p.y-1, p.y, p.y+1]){
+        if(create_x == p.x && create_y == p.y)continue;
+        if(this.any_orb_at(create_x, create_y))continue;
+        if(this.getTile(create_x, create_y) !== Tile.Empty)continue;
+        if(Math.random() > 0.3){
+          this.setTile(create_x, create_y, Tile.Brick);
+        }else if(Math.random() > 0.3){
+          if(this.use_fragile){
+            this.setTile(create_x, create_y, Tile.Fragile);
+          }else{
+            this.setTile(create_x, create_y, Tile.Brick);
+          }
+        }
+      }
+    }
+  }
+
   reverse(move: OrbMove): OrbPuzzle {
-    let state = _.cloneDeep(this);
+    let state = this.clone();
     if (move == OrbMove.Shatter) {
       return state.reverseShatter();
     }
-
     let vec = this.getVec(move);
     vec[0] = -vec[0]
     vec[1] = -vec[1]
+
+    if (state.isBombMove(move)) {
+      state.reverseBomb(vec);
+    }
 
     let haveMoved: Orb[] = [];
 
@@ -305,7 +399,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
           break;
         }
       }
-      if (!state.isPassable(ox - vec[0], oy - vec[1])) {
+      if (!state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox - vec[0], oy - vec[1]) !== Tile.Bomb) {
         mags.push(0)
       }
 
@@ -399,6 +493,9 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   isPitMove(move: OrbMove) {
     return move == OrbMove.UpPit || move == OrbMove.RightPit || move == OrbMove.LeftPit || move == OrbMove.DownPit;
   }
+  isBombMove(move: OrbMove) {
+    return move == OrbMove.UpBomb || move == OrbMove.RightBomb || move == OrbMove.LeftBomb || move == OrbMove.DownBomb;
+  }
   isPortalMove(move: OrbMove) {
     return move == OrbMove.UpPortal || move == OrbMove.RightPortal || move == OrbMove.LeftPortal || move == OrbMove.DownPortal;
   }
@@ -449,9 +546,15 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       moves.push(OrbMove.UpPit)
       moves.push(OrbMove.DownPit)
     }
+    if (this.use_bombs) {
+      moves.push(OrbMove.RightBomb)
+      moves.push(OrbMove.LeftBomb)
+      moves.push(OrbMove.UpBomb)
+      moves.push(OrbMove.DownBomb)
+    }
     return moves;
   }
-  getVec(move: OrbMove): number[] {
+  getVec(move: OrbMove): [number, number]{
     switch (move) {
       case OrbMove.Right:
         return [1, 0]
@@ -459,11 +562,15 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         return [1, 0]
       case OrbMove.RightPit:
         return [1, 0]
+      case OrbMove.RightBomb:
+        return [1, 0]
       case OrbMove.Left:
         return [-1, 0]
       case OrbMove.LeftPortal:
         return [-1, 0]
       case OrbMove.LeftPit:
+        return [-1, 0]
+      case OrbMove.LeftBomb:
         return [-1, 0]
       case OrbMove.Up:
         return [0, -1]
@@ -471,14 +578,18 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         return [0, -1]
       case OrbMove.UpPit:
         return [0, -1]
+      case OrbMove.UpBomb:
+        return [0, -1]
       case OrbMove.Down:
         return [0, 1]
       case OrbMove.DownPortal:
         return [0, 1]
       case OrbMove.DownPit:
         return [0, 1]
+      case OrbMove.DownBomb:
+        return [0, 1]
       default:
-        throw "Error"
+        throw "Cannot calculate vector"
     }
   }
   isSolved(): boolean {
