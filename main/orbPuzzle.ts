@@ -43,8 +43,9 @@ export class Orb {
   x: number;
   y: number;
   index: number = -1;
-  decoy: boolean = false; // TO DO DECOYS DON'T DRAW CRITICAL LINES
+  decoy: boolean = false;
   in_pit: boolean = false;
+  in_portal: boolean = false;
   exploded: boolean = false;
   last_move: [number, number] | undefined;
   last_mag: number | undefined;
@@ -54,11 +55,16 @@ export class Orb {
     this.y = y;
   }
   is_frozen(): boolean {
-    if (this.in_pit||this.exploded) {
+    if (this.in_pit||this.exploded||this.in_portal) {
       return true;
     }
     return false;
   }
+}
+
+interface MoveResult {
+    detonations:{x:number, y:number}[];
+    portal_event?:{from:{x:number, y:number}, to:{x:number, y:number}};
 }
 
 export class OrbPuzzle extends PuzzleState<OrbMove>{
@@ -130,6 +136,76 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   hashString(): string {
     return this.toString();
   }
+
+  moveOrb(b:Orb, vec:[number, number]):MoveResult {
+    let result:MoveResult = {
+      detonations:[]
+    }
+    b.last_move = [0, 0]
+    if (b.is_frozen()) {
+      return result;
+    }
+    let ox = b.x;
+    let oy = b.y;
+    for (let mag = 1; mag < this.height; mag++) {
+      if (this.isPassable(ox + vec[0] * mag, oy + vec[1] * mag)) {
+        b.x = ox + vec[0] * mag;
+        b.y = oy + vec[1] * mag;
+      } else {
+        let t = this.getTile(ox + vec[0] * mag, oy + vec[1] * mag)
+        if (t == Tile.Pit && !this.any_orb_at(ox + vec[0] * mag, oy + vec[1] * mag)) {
+          b.in_pit = true;
+          b.x = ox + vec[0] * mag;
+          b.y = oy + vec[1] * mag;
+          b.last_mag = mag;
+        }
+        if (t == Tile.Portal) {
+          b.in_portal = true;
+          b.x = ox + vec[0] * mag;
+          b.y = oy + vec[1] * mag;
+          b.last_mag = mag;
+
+          let other_portal:{x:number, y:number}|null = null;
+          for (var x = 0; x < this.width; x++) {
+            for (var y = 0; y < this.height; y++) {
+              if(x==b.x && y==b.y)continue;
+              if(this.getTile(x,y) == Tile.Portal){
+                other_portal = {x,y};
+              }
+            }
+          }
+
+          if(!other_portal){
+            throw "Can't find other portal"
+          }
+          result.portal_event = {
+            from:{
+              x: b.x,
+              y: b.y
+            },
+            to: other_portal
+          }
+        }
+        //don't break if we didn't move
+        if (mag > 1 && t == Tile.Fragile) {
+          this.grid[ox + vec[0] * mag][oy + vec[1] * mag] = Tile.Empty;
+        }
+        if (mag > 1 && t == Tile.Bomb) {
+          result.detonations.push({x: ox + vec[0] * mag, y:oy + vec[1] * mag});
+        }
+        break;
+      }
+      b.last_move = [vec[0] * mag, vec[1] * mag];
+      if (mag != 0) {
+        b.last_contact = { x: b.x + vec[0], y: b.y + vec[1] };
+      } else {
+        b.last_contact = undefined;
+      }
+      b.last_mag = mag;
+    }
+    return result
+  }
+
   apply(move: OrbMove): OrbPuzzle {
     let state = this.clone()
 
@@ -142,66 +218,44 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       return state;
     }
 
-    let detonations:{x:number, y:number}[]  = [];
-
+    let move_results:MoveResult[] = []
     let vec = this.getVec(move);
-
     for (let b of state.orbsInVecOrder(vec)) {
-      b.last_move = [0, 0]
-      if (b.is_frozen()) {
-        continue;
-      }
-      let ox = b.x;
-      let oy = b.y;
-      for (let mag = 1; mag < this.height; mag++) {
-        if (state.isPassable(ox + vec[0] * mag, oy + vec[1] * mag)) {
-          b.x = ox + vec[0] * mag;
-          b.y = oy + vec[1] * mag;
-        } else {
-          let t = state.getTile(ox + vec[0] * mag, oy + vec[1] * mag)
-          if (t == Tile.Pit && !state.any_orb_at(ox + vec[0] * mag, oy + vec[1] * mag)) {
-            b.in_pit = true;
-            b.x = ox + vec[0] * mag;
-            b.y = oy + vec[1] * mag;
-            b.last_mag = mag;
-          }
-          //don't break if we didn't move
-          if (mag > 1 && t == Tile.Fragile) {
-            state.grid[ox + vec[0] * mag][oy + vec[1] * mag] = Tile.Empty;
-          }
-          if (mag > 1 && t == Tile.Bomb) {
-            detonations.push({x: ox + vec[0] * mag, y:oy + vec[1] * mag});
-          }
-          break;
-        }
-        b.last_move = [vec[0] * mag, vec[1] * mag];
-        if (mag != 0) {
-          b.last_contact = { x: b.x + vec[0], y: b.y + vec[1] };
-        } else {
-          b.last_contact = undefined;
-        }
-        b.last_mag = mag;
-      }
+      let r = state.moveOrb(b, vec);
+      move_results.push(r)
     }
 
     state.midpoint = state.clone()
     state.midpoint.midpoint = null; // We don't need to keep a horrid growing tree here
 
     // SECOND PASS
-    for(let d of detonations){
-      for(let x of [d.x-1, d.x, d.x+1]){
-        for(let y of [d.y-1, d.y, d.y+1]){
-          let t = state.getTile(x,y);
-          if(t == Tile.Fragile || t == Tile.Brick || t == Tile.Bomb){
-            state.setTile(x, y, Tile.Empty);
+    for(let result of move_results){
+      for(let d of result.detonations){
+        for(let x of [d.x-1, d.x, d.x+1]){
+          for(let y of [d.y-1, d.y, d.y+1]){
+            let t = state.getTile(x,y);
+            if(t == Tile.Fragile || t == Tile.Brick || t == Tile.Bomb){
+              state.setTile(x, y, Tile.Empty);
+            }
+            state.orbs.filter(b => b.x == x && b.y == y && !b.is_frozen()).forEach(b => {
+              b.exploded = true
+            });
           }
-          state.orbs.filter(b => b.x == x && b.y == y && !b.is_frozen()).forEach(b => {
-            b.exploded = true
-          });
         }
+      }
+      if(result.portal_event){
+        let o = state.any_orb_at(result.portal_event.from.x, result.portal_event.from.y);
+        if(!o) throw "Portaled orb not where it should be "
+        o.in_portal = false
+        state.setTile(o.x, o.y, Tile.Empty);
+        o.x = result.portal_event.to.x;
+        o.y = result.portal_event.to.y;
+        state.setTile(o.x, o.y, Tile.Empty);
+        state.moveOrb(o, vec);
       }
     }
 
+    //Re order
     state.orbs = state.orbs.sort((a: Orb, b: Orb) => a.index - b.index);
     return state;
   }
@@ -235,14 +289,14 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   }
   isPassable(x: number, y: number): boolean {
     if (!this.isTilePassable(this.getTile(x, y))) {
-      if (this.getTile(x, y) == Tile.Pit && this.any_orb_at(x, y)) {
+      if ((this.getTile(x, y) == Tile.Pit || this.getTile(x, y) == Tile.Portal) && this.any_orb_at(x, y)) {
         //that's fine
       } else {
         return false;
       }
     }
     for (let b of this.orbs) {
-      if (b.x == x && b.y == y && !(b.in_pit||b.exploded)) {
+      if (b.x == x && b.y == y && !(b.is_frozen())) {
         return false;
       }
     }
@@ -413,10 +467,12 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       b.x += vec[0] * mag
       b.y += vec[1] * mag
 
-      //Add path to Critical Path
-      for (var i = 1; i <= mag; i++) {
-        let criticalTile = { x: b.x - vec[0] * i, y: b.y - vec[1] * i }
-        state.criticalTiles.push(criticalTile)
+      //Add path to Critical Path if not a decoy orbs
+      if(!b.decoy){
+        for (var i = 1; i <= mag; i++) {
+          let criticalTile = { x: b.x - vec[0] * i, y: b.y - vec[1] * i }
+          state.criticalTiles.push(criticalTile);
+        }
       }
 
       if (state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox, oy) != Tile.Pit) {

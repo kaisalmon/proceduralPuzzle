@@ -230,11 +230,11 @@ class OrbPuzzle extends puzzleState_1.default {
                 if (!o)
                     throw "Portaled orb not where it should be ";
                 o.in_portal = false;
+                state.setTile(o.x, o.y, Tile.Empty);
                 o.x = result.portal_event.to.x;
                 o.y = result.portal_event.to.y;
-                state.moveOrb(o, vec);
                 state.setTile(o.x, o.y, Tile.Empty);
-                state.setTile(result.portal_event.from.x, result.portal_event.from.y, Tile.Empty);
+                state.moveOrb(o, vec);
             }
         }
         //Re order
