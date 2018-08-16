@@ -234,8 +234,12 @@ function apply_move(move: OrbMove | undefined): void {
               if(w) x += w;
               animateParticules(x, y)
             }
-            setTimeout(() => $t.remove, 1000)
-            setTimeout(() => $t.removeClass("lit tile--bomb"), 1000)
+            moving = true;
+            setTimeout(() => {
+              $t.removeClass("lit tile--bomb")
+              $t.remove()
+              moving = false
+            }, 500)
           }
         }
       }
