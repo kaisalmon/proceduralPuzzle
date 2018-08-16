@@ -88,6 +88,7 @@ function createOrbPuzzle(args) {
         p.use_crystals = args.crystal;
         p.use_pits = args.pits;
         p.use_bombs = args.bombs;
+        p.use_portals = true;
         let stack = p.getStack(args.depth);
         //var t0 = performance.now();
         let solutionResult = yield stack[0][0].solve();

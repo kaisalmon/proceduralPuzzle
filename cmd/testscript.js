@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const orbPuzzleGenerator_1 = require("../main/orbPuzzleGenerator");
-const orbPuzzle_1 = require("../main/orbPuzzle");
-let moves = [orbPuzzle_1.OrbMove.Up, orbPuzzle_1.OrbMove.LeftBomb, orbPuzzle_1.OrbMove.LeftPortal];
+const orbPuzzleGenerator_1 = require("../cmd/orbPuzzleGenerator");
+const orbPuzzle_1 = require("../cmd/orbPuzzle");
+let moves = [orbPuzzle_1.OrbMove.Up, orbPuzzle_1.OrbMove.LeftPortal];
 orbPuzzleGenerator_1.from_json(require("../levels/bomb.json"), false).then(result => {
     for (var i = 0; i < 15; i++) {
         let strings = [];

@@ -110,6 +110,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       p.use_crystals = args.crystal;
       p.use_pits = args.pits;
       p.use_bombs = args.bombs;
+      p.use_portals = true;
 
       let stack = p.getStack(args.depth)
 

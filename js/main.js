@@ -499,6 +499,10 @@ function create_board(board) {
                 tileName = 'bomb';
                 html = '<i class="fas fa-exclamation-triangle"></i>';
             }
+            if (t == orbPuzzle_1.Tile.Portal) {
+                tileName = 'portal';
+                layer = "lower";
+            }
             if (t == orbPuzzle_1.Tile.Pit) {
                 tileName = 'pit';
                 layer = "lower";
@@ -753,8 +757,6 @@ class OrbPuzzle extends puzzleState_1.default {
             let r = state.moveOrb(b, vec);
             move_results.push(r);
         }
-        state.midpoint = state.clone();
-        state.midpoint.midpoint = null; // We don't need to keep a horrid growing tree here
         // SECOND PASS
         for (let result of move_results) {
             for (let d of result.detonations) {
@@ -775,11 +777,11 @@ class OrbPuzzle extends puzzleState_1.default {
                 if (!o)
                     throw "Portaled orb not where it should be ";
                 o.in_portal = false;
+                state.setTile(o.x, o.y, Tile.Empty);
                 o.x = result.portal_event.to.x;
                 o.y = result.portal_event.to.y;
-                state.moveOrb(o, vec);
                 state.setTile(o.x, o.y, Tile.Empty);
-                state.setTile(result.portal_event.from.x, result.portal_event.from.y, Tile.Empty);
+                state.moveOrb(o, vec);
             }
         }
         //Re order
@@ -795,7 +797,6 @@ class OrbPuzzle extends puzzleState_1.default {
         r.criticalTiles = [];
         r.orbs = [];
         r.grid = [];
-        r.midpoint = null;
         for (let ct of this.criticalTiles) {
             r.criticalTiles.push(ct);
         }
@@ -1303,6 +1304,7 @@ function createOrbPuzzle(args) {
         p.use_crystals = args.crystal;
         p.use_pits = args.pits;
         p.use_bombs = args.bombs;
+        p.use_portals = true;
         let stack = p.getStack(args.depth);
         //var t0 = performance.now();
         let solutionResult = yield stack[0][0].solve();

@@ -315,6 +315,10 @@ function create_board(board) {
                 tileName = 'bomb';
                 html = '<i class="fas fa-exclamation-triangle"></i>';
             }
+            if (t == orbPuzzle_1.Tile.Portal) {
+                tileName = 'portal';
+                layer = "lower";
+            }
             if (t == orbPuzzle_1.Tile.Pit) {
                 tileName = 'pit';
                 layer = "lower";

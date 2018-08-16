@@ -67,12 +67,18 @@ interface MoveResult {
     portal_event?:{from:{x:number, y:number}, to:{x:number, y:number}};
 }
 
+interface Movement{
+  from:{x:number, y:number},
+  to:{x:number, y:number},
+  instant?:boolean
+}
+
 export class OrbPuzzle extends PuzzleState<OrbMove>{
   grid: Tile[][]
   orbs: Orb[];
   criticalTiles: { x: number, y: number }[] = []
   width: number; height: number;
-  midpoint: OrbPuzzle|null;
+
 
   use_crystals: boolean = false;
   use_pits: boolean = false;
@@ -168,7 +174,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
           let other_portal:{x:number, y:number}|null = null;
           for (var x = 0; x < this.width; x++) {
             for (var y = 0; y < this.height; y++) {
-              if(x==b.x && y==b.y)continue;
+              if(x==b.x && y==b.y) continue;
               if(this.getTile(x,y) == Tile.Portal){
                 other_portal = {x,y};
               }
@@ -225,9 +231,6 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       move_results.push(r)
     }
 
-    state.midpoint = state.clone()
-    state.midpoint.midpoint = null; // We don't need to keep a horrid growing tree here
-
     // SECOND PASS
     for(let result of move_results){
       for(let d of result.detonations){
@@ -269,7 +272,6 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     r.criticalTiles = [];
     r.orbs = [];
     r.grid = [];
-    r.midpoint = null;
 
     for(let ct of this.criticalTiles){
       r.criticalTiles.push(ct);

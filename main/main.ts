@@ -307,6 +307,10 @@ function create_board(board: OrbPuzzle): JQuery[][] {
         tileName = 'bomb';
         html = '<i class="fas fa-exclamation-triangle"></i>'
       }
+      if (t == Tile.Portal) {
+        tileName = 'portal';
+        layer = "lower";
+      }
       if (t == Tile.Pit) {
         tileName = 'pit';
         layer = "lower";
