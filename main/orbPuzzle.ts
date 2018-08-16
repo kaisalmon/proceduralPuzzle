@@ -192,10 +192,12 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       for(let x of [d.x-1, d.x, d.x+1]){
         for(let y of [d.y-1, d.y, d.y+1]){
           let t = state.getTile(x,y);
-          if(t == Tile.Fragile || t == Tile.Brick || t == Tile.Bomb){
+          if(t == Tile.Fragile || t == Tile.Bomb){
             state.setTile(x, y, Tile.Empty);
+          }else if(t == Tile.Brick){
+            state.setTile(x, y, Tile.Fragile);
           }
-          state.orbs.filter(b => b.x == x && b.y == y).forEach(b => {
+          state.orbs.filter(b => b.x == x && b.y == y && !b.is_frozen()).forEach(b => {
             b.exploded = true
           });
         }
@@ -301,10 +303,13 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         if(this.getTile(x,y) !== Tile.Empty){
           continue;
         }
+        if(this.getTile(x+vec[0],y+vec[1]) !== Tile.Empty){
+          continue;
+        }
         let invalid = false;
         for(let check_x of [x-1, x, x+1]){
           for(let check_y of [y-1, y, y+1]){
-            if(this.getTile(check_x, check_y) == Tile.Brick || this.getTile(check_x, check_y) == Tile.Fragile){
+            if(this.getTile(check_x, check_y) == Tile.Brick || this.getTile(check_x, check_y) == Tile.Bomb){
               invalid = true;
               break;
             }
@@ -331,16 +336,14 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     for(let create_x of [p.x-1, p.x, p.x+1]){
       for(let create_y of [p.y-1, p.y, p.y+1]){
         if(create_x == p.x && create_y == p.y)continue;
+        if(create_x == p.x + vec[0] && create_y == p.y + vec[1]) continue;
         if(this.any_orb_at(create_x, create_y))continue;
-        if(this.getTile(create_x, create_y) !== Tile.Empty)continue;
-        if(Math.random() > 0.3){
-          this.setTile(create_x, create_y, Tile.Brick);
-        }else if(Math.random() > 0.3){
-          if(this.use_fragile){
+        if(this.getTile(create_x, create_y) === Tile.Empty){
+          if(Math.random() > 0 && this.use_fragile){
             this.setTile(create_x, create_y, Tile.Fragile);
-          }else{
-            this.setTile(create_x, create_y, Tile.Brick);
           }
+        }else if(this.getTile(create_x, create_y) === Tile.Fragile){
+          this.setTile(create_x, create_y, Tile.Brick);
         }
       }
     }

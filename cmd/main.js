@@ -233,6 +233,10 @@ function apply_move(move) {
                     if ($t && t == orbPuzzle_1.Tile.Empty && !$t.hasClass('animated')) {
                         $t.remove();
                     }
+                    if ($t && t == orbPuzzle_1.Tile.Fragile && $t.hasClass('tile--brick')) {
+                        $t.addClass('tile--fragile');
+                        $t.removeClass('tile--brick');
+                    }
                     if ($t && t == orbPuzzle_1.Tile.Empty && $t.hasClass('lit')) {
                         $t.addClass('fadeOut');
                         var curTransform = new WebKitCSSMatrix($t.css('transform'));

@@ -221,6 +221,10 @@ function apply_move(move: OrbMove | undefined): void {
           if ($t && t == Tile.Empty && !$t.hasClass('animated')) {
             $t.remove();
           }
+          if ($t && t == Tile.Fragile && $t.hasClass('tile--brick')) {
+            $t.addClass('tile--fragile');
+            $t.removeClass('tile--brick');
+          }
           if ($t && t == Tile.Empty && $t.hasClass('lit')) {
             $t.addClass('fadeOut')
             var curTransform = new WebKitCSSMatrix($t.css('transform'));
