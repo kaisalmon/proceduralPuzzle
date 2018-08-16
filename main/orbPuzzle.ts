@@ -195,7 +195,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
           if(t == Tile.Fragile || t == Tile.Brick || t == Tile.Bomb){
             state.setTile(x, y, Tile.Empty);
           }
-          state.orbs.filter(b => b.x == x && b.y == y).forEach(b => {
+          state.orbs.filter(b => b.x == x && b.y == y && !b.is_frozen()).forEach(b => {
             b.exploded = true
           });
         }
