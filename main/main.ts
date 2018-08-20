@@ -1,9 +1,13 @@
 import $ from 'jquery'
 import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
-import { OrbPuzzle, Tile, OrbMove } from './orbPuzzle'
+import { OrbPuzzle, Tile, OrbMove} from './orbPuzzle'
 import {animateParticules, setUpExplosions } from './explosion'
 import { createOrbPuzzle as createPuzzle } from './orbPuzzleGenerator'
+
+function delay(ms: number): Promise<void>{
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
 
 async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:boolean = false): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -48,7 +52,7 @@ stack = stack.reverse();
 */
 let board: OrbPuzzle;
 let moving = false;
-let $tiles: JQuery[][];
+let $tiles: (JQuery|undefined)[][];
 $(document).ready(() => {
   setUpExplosions();
   (async function() {
@@ -128,22 +132,24 @@ $(document).ready(() => {
     $tiles = create_board(board);
 
     $('body').keyup((e) => {
-      let move: OrbMove | undefined = undefined;
-      switch (e.which) {
-        case 37:
-          move = OrbMove.Left;
-          break;
-        case 38:
-          move = OrbMove.Up;
-          break;
-        case 39:
-          move = OrbMove.Right;
-          break;
-        case 40:
-          move = OrbMove.Down;
-          break;
-      }
-      apply_move(move)
+      (async function():Promise<void>{
+        let move: OrbMove | undefined = undefined;
+        switch (e.which) {
+          case 37:
+            move = OrbMove.Left;
+            break;
+          case 38:
+            move = OrbMove.Up;
+            break;
+          case 39:
+            move = OrbMove.Right;
+            break;
+          case 40:
+            move = OrbMove.Down;
+            break;
+        }
+        await apply_move(move)
+      })()
     })
 
     function getUrlVars(): { [id: string]: string } {
@@ -160,87 +166,148 @@ $(document).ready(() => {
 
 })
 
-function apply_move(move: OrbMove | undefined): void {
-  if (move && !moving && board) {
-    moving = true;
-    board = board.apply(move)
-    $('.puzzle-wrapper .orb').each((i, e) => {
+async function move_orbs(n: number = 0){
+  $('.puzzle-wrapper .orb').each((i, e) => {
+    (async function(){
       let b = board.orbs[i];
       if (b && !$(e).hasClass('orb--in-pit')) {
-        let s = 0.1 * (b.last_mag || 0);
-        let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
-        $(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition)
-        $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))')
-        if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
-          $(e).removeClass('orb--on-target');
-        }
-        setTimeout(() => {
-          if (board.getTile(b.x, b.y) == Tile.Target) {
+        let movement = b.last_moves[n];
+        if(movement){
+          let abs_mag = Math.max(Math.abs(movement.mag.x), Math.abs(movement.mag.y))
+          let s = 0.1 * abs_mag;
+          if(movement.instant){
+            s = 0;
+            $(e).css('opacity', 0)
+          }else{
+            $(e).css('opacity', '')
+          }
+          let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
+          $(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition)
+          $(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + '))')
+          if (b.last_moves.length > 0 && (b.last_moves[0].mag.x != 0 || b.last_moves[0].mag.y != 0)) {
+            $(e).removeClass('orb--on-target');
+          }
+
+          await delay(s * 1000)
+          let $t = $tiles[movement.to.x][movement.to.y]
+          if($t && $t.hasClass('tile--portal')){
+            if(!$t.hasClass('fadeOut')){
+              $(e).css('opacity', 0)
+              $t.addClass('fadeOut')
+              var curTransform = new WebKitCSSMatrix($t.css('transform'));
+              let offset =$t.offset();
+              if(offset){
+                let x = offset.left + curTransform.m41;
+                let y = offset.top + curTransform.m42;
+                let h = $t.height();
+                let w = $t.width();
+                if(h) y += h;
+                if(w) x += w;
+                animateParticules(x, y, ['#00FF00', '#FFFFFF', '#008800'])
+              }
+              $t.remove();
+            }
+          }else{
+            $(e).css('opacity','')
+          }
+
+          if (board.getTile(movement.to.x, movement.to.y) == Tile.Target) {
             $(e).addClass('orb--on-target');
           }
           if (b.in_pit) {
-            setTimeout(() => {
-              $(e).addClass('orb--in-pit');
-              $(e).removeClass('orb--on-target');
-              $(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')) scale(0.7)')
-            }, 100)
+            await delay(100)
+            $(e).addClass('orb--in-pit');
+            $(e).removeClass('orb--on-target');
+            $(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + ')) scale(0.7)')
           } else {
             $(e).removeClass('orb--in-pit');
           }
-          if (b.last_contact) {
-            let t = board.getTile(b.last_contact.x, b.last_contact.y)
-            let $t = $tiles[b.last_contact.x][b.last_contact.y]
+          if (movement.last_contact) {
+            let t = board.getTile(movement.last_contact.x, movement.last_contact.y)
+            let $t = $tiles[movement.last_contact.x][movement.last_contact.y]
             if ($t) {
               if($t.hasClass('tile--fragile') && t == Tile.Empty){
                 $t.addClass('animated');
-                if (b.last_contact.x > b.x)
+                if (movement.last_contact.x > movement.to.x)
                     $t.addClass('fadeOutRight')
-                else if (b.last_contact.x < b.x)
+                else if (movement.last_contact.x < movement.to.x)
                     $t.addClass('fadeOutLeft')
-                else if (b.last_contact.y < b.y)
+                else if (movement.last_contact.y < movement.to.y)
                     $t.addClass('fadeOutUp')
-                else if (b.last_contact.y > b.y)
+                else if (movement.last_contact.y > movement.to.y)
                     $t.addClass('fadeOutDown')
-                setTimeout(() => $t.remove, 1000)
+                setTimeout(() => {
+                  if($t)
+                    $t.remove
+                }, 1000)
               }else if($t.hasClass('tile--bomb')){
                   $t.addClass('animated');
                   $t.addClass('lit shake')
               }
             }
           }
-        }, s * 1000)
+        }
       }
-    })
-    let time = board.orbs.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
-    setTimeout(() => {
-      moving = false;
-      for (let x = 0; x < board.width; x++) {
-        for (let y = 0; y < board.height; y++) {
-          let t = board.getTile(x, y)
-          let $t = $tiles[x][y]
-          if ($t && t == Tile.Empty && !$t.hasClass('animated')) {
-            $t.remove();
+    })();
+  })
+
+  let time = board.orbs.reduce((t, b) => {
+    let movement = b.last_moves[n];
+    if(movement){
+      if(movement.instant){
+        return 2;
+      }
+      return Math.max(Math.max(Math.abs(movement.mag.x), Math.abs(movement.mag.y)), t)
+    }
+    return t;
+  }, 0) * 100;
+  await delay(time)
+  return time > 0;
+}
+
+async function apply_move(move: OrbMove | undefined): Promise<void> {
+  if (move && !moving && board) {
+    moving = true;
+    board = board.apply(move)
+
+    let i = 0;
+    while(true){
+      let any_movement = await move_orbs(i)
+      if(!any_movement){
+        break
+      }
+      i++;
+    }
+    moving = false;
+
+    for (let x = 0; x < board.width; x++) {
+      for (let y = 0; y < board.height; y++) {
+        let t = board.getTile(x, y)
+        let $t = $tiles[x][y]
+        if ($t && t == Tile.Empty && !$t.hasClass('animated')) {
+          $t.remove();
+        }
+        if ($t && t == Tile.Empty && $t.hasClass('lit')) {
+          $t.addClass('fadeOut')
+          var curTransform = new WebKitCSSMatrix($t.css('transform'));
+          let offset =$t.offset();
+          if(offset){
+            let x = offset.left + curTransform.m41;
+            let y = offset.top + curTransform.m42;
+            let h = $t.height();
+            let w = $t.width();
+            if(h) y += h;
+            if(w) x += w;
+            animateParticules(x, y)
           }
-          if ($t && t == Tile.Empty && $t.hasClass('lit')) {
-            $t.addClass('fadeOut')
-            var curTransform = new WebKitCSSMatrix($t.css('transform'));
-            let offset =$t.offset();
-            if(offset){
-              let x = offset.left + curTransform.m41;
-              let y = offset.top + curTransform.m42;
-              let h = $t.height();
-              let w = $t.width();
-              if(h) y += h;
-              if(w) x += w;
-              animateParticules(x, y)
-            }
-            moving = true;
-            setTimeout(() => {
+          moving = true;
+          setTimeout(() => {
+            if($t){
               $t.removeClass("lit tile--bomb")
               $t.remove()
-              moving = false
-            }, 500)
-          }
+            }
+            moving = false
+          }, 500)
         }
       }
 
@@ -252,26 +319,25 @@ function apply_move(move: OrbMove | undefined): void {
       });
 
       if (board.isSolved()) {
-        setTimeout(() => {
-          swal({
-            title: "You win!",
-            type: "success",
-            showCancelButton: true,
-            cancelButtonText: "Back to settings",
-            confirmButtonText: "New Puzzle",
-            useRejections: true,
-          }).then(() => {
-            window.location.reload();
-          }).catch(() => {
-            window.location.href = window.location.href.replace("game", "index");
-          })
-        }, 400);
+        await(500)
+        swal({
+          title: "You win!",
+          type: "success",
+          showCancelButton: true,
+          cancelButtonText: "Back to settings",
+          confirmButtonText: "New Puzzle",
+          useRejections: true,
+        }).then(() => {
+          window.location.reload();
+        }).catch(() => {
+          window.location.href = window.location.href.replace("game", "index");
+        })
       }
-    }, time)
+    }
   }
 }
 
-function create_board(board: OrbPuzzle): JQuery[][] {
+function create_board(board: OrbPuzzle): (JQuery|undefined)[][] {
   $('.puzzle-wrapper').remove();
 
   let $wrapper = $('<div/>').addClass('puzzle-wrapper').appendTo('body')
@@ -282,7 +348,7 @@ function create_board(board: OrbPuzzle): JQuery[][] {
   $('<div/>').addClass('upper-layer')
     .appendTo($wrapper)
 
-  var $tiles: JQuery[][] = [];
+  var $tiles: (JQuery|undefined)[][] = [];
   for (let x = 0; x < board.width; x++) {
     $tiles[x] = []
     for (let y = 0; y < board.height; y++) {

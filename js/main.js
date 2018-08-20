@@ -69,7 +69,7 @@ if (!canvasEl)
     throw "Can't find canvas";
 var ctx = canvasEl.getContext('2d');
 var numberOfParticules = 30;
-var colors = ['#DD3300', '#882200', '#FF6600', '#666666'];
+var def_colors = ['#DD3300', '#882200', '#FF6600', '#666666'];
 function setCanvasSize() {
     if (!canvasEl)
         throw "no canvas";
@@ -91,10 +91,12 @@ function setParticuleDirection(p) {
         y: p.y + radius * Math.sin(angle)
     };
 }
-function createParticule(x, y) {
+function createParticule(x, y, colors) {
     var p = {};
     p.x = x;
     p.y = y;
+    if (!colors)
+        colors = def_colors;
     p.color = colors[anime.random(0, colors.length - 1)];
     p.radius = anime.random(16, 32);
     p.endPos = setParticuleDirection(p);
@@ -135,11 +137,13 @@ function renderParticule(anim) {
         anim.animatables[i].target.draw();
     }
 }
-function animateParticules(x, y) {
+function animateParticules(x, y, colors) {
     //var circle = createCircle(x, y);
+    if (!colors)
+        colors = def_colors;
     var particules = [];
     for (var i = 0; i < numberOfParticules; i++) {
-        particules.push(createParticule(x, y));
+        particules.push(createParticule(x, y, colors));
     }
     anime.timeline().add({
         targets: particules,
@@ -201,6 +205,9 @@ const sweetalert2_1 = __importDefault(require("sweetalert2"));
 const orbPuzzle_1 = require("./orbPuzzle");
 const explosion_1 = require("./explosion");
 const orbPuzzleGenerator_1 = require("./orbPuzzleGenerator");
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 function tryUntilSuccess(f, args, debug = false) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
@@ -326,22 +333,26 @@ jquery_1.default(document).ready(() => {
             });
             $tiles = create_board(board);
             jquery_1.default('body').keyup((e) => {
-                let move = undefined;
-                switch (e.which) {
-                    case 37:
-                        move = orbPuzzle_1.OrbMove.Left;
-                        break;
-                    case 38:
-                        move = orbPuzzle_1.OrbMove.Up;
-                        break;
-                    case 39:
-                        move = orbPuzzle_1.OrbMove.Right;
-                        break;
-                    case 40:
-                        move = orbPuzzle_1.OrbMove.Down;
-                        break;
-                }
-                apply_move(move);
+                (function () {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        let move = undefined;
+                        switch (e.which) {
+                            case 37:
+                                move = orbPuzzle_1.OrbMove.Left;
+                                break;
+                            case 38:
+                                move = orbPuzzle_1.OrbMove.Up;
+                                break;
+                            case 39:
+                                move = orbPuzzle_1.OrbMove.Right;
+                                break;
+                            case 40:
+                                move = orbPuzzle_1.OrbMove.Down;
+                                break;
+                        }
+                        yield apply_move(move);
+                    });
+                })();
             });
             function getUrlVars() {
                 var vars = {};
@@ -354,61 +365,124 @@ jquery_1.default(document).ready(() => {
         });
     })();
 });
-function apply_move(move) {
-    if (move && !moving && board) {
-        moving = true;
-        board = board.apply(move);
+function move_orbs(n = 0) {
+    return __awaiter(this, void 0, void 0, function* () {
         jquery_1.default('.puzzle-wrapper .orb').each((i, e) => {
-            let b = board.orbs[i];
-            if (b && !jquery_1.default(e).hasClass('orb--in-pit')) {
-                let s = 0.1 * (b.last_mag || 0);
-                let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
-                jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
-                jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + '))');
-                if (b.last_move && (b.last_move[0] != 0 || b.last_move[1] != 0)) {
-                    jquery_1.default(e).removeClass('orb--on-target');
-                }
-                setTimeout(() => {
-                    if (board.getTile(b.x, b.y) == orbPuzzle_1.Tile.Target) {
-                        jquery_1.default(e).addClass('orb--on-target');
-                    }
-                    if (b.in_pit) {
-                        setTimeout(() => {
-                            jquery_1.default(e).addClass('orb--in-pit');
-                            jquery_1.default(e).removeClass('orb--on-target');
-                            jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + b.x + '), calc(var(--tsize) * ' + b.y + ')) scale(0.7)');
-                        }, 100);
-                    }
-                    else {
-                        jquery_1.default(e).removeClass('orb--in-pit');
-                    }
-                    if (b.last_contact) {
-                        let t = board.getTile(b.last_contact.x, b.last_contact.y);
-                        let $t = $tiles[b.last_contact.x][b.last_contact.y];
-                        if ($t) {
-                            if ($t.hasClass('tile--fragile') && t == orbPuzzle_1.Tile.Empty) {
-                                $t.addClass('animated');
-                                if (b.last_contact.x > b.x)
-                                    $t.addClass('fadeOutRight');
-                                else if (b.last_contact.x < b.x)
-                                    $t.addClass('fadeOutLeft');
-                                else if (b.last_contact.y < b.y)
-                                    $t.addClass('fadeOutUp');
-                                else if (b.last_contact.y > b.y)
-                                    $t.addClass('fadeOutDown');
-                                setTimeout(() => $t.remove, 1000);
+            (function () {
+                return __awaiter(this, void 0, void 0, function* () {
+                    let b = board.orbs[i];
+                    if (b && !jquery_1.default(e).hasClass('orb--in-pit')) {
+                        let movement = b.last_moves[n];
+                        if (movement) {
+                            let abs_mag = Math.max(Math.abs(movement.mag.x), Math.abs(movement.mag.y));
+                            let s = 0.1 * abs_mag;
+                            if (movement.instant) {
+                                s = 0;
+                                jquery_1.default(e).css('opacity', 0);
                             }
-                            else if ($t.hasClass('tile--bomb')) {
-                                $t.addClass('animated');
-                                $t.addClass('lit shake');
+                            else {
+                                jquery_1.default(e).css('opacity', '');
+                            }
+                            let base_transition = "background 0.5s, border 0.5s, filter 0.5s";
+                            jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
+                            jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + '))');
+                            if (b.last_moves.length > 0 && (b.last_moves[0].mag.x != 0 || b.last_moves[0].mag.y != 0)) {
+                                jquery_1.default(e).removeClass('orb--on-target');
+                            }
+                            yield delay(s * 1000);
+                            let $t = $tiles[movement.to.x][movement.to.y];
+                            if ($t && $t.hasClass('tile--portal')) {
+                                if (!$t.hasClass('fadeOut')) {
+                                    jquery_1.default(e).css('opacity', 0);
+                                    $t.addClass('fadeOut');
+                                    var curTransform = new WebKitCSSMatrix($t.css('transform'));
+                                    let offset = $t.offset();
+                                    if (offset) {
+                                        let x = offset.left + curTransform.m41;
+                                        let y = offset.top + curTransform.m42;
+                                        let h = $t.height();
+                                        let w = $t.width();
+                                        if (h)
+                                            y += h;
+                                        if (w)
+                                            x += w;
+                                        explosion_1.animateParticules(x, y, ['#00FF00', '#FFFFFF', '#008800']);
+                                    }
+                                    $t.remove();
+                                }
+                            }
+                            else {
+                                jquery_1.default(e).css('opacity', '');
+                            }
+                            if (board.getTile(movement.to.x, movement.to.y) == orbPuzzle_1.Tile.Target) {
+                                jquery_1.default(e).addClass('orb--on-target');
+                            }
+                            if (b.in_pit) {
+                                yield delay(100);
+                                jquery_1.default(e).addClass('orb--in-pit');
+                                jquery_1.default(e).removeClass('orb--on-target');
+                                jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + ')) scale(0.7)');
+                            }
+                            else {
+                                jquery_1.default(e).removeClass('orb--in-pit');
+                            }
+                            if (movement.last_contact) {
+                                let t = board.getTile(movement.last_contact.x, movement.last_contact.y);
+                                let $t = $tiles[movement.last_contact.x][movement.last_contact.y];
+                                if ($t) {
+                                    if ($t.hasClass('tile--fragile') && t == orbPuzzle_1.Tile.Empty) {
+                                        $t.addClass('animated');
+                                        if (movement.last_contact.x > movement.to.x)
+                                            $t.addClass('fadeOutRight');
+                                        else if (movement.last_contact.x < movement.to.x)
+                                            $t.addClass('fadeOutLeft');
+                                        else if (movement.last_contact.y < movement.to.y)
+                                            $t.addClass('fadeOutUp');
+                                        else if (movement.last_contact.y > movement.to.y)
+                                            $t.addClass('fadeOutDown');
+                                        setTimeout(() => {
+                                            if ($t)
+                                                $t.remove;
+                                        }, 1000);
+                                    }
+                                    else if ($t.hasClass('tile--bomb')) {
+                                        $t.addClass('animated');
+                                        $t.addClass('lit shake');
+                                    }
+                                }
                             }
                         }
                     }
-                }, s * 1000);
-            }
+                });
+            })();
         });
-        let time = board.orbs.reduce((t, b) => Math.max(b.last_mag || 0, t), 0) * 100;
-        setTimeout(() => {
+        let time = board.orbs.reduce((t, b) => {
+            let movement = b.last_moves[n];
+            if (movement) {
+                if (movement.instant) {
+                    return 2;
+                }
+                return Math.max(Math.max(Math.abs(movement.mag.x), Math.abs(movement.mag.y)), t);
+            }
+            return t;
+        }, 0) * 100;
+        yield delay(time);
+        return time > 0;
+    });
+}
+function apply_move(move) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (move && !moving && board) {
+            moving = true;
+            board = board.apply(move);
+            let i = 0;
+            while (true) {
+                let any_movement = yield move_orbs(i);
+                if (!any_movement) {
+                    break;
+                }
+                i++;
+            }
             moving = false;
             for (let x = 0; x < board.width; x++) {
                 for (let y = 0; y < board.height; y++) {
@@ -434,21 +508,22 @@ function apply_move(move) {
                         }
                         moving = true;
                         setTimeout(() => {
-                            $t.removeClass("lit tile--bomb");
-                            $t.remove();
+                            if ($t) {
+                                $t.removeClass("lit tile--bomb");
+                                $t.remove();
+                            }
                             moving = false;
                         }, 500);
                     }
                 }
-            }
-            jquery_1.default('.puzzle-wrapper .orb').each((i, e) => {
-                let b = board.orbs[i];
-                if (b.exploded && !jquery_1.default(e).hasClass("fadeOut")) {
-                    jquery_1.default(e).addClass("animated fadeOut");
-                }
-            });
-            if (board.isSolved()) {
-                setTimeout(() => {
+                jquery_1.default('.puzzle-wrapper .orb').each((i, e) => {
+                    let b = board.orbs[i];
+                    if (b.exploded && !jquery_1.default(e).hasClass("fadeOut")) {
+                        jquery_1.default(e).addClass("animated fadeOut");
+                    }
+                });
+                if (board.isSolved()) {
+                    yield (500);
                     sweetalert2_1.default({
                         title: "You win!",
                         type: "success",
@@ -461,10 +536,10 @@ function apply_move(move) {
                     }).catch(() => {
                         window.location.href = window.location.href.replace("game", "index");
                     });
-                }, 400);
+                }
             }
-        }, time);
-    }
+        }
+    });
 }
 function create_board(board) {
     jquery_1.default('.puzzle-wrapper').remove();
@@ -597,6 +672,7 @@ class Orb {
         this.in_pit = false;
         this.in_portal = false;
         this.exploded = false;
+        this.last_moves = [];
         this.x = x;
         this.y = y;
     }
@@ -676,12 +752,12 @@ class OrbPuzzle extends puzzleState_1.default {
         let result = {
             detonations: []
         };
-        b.last_move = [0, 0];
         if (b.is_frozen()) {
             return result;
         }
         let ox = b.x;
         let oy = b.y;
+        let last_contact = null;
         for (let mag = 1; mag < this.height; mag++) {
             if (this.isPassable(ox + vec[0] * mag, oy + vec[1] * mag)) {
                 b.x = ox + vec[0] * mag;
@@ -693,13 +769,11 @@ class OrbPuzzle extends puzzleState_1.default {
                     b.in_pit = true;
                     b.x = ox + vec[0] * mag;
                     b.y = oy + vec[1] * mag;
-                    b.last_mag = mag;
                 }
                 if (t == Tile.Portal) {
                     b.in_portal = true;
                     b.x = ox + vec[0] * mag;
                     b.y = oy + vec[1] * mag;
-                    b.last_mag = mag;
                     let other_portal = null;
                     for (var x = 0; x < this.width; x++) {
                         for (var y = 0; y < this.height; y++) {
@@ -730,21 +804,26 @@ class OrbPuzzle extends puzzleState_1.default {
                 }
                 break;
             }
-            b.last_move = [vec[0] * mag, vec[1] * mag];
             if (mag != 0) {
-                b.last_contact = { x: b.x + vec[0], y: b.y + vec[1] };
+                last_contact = { x: b.x + vec[0], y: b.y + vec[1] };
             }
             else {
-                b.last_contact = undefined;
+                last_contact = null;
             }
-            b.last_mag = mag;
         }
+        b.last_moves.push({
+            from: { x: ox, y: oy },
+            to: { x: b.x, y: b.y },
+            mag: { x: b.x - ox, y: b.y - oy },
+            last_contact
+        });
         return result;
     }
     apply(move) {
         let state = this.clone();
         // FIRST PASS
         for (var i = 0; i < state.orbs.length; i++) {
+            state.orbs[i].last_moves = [];
             state.orbs[i].index = i;
         }
         if (move == OrbMove.Shatter) {
@@ -778,6 +857,13 @@ class OrbPuzzle extends puzzleState_1.default {
                     throw "Portaled orb not where it should be ";
                 o.in_portal = false;
                 state.setTile(o.x, o.y, Tile.Empty);
+                o.last_moves.push({
+                    from: { x: o.x, y: o.y },
+                    to: result.portal_event.to,
+                    instant: true,
+                    mag: { x: result.portal_event.to.x - o.x, y: result.portal_event.to.y - o.y },
+                    last_contact: null
+                });
                 o.x = result.portal_event.to.x;
                 o.y = result.portal_event.to.y;
                 state.setTile(o.x, o.y, Tile.Empty);
@@ -793,7 +879,7 @@ class OrbPuzzle extends puzzleState_1.default {
     }
     clone() {
         let r = Object.create(this); //Shallow clone
-        // Remove all pointers from shallow clone
+        // Remove all pointers from shallow clone;
         r.criticalTiles = [];
         r.orbs = [];
         r.grid = [];

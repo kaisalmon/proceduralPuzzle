@@ -48,6 +48,7 @@ class Orb {
         this.in_pit = false;
         this.in_portal = false;
         this.exploded = false;
+        this.last_moves = [];
         this.x = x;
         this.y = y;
     }
@@ -127,12 +128,12 @@ class OrbPuzzle extends puzzleState_1.default {
         let result = {
             detonations: []
         };
-        b.last_move = [0, 0];
         if (b.is_frozen()) {
             return result;
         }
         let ox = b.x;
         let oy = b.y;
+        let last_contact = null;
         for (let mag = 1; mag < this.height; mag++) {
             if (this.isPassable(ox + vec[0] * mag, oy + vec[1] * mag)) {
                 b.x = ox + vec[0] * mag;
@@ -144,13 +145,11 @@ class OrbPuzzle extends puzzleState_1.default {
                     b.in_pit = true;
                     b.x = ox + vec[0] * mag;
                     b.y = oy + vec[1] * mag;
-                    b.last_mag = mag;
                 }
                 if (t == Tile.Portal) {
                     b.in_portal = true;
                     b.x = ox + vec[0] * mag;
                     b.y = oy + vec[1] * mag;
-                    b.last_mag = mag;
                     let other_portal = null;
                     for (var x = 0; x < this.width; x++) {
                         for (var y = 0; y < this.height; y++) {
@@ -181,21 +180,26 @@ class OrbPuzzle extends puzzleState_1.default {
                 }
                 break;
             }
-            b.last_move = [vec[0] * mag, vec[1] * mag];
             if (mag != 0) {
-                b.last_contact = { x: b.x + vec[0], y: b.y + vec[1] };
+                last_contact = { x: b.x + vec[0], y: b.y + vec[1] };
             }
             else {
-                b.last_contact = undefined;
+                last_contact = null;
             }
-            b.last_mag = mag;
         }
+        b.last_moves.push({
+            from: { x: ox, y: oy },
+            to: { x: b.x, y: b.y },
+            mag: { x: b.x - ox, y: b.y - oy },
+            last_contact
+        });
         return result;
     }
     apply(move) {
         let state = this.clone();
         // FIRST PASS
         for (var i = 0; i < state.orbs.length; i++) {
+            state.orbs[i].last_moves = [];
             state.orbs[i].index = i;
         }
         if (move == OrbMove.Shatter) {
@@ -229,6 +233,13 @@ class OrbPuzzle extends puzzleState_1.default {
                     throw "Portaled orb not where it should be ";
                 o.in_portal = false;
                 state.setTile(o.x, o.y, Tile.Empty);
+                o.last_moves.push({
+                    from: { x: o.x, y: o.y },
+                    to: result.portal_event.to,
+                    instant: true,
+                    mag: { x: result.portal_event.to.x - o.x, y: result.portal_event.to.y - o.y },
+                    last_contact: null
+                });
                 o.x = result.portal_event.to.x;
                 o.y = result.portal_event.to.y;
                 state.setTile(o.x, o.y, Tile.Empty);
@@ -244,7 +255,7 @@ class OrbPuzzle extends puzzleState_1.default {
     }
     clone() {
         let r = Object.create(this); //Shallow clone
-        // Remove all pointers from shallow clone
+        // Remove all pointers from shallow clone;
         r.criticalTiles = [];
         r.orbs = [];
         r.grid = [];

@@ -8,7 +8,7 @@ if (!canvasEl)
     throw "Can't find canvas";
 var ctx = canvasEl.getContext('2d');
 var numberOfParticules = 30;
-var colors = ['#DD3300', '#882200', '#FF6600', '#666666'];
+var def_colors = ['#DD3300', '#882200', '#FF6600', '#666666'];
 function setCanvasSize() {
     if (!canvasEl)
         throw "no canvas";
@@ -30,10 +30,12 @@ function setParticuleDirection(p) {
         y: p.y + radius * Math.sin(angle)
     };
 }
-function createParticule(x, y) {
+function createParticule(x, y, colors) {
     var p = {};
     p.x = x;
     p.y = y;
+    if (!colors)
+        colors = def_colors;
     p.color = colors[anime.random(0, colors.length - 1)];
     p.radius = anime.random(16, 32);
     p.endPos = setParticuleDirection(p);
@@ -74,11 +76,13 @@ function renderParticule(anim) {
         anim.animatables[i].target.draw();
     }
 }
-function animateParticules(x, y) {
+function animateParticules(x, y, colors) {
     //var circle = createCircle(x, y);
+    if (!colors)
+        colors = def_colors;
     var particules = [];
     for (var i = 0; i < numberOfParticules; i++) {
-        particules.push(createParticule(x, y));
+        particules.push(createParticule(x, y, colors));
     }
     anime.timeline().add({
         targets: particules,

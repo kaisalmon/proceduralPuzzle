@@ -47,9 +47,7 @@ export class Orb {
   in_pit: boolean = false;
   in_portal: boolean = false;
   exploded: boolean = false;
-  last_move: [number, number] | undefined;
-  last_mag: number | undefined;
-  last_contact: { x: number, y: number } | undefined;
+  last_moves: Movement[] = [];
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
@@ -67,9 +65,11 @@ interface MoveResult {
     portal_event?:{from:{x:number, y:number}, to:{x:number, y:number}};
 }
 
-interface Movement{
+export interface Movement{
   from:{x:number, y:number},
   to:{x:number, y:number},
+  mag:{x:number, y:number},
+  last_contact: {x:number, y:number}|null,
   instant?:boolean
 }
 
@@ -147,12 +147,12 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     let result:MoveResult = {
       detonations:[]
     }
-    b.last_move = [0, 0]
     if (b.is_frozen()) {
       return result;
     }
     let ox = b.x;
     let oy = b.y;
+    let last_contact = null;
     for (let mag = 1; mag < this.height; mag++) {
       if (this.isPassable(ox + vec[0] * mag, oy + vec[1] * mag)) {
         b.x = ox + vec[0] * mag;
@@ -163,13 +163,11 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
           b.in_pit = true;
           b.x = ox + vec[0] * mag;
           b.y = oy + vec[1] * mag;
-          b.last_mag = mag;
         }
         if (t == Tile.Portal) {
           b.in_portal = true;
           b.x = ox + vec[0] * mag;
           b.y = oy + vec[1] * mag;
-          b.last_mag = mag;
 
           let other_portal:{x:number, y:number}|null = null;
           for (var x = 0; x < this.width; x++) {
@@ -201,14 +199,20 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         }
         break;
       }
-      b.last_move = [vec[0] * mag, vec[1] * mag];
       if (mag != 0) {
-        b.last_contact = { x: b.x + vec[0], y: b.y + vec[1] };
+        last_contact = { x: b.x + vec[0], y: b.y + vec[1] };
       } else {
-        b.last_contact = undefined;
+        last_contact = null;
       }
-      b.last_mag = mag;
     }
+
+    b.last_moves.push({
+      from:{x: ox, y:oy},
+      to:{x:b.x, y:b.y},
+      mag:{x:b.x - ox, y:b.y - oy},
+      last_contact
+    });
+
     return result
   }
 
@@ -217,6 +221,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
 
     // FIRST PASS
     for (var i = 0; i < state.orbs.length; i++) {
+      state.orbs[i].last_moves = []
       state.orbs[i].index = i;
     }
     if (move == OrbMove.Shatter) {
@@ -251,8 +256,17 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         if(!o) throw "Portaled orb not where it should be "
         o.in_portal = false
         state.setTile(o.x, o.y, Tile.Empty);
+
+        o.last_moves.push({
+          from: {x: o.x, y:o.y},
+          to: result.portal_event.to,
+          instant: true,
+          mag: {x: result.portal_event.to.x - o.x, y: result.portal_event.to.y - o.y },
+          last_contact: null
+        })
         o.x = result.portal_event.to.x;
         o.y = result.portal_event.to.y;
+
         state.setTile(o.x, o.y, Tile.Empty);
         state.moveOrb(o, vec);
       }
@@ -268,7 +282,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   clone(): OrbPuzzle{
     let r:OrbPuzzle = Object.create(this); //Shallow clone
 
-    // Remove all pointers from shallow clone
+    // Remove all pointers from shallow clone;
     r.criticalTiles = [];
     r.orbs = [];
     r.grid = [];
