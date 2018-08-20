@@ -28,9 +28,11 @@ jquery_1.default(document).ready(() => {
             'no_fragile': url_vars["fragile"] === undefined || url_vars["fragile"] === "true" ? false : true,
             'pits': url_vars["pits"] === undefined || url_vars["pits"] === "false" ? false : true,
             'bombs': url_vars["bombs"] === undefined || url_vars["bombs"] === "false" ? false : true,
+            'portals': url_vars["portals"] === undefined || url_vars["portals"] === "false" ? false : true,
             'decoy_pits': url_vars["decoy_pits"] === undefined || url_vars["decoy_pits"] === "false" ? false : true,
             'decoy_orbs': url_vars["decoy_orbs"] === undefined || url_vars["decoy_orbs"] === "false" ? false : true,
-            'decoy_bombs': url_vars["decoy_bombs"] === undefined || url_vars["decoy_bombs"] === "false" ? false : true
+            'decoy_bombs': url_vars["decoy_bombs"] === undefined || url_vars["decoy_bombs"] === "false" ? false : true,
+            'decoy_portals': url_vars["decoy_portals"] === undefined || url_vars["decoy_portals"] === "false" ? false : true
         },
         'watch': {
             'size': function () {
@@ -65,6 +67,16 @@ jquery_1.default(document).ready(() => {
                 this.setUrl();
             },
             'decoy_bombs': function () {
+                this.setUrl();
+            },
+            'decoy_portals': function () {
+                if (this.decoy_portals)
+                    this.portals = false;
+                this.setUrl();
+            },
+            'portals': function () {
+                if (this.portals)
+                    this.decoy_portals = false;
                 this.setUrl();
             },
             'brick_density': function () {
@@ -125,9 +137,11 @@ jquery_1.default(document).ready(() => {
                 settings += "&fragile=" + this.fragile;
                 settings += "&pits=" + this.pits;
                 settings += "&bombs=" + this.bombs;
+                settings += "&portals=" + this.portals;
                 settings += "&decoy_pits=" + this.decoy_pits;
                 settings += "&decoy_orbs=" + this.decoy_orbs;
                 settings += "&decoy_bombs=" + this.decoy_bombs;
+                settings += "&decoy_portals=" + this.decoy_portals;
                 settings += "&brick_density=" + this.brick_density;
                 settings += "&fragile_brick_density=" + this.fragile_brick_density;
                 settings += "&pit_density=" + this.pit_density;

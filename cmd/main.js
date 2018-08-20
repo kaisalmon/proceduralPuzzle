@@ -85,9 +85,11 @@ jquery_1.default(document).ready(() => {
             let crystal = params['crystal'] == "true";
             let pits = params['pits'] == "true";
             let bombs = params['bombs'] == "true";
+            let portals = params['portals'] == "true";
             let decoy_pits = params['decoy_pits'] == "true";
             let decoy_orbs = params['decoy_orbs'] == "true";
             let decoy_bombs = params['decoy_bombs'] == "true";
+            let decoy_portals = params['decoy_portals'] == "true";
             let stack = undefined;
             sweetalert2_1.default({
                 title: 'Generating Level',
@@ -99,7 +101,7 @@ jquery_1.default(document).ready(() => {
                 })
             });
             try {
-                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs };
+                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
                 stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
                 sweetalert2_1.default.close();
             }

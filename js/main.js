@@ -273,9 +273,11 @@ jquery_1.default(document).ready(() => {
             let crystal = params['crystal'] == "true";
             let pits = params['pits'] == "true";
             let bombs = params['bombs'] == "true";
+            let portals = params['portals'] == "true";
             let decoy_pits = params['decoy_pits'] == "true";
             let decoy_orbs = params['decoy_orbs'] == "true";
             let decoy_bombs = params['decoy_bombs'] == "true";
+            let decoy_portals = params['decoy_portals'] == "true";
             let stack = undefined;
             sweetalert2_1.default({
                 title: 'Generating Level',
@@ -287,7 +289,7 @@ jquery_1.default(document).ready(() => {
                 })
             });
             try {
-                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs };
+                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
                 stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
                 sweetalert2_1.default.close();
             }
@@ -1374,6 +1376,13 @@ function createOrbPuzzle(args) {
                 p.grid[x][y] = orbPuzzle_1.Tile.Bomb;
             }
         }
+        if (args.decoy_portals) {
+            for (let i = 0; i < 2; i++) {
+                let x = randInt(0, p.width);
+                let y = randInt(0, p.height);
+                p.grid[x][y] = orbPuzzle_1.Tile.Portal;
+            }
+        }
         if (args.decoy_orbs) {
             let x = randInt(0, p.width);
             let y = randInt(0, p.height);
@@ -1390,7 +1399,7 @@ function createOrbPuzzle(args) {
         p.use_crystals = args.crystal;
         p.use_pits = args.pits;
         p.use_bombs = args.bombs;
-        p.use_portals = true;
+        p.use_portals = args.portals;
         let stack = p.getStack(args.depth);
         //var t0 = performance.now();
         let solutionResult = yield stack[0][0].solve();
@@ -1423,6 +1432,12 @@ function createOrbPuzzle(args) {
             }
             if (p.use_bombs && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Bomb))) {
                 throw "No Bombs";
+            }
+            if ((p.use_portals || args.decoy_portals) && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Portal))) {
+                throw "No Portals";
+            }
+            if (p.use_portals && fastestSolvedState.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Portal))) {
+                throw "Unused Portals after fasted solution";
             }
             if (args.pits && !stack[1].some((m => [orbPuzzle_1.OrbMove.DownPit, orbPuzzle_1.OrbMove.UpPit, orbPuzzle_1.OrbMove.LeftPit, orbPuzzle_1.OrbMove.RightPit].indexOf(m) !== -1))) {
                 throw "No Pit USED in solution";
@@ -1465,18 +1480,15 @@ class PuzzleState {
         return __awaiter(this, void 0, void 0, function* () {
             let closedList = {};
             let openList = {};
-            openList[this.hashString()] = { state: this, totalcost: 0, bestedge: null, estimatedcost: this.getHeuristic() };
+            openList[this.hashString()] = { state: this, totalcost: 0, bestedge: null, estimatedcost: 0 };
             while (Object.keys(openList).length > 0) {
                 if (Math.random() < 0.01) {
-                    console.log("YIELD");
                     yield sleep(0);
                 }
                 ;
                 let current = Object.keys(openList).map(hash => openList[hash]).reduce(function (prev, current) {
                     return (prev.estimatedcost < current.estimatedcost) ? prev : current;
                 });
-                console.log(current.state.toString());
-                console.log(current.totalcost, current.estimatedcost, Object.keys(closedList).length, Object.keys(openList).length);
                 if (current.state.isSolved()) {
                     console.log("Solved!");
                     let moves = [];
@@ -1517,7 +1529,7 @@ class PuzzleState {
                         let entry = {
                             state: e.to,
                             totalcost: current.totalcost + e.cost,
-                            estimatedcost: current.totalcost + e.cost + e.to.getHeuristic(),
+                            estimatedcost: current.totalcost + e.cost,
                             bestedge: null
                         };
                         openList[ehash] = entry;
@@ -1535,12 +1547,9 @@ class PuzzleState {
     recsolve(maxDepth = 5, curDepth = 1, solutionMap) {
         return __awaiter(this, void 0, void 0, function* () {
             if (curDepth == 1) {
-                console.log("start solve");
             }
-            console.log(curDepth + "/" + maxDepth);
             try {
                 if (Math.random() < 0.002) {
-                    console.log("YIELD");
                     yield sleep(0);
                 }
                 if (!solutionMap) {
@@ -1575,14 +1584,13 @@ class PuzzleState {
                     return {
                         "move": n.move,
                         "state": n.state,
-                        "value": n.state.getHeuristic()
+                        "value": 0
                     };
                 });
                 nexts = nexts.sort((a, b) => {
                     return a.value - b.value;
                 });
                 for (let n of nexts) {
-                    console.log(curDepth, "~", n.value);
                     let s = n.state;
                     if (s.hashString() === this.hashString()) {
                         continue;
@@ -1592,7 +1600,6 @@ class PuzzleState {
                         if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
                             shortestSolution = ss;
                             bestMove = n.move;
-                            console.log("Depth", maxDepth, "->", (curDepth + shortestSolution.length));
                             maxDepth = curDepth + shortestSolution.length;
                         }
                     }

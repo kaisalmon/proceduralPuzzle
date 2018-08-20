@@ -85,7 +85,7 @@
             <input class="form-control" v-model="no_fragile" id="no_fragile" type="checkbox" />
             <label for="no_fragile">  No Fragile Blocks  </label>
           </div>
-          <div class="col-6 col-md-4 col-xl-2">
+          <div class="col-6 col-md-4 col-xl-3">
             <input class="form-control" v-model="pits" id="pits" type="checkbox" />
             <label for="pits"> Use Pits in solution</label>
           </div>
@@ -101,9 +101,20 @@
             <input class="form-control" v-model="decoy_bombs" id="decoy_bombs" type="checkbox" />
             <label for="decoy_bombs"> Use Bombs to Avoid </label>
           </div>
+
           <div class="col-6 col-md-4 col-xl-3">
             <input class="form-control" v-model="bombs" id="bombs" type="checkbox" />
             <label for="bombs"> Use Bombs in solution</label>
+          </div>
+
+          <div class="col-6 col-md-4 col-xl-3">
+            <input class="form-control" v-model="decoy_portals" id="decoy_portals" type="checkbox" />
+            <label for="decoy_portals"> Use Portals to Avoid </label>
+          </div>
+
+          <div class="col-6 col-md-4 col-xl-3">
+            <input class="form-control" v-model="portals" id="portals" type="checkbox" />
+            <label for="portals"> Use Portals in solution</label>
           </div>
 
           <h5 class="mt-4 col-12">Infomation</h5>

@@ -72,6 +72,13 @@ function createOrbPuzzle(args) {
                 p.grid[x][y] = orbPuzzle_1.Tile.Bomb;
             }
         }
+        if (args.decoy_portals) {
+            for (let i = 0; i < 2; i++) {
+                let x = randInt(0, p.width);
+                let y = randInt(0, p.height);
+                p.grid[x][y] = orbPuzzle_1.Tile.Portal;
+            }
+        }
         if (args.decoy_orbs) {
             let x = randInt(0, p.width);
             let y = randInt(0, p.height);
@@ -88,7 +95,7 @@ function createOrbPuzzle(args) {
         p.use_crystals = args.crystal;
         p.use_pits = args.pits;
         p.use_bombs = args.bombs;
-        p.use_portals = true;
+        p.use_portals = args.portals;
         let stack = p.getStack(args.depth);
         //var t0 = performance.now();
         let solutionResult = yield stack[0][0].solve();
@@ -121,6 +128,12 @@ function createOrbPuzzle(args) {
             }
             if (p.use_bombs && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Bomb))) {
                 throw "No Bombs";
+            }
+            if ((p.use_portals || args.decoy_portals) && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Portal))) {
+                throw "No Portals";
+            }
+            if (p.use_portals && fastestSolvedState.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Portal))) {
+                throw "Unused Portals after fasted solution";
             }
             if (args.pits && !stack[1].some((m => [orbPuzzle_1.OrbMove.DownPit, orbPuzzle_1.OrbMove.UpPit, orbPuzzle_1.OrbMove.LeftPit, orbPuzzle_1.OrbMove.RightPit].indexOf(m) !== -1))) {
                 throw "No Pit USED in solution";

@@ -36,11 +36,10 @@ abstract class PuzzleState<MOVE>{
 
     let closedList:{[hash:string]: StateEntry} = {};
     let openList:{[hash:string]: StateEntry}  = {};
-    openList[this.hashString()] = {state:this, totalcost:0, bestedge:null, estimatedcost:this.getHeuristic()}
+    openList[this.hashString()] = {state:this, totalcost:0, bestedge:null, estimatedcost:0}
 
     while(Object.keys(openList).length > 0){
       if(Math.random() < 0.01){
-        console.log("YIELD");
         await sleep(0);
       };
 
@@ -48,8 +47,6 @@ abstract class PuzzleState<MOVE>{
           return (prev.estimatedcost < current.estimatedcost) ? prev : current
       })
 
-      console.log(current.state.toString())
-      console.log(current.totalcost, current.estimatedcost, Object.keys(closedList).length, Object.keys(openList).length);
       if(current.state.isSolved()){
         console.log("Solved!")
         let moves:MOVE[] = [];
@@ -90,7 +87,7 @@ abstract class PuzzleState<MOVE>{
           let entry = {
             state: e.to,
             totalcost: current.totalcost + e.cost,
-            estimatedcost: current.totalcost + e.cost + e.to.getHeuristic(),
+            estimatedcost: current.totalcost + e.cost,
             bestedge: null
           }
           openList[ehash] = entry;
@@ -110,12 +107,9 @@ abstract class PuzzleState<MOVE>{
 
   async recsolve(maxDepth: number = 5, curDepth: number = 1, solutionMap?: {[key:string]:[number, [PuzzleState<MOVE>[], MOVE[]]|null]}): Promise<[PuzzleState<MOVE>[], MOVE[]] | null>{
     if(curDepth==1){
-      console.log("start solve");
     }
-    console.log(curDepth+"/"+maxDepth);
     try{
       if(Math.random() < 0.002){
-        console.log("YIELD");
         await sleep(0);
       }
       if(!solutionMap){
@@ -155,7 +149,7 @@ abstract class PuzzleState<MOVE>{
         return {
           "move": n.move,
           "state": n.state,
-          "value": n.state.getHeuristic()
+          "value": 0
         }
       })
 
@@ -164,7 +158,6 @@ abstract class PuzzleState<MOVE>{
       })
 
       for (let n of nexts) {
-        console.log(curDepth, "~",n.value)
         let s = n.state;
         if (s.hashString() === this.hashString()) {
           continue
@@ -174,7 +167,6 @@ abstract class PuzzleState<MOVE>{
           if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
             shortestSolution = ss;
             bestMove = n.move;
-            console.log("Depth",maxDepth, "->", (curDepth + shortestSolution.length))
             maxDepth = curDepth + shortestSolution.length;
           }
         }

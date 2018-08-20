@@ -25,18 +25,15 @@ class PuzzleState {
         return __awaiter(this, void 0, void 0, function* () {
             let closedList = {};
             let openList = {};
-            openList[this.hashString()] = { state: this, totalcost: 0, bestedge: null, estimatedcost: this.getHeuristic() };
+            openList[this.hashString()] = { state: this, totalcost: 0, bestedge: null, estimatedcost: 0 };
             while (Object.keys(openList).length > 0) {
                 if (Math.random() < 0.01) {
-                    console.log("YIELD");
                     yield sleep(0);
                 }
                 ;
                 let current = Object.keys(openList).map(hash => openList[hash]).reduce(function (prev, current) {
                     return (prev.estimatedcost < current.estimatedcost) ? prev : current;
                 });
-                console.log(current.state.toString());
-                console.log(current.totalcost, current.estimatedcost, Object.keys(closedList).length, Object.keys(openList).length);
                 if (current.state.isSolved()) {
                     console.log("Solved!");
                     let moves = [];
@@ -77,7 +74,7 @@ class PuzzleState {
                         let entry = {
                             state: e.to,
                             totalcost: current.totalcost + e.cost,
-                            estimatedcost: current.totalcost + e.cost + e.to.getHeuristic(),
+                            estimatedcost: current.totalcost + e.cost,
                             bestedge: null
                         };
                         openList[ehash] = entry;
@@ -95,12 +92,9 @@ class PuzzleState {
     recsolve(maxDepth = 5, curDepth = 1, solutionMap) {
         return __awaiter(this, void 0, void 0, function* () {
             if (curDepth == 1) {
-                console.log("start solve");
             }
-            console.log(curDepth + "/" + maxDepth);
             try {
                 if (Math.random() < 0.002) {
-                    console.log("YIELD");
                     yield sleep(0);
                 }
                 if (!solutionMap) {
@@ -135,14 +129,13 @@ class PuzzleState {
                     return {
                         "move": n.move,
                         "state": n.state,
-                        "value": n.state.getHeuristic()
+                        "value": 0
                     };
                 });
                 nexts = nexts.sort((a, b) => {
                     return a.value - b.value;
                 });
                 for (let n of nexts) {
-                    console.log(curDepth, "~", n.value);
                     let s = n.state;
                     if (s.hashString() === this.hashString()) {
                         continue;
@@ -152,7 +145,6 @@ class PuzzleState {
                         if (shortestSolution === undefined || ss[0].length < shortestSolution[0].length) {
                             shortestSolution = ss;
                             bestMove = n.move;
-                            console.log("Depth", maxDepth, "->", (curDepth + shortestSolution.length));
                             maxDepth = curDepth + shortestSolution.length;
                         }
                     }

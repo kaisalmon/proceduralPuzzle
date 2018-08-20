@@ -13,11 +13,13 @@ interface puzzleConfig {
     pits: boolean;
     crystal: boolean;
     bombs: boolean;
+    portals: boolean;
     depth: number;
     mindepth: number;
     decoy_pits: boolean;
     decoy_orbs: boolean;
     decoy_bombs: boolean;
+    decoy_portals: boolean;
     brick_density: number;
     fragile_brick_density: number;
     pit_density: number;
@@ -85,10 +87,17 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
 
       let bomb_density = 3;
       if(args.decoy_bombs){
-          for (let i = 0; i < p.width * p.height / 100 * bomb_density; i++) {
+        for (let i = 0; i < p.width * p.height / 100 * bomb_density; i++) {
           let x = randInt(0, p.width);
           let y = randInt(0, p.height);
           p.grid[x][y] = Tile.Bomb;
+        }
+      }
+      if(args.decoy_portals){
+        for (let i = 0; i < 2; i++) {
+          let x = randInt(0, p.width);
+          let y = randInt(0, p.height);
+          p.grid[x][y] = Tile.Portal;
         }
       }
 
@@ -98,6 +107,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
         p.grid[x][y] = Tile.Empty;
         p.orbs.push(new Orb(x, y))
       }
+
 
       for (let i = 0; i < args.orbs; i++) {
         let x = randInt(0, p.width);
@@ -110,7 +120,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       p.use_crystals = args.crystal;
       p.use_pits = args.pits;
       p.use_bombs = args.bombs;
-      p.use_portals = true;
+      p.use_portals = args.portals;
 
       let stack = p.getStack(args.depth)
 
@@ -147,6 +157,12 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
         }
         if (p.use_bombs && !board.grid.some(line => line.some(tile => tile == Tile.Bomb))) {
           throw "No Bombs"
+        }
+        if ((p.use_portals || args.decoy_portals) && !board.grid.some(line => line.some(tile => tile == Tile.Portal))) {
+          throw "No Portals"
+        }
+        if (p.use_portals && fastestSolvedState.grid.some(line => line.some(tile => tile == Tile.Portal))) {
+          throw "Unused Portals after fasted solution"
         }
         if (args.pits && !stack[1].some((m => [OrbMove.DownPit, OrbMove.UpPit, OrbMove.LeftPit, OrbMove.RightPit].indexOf(m) !== -1))) {
           throw "No Pit USED in solution"
