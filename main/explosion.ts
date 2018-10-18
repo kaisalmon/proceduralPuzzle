@@ -28,13 +28,13 @@
     }
   }
 
-  function createParticule(x:number, y:number, colors?:string[]):Particle {
+  function createParticule(x:number, y:number, colors?:string[], minsize:number=16, maxsize:number=32):Particle {
     var p:Particle = {}
     p.x = x;
     p.y = y;
     if(!colors)colors = def_colors;
     p.color = colors[anime.random(0, colors.length - 1)];
-    p.radius = anime.random(16, 32);
+    p.radius = anime.random(minsize, maxsize);
     p.endPos = setParticuleDirection(p);
     p.draw = function() {
       if(!ctx || !p.x || !p.y || !p.radius || !p.color){
@@ -75,12 +75,26 @@
     }
   }
 
-  export function animateParticules(x:number, y:number, colors?:string[]) {
+  export function animatedParticlesFromElement($t: JQuery, colors?:string[],  minsize:number=16, maxsize:number=3){
+    var curTransform = new WebKitCSSMatrix($t.css('transform'));
+    let offset =$t.offset();
+    if(offset){
+      let x = offset.left + curTransform.m41;
+      let y = offset.top + curTransform.m42;
+      let h = $t.height();
+      let w = $t.width();
+      if(h) y += h;
+      if(w) x += w;
+      animateParticules(x, y, colors, minsize, maxsize)
+    }
+  }
+
+  export function animateParticules(x:number, y:number, colors?:string[],  minsize:number=16, maxsize:number=32) {
     //var circle = createCircle(x, y);
     if(!colors)colors = def_colors;
     var particules = [];
     for (var i = 0; i < numberOfParticules; i++) {
-      particules.push(createParticule(x, y, colors));
+      particules.push(createParticule(x, y, colors, minsize, maxsize));
     }
     anime.timeline().add({
       targets: particules,

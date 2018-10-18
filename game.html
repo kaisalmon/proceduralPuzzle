@@ -32,7 +32,6 @@ html, body{
         right:0;
         top:0;
         bottom: 0;
-
     }
     .puzzles{
       background: #555;
@@ -123,15 +122,13 @@ html, body{
           0 0 0 calc(var(--tsize) * 0.25) #333;
     }
     .tile.tile--portal {
-        background: white;
-        border-radius:100%;
-        top: calc(var(--tsize) * 0.2);
-        left: calc(var(--tsize) * 0.2);
-        width: calc(var(--tsize) * 0.6);
-        height: calc(var(--tsize) * 0.6);
-        border: calc(var(--tsize) * 0.05) solid lime;
-        filter: blur(calc(var(--tsize) * 0.01));
-
+        background: url(assets/portal.png);
+        top: calc(var(--tsize) * 0.15 );
+        left: calc(var(--tsize) * 0.15 );
+        width: calc(var(--tsize) * 0.7 );
+        height: calc(var(--tsize) * 0.7);
+        background-size: cover;
+        animation: spin 1s infinite linear;
     }
     .tile {
         width: var(--tsize);
@@ -194,7 +191,19 @@ html, body{
       width: 100%;
       height: 100%;
     }
-
+  /*  @-moz-keyframes spin {
+        from {transform:rotate(0deg);}
+        to {transform:rotate(360deg);}
+    }
+    @-webkit-keyframes spin {
+        from {transform:rotate(0deg);}
+        to {transform:rotate(360deg);}
+    }*/
+    @keyframes spin {
+        from {transform:rotate(0deg) scale(1);}
+        50% {transform:rotate(22.5deg) scale(0.8);}
+        to {transform:rotate(45deg) scale(1);}
+    }
 </style>
 <script>
 if ('serviceWorker' in navigator) {
