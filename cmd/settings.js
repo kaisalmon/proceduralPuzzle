@@ -114,7 +114,10 @@ jquery_1.default(document).ready(() => {
                             text: "Would you like to unlock all levels?",
                             type: "question",
                             showCancelButton: true
-                        }).then(() => this.localStorage.player_progress = 1000);
+                        }).then(() => {
+                            this.localStorage.player_progress = 1000;
+                            location.reload();
+                        });
                     }
                 }
             }

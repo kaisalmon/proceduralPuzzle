@@ -191,20 +191,20 @@ $(document).ready(() => {
       })()
     })
 
-    function getUrlVars(): { [id: string]: string } {
-      var vars: { [id: string]: string } = {};
-      window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,
-        function({ }, key, value: string): string {
-          vars[key] = value;
-          return "";
-        }
-      );
-      return vars;
-    }
+
   })();
 
 })
-
+function getUrlVars(): { [id: string]: string } {
+  var vars: { [id: string]: string } = {};
+  window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,
+    function({ }, key, value: string): string {
+      vars[key] = value;
+      return "";
+    }
+  );
+  return vars;
+}
 async function move_orbs(n: number = 0){
   $('.puzzle-wrapper .orb').each((i, e) => {
     (async function(){
@@ -305,6 +305,9 @@ async function move_orbs(n: number = 0){
 }
 
 async function apply_move(move: OrbMove | undefined): Promise<void> {
+  if(board.isSolved()){
+    return;
+  }
   if (move && !moving && board) {
     moving = true;
     board = board.apply(move)
@@ -347,19 +350,42 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
       });
 
       if (board.isSolved()) {
-        await(500)
-        swal({
-          title: "You win!",
-          type: "success",
-          showCancelButton: true,
-          cancelButtonText: "Back to settings",
-          confirmButtonText: "New Puzzle",
-          useRejections: true,
-        }).then(() => {
-          window.location.reload();
-        }).catch(() => {
-          window.location.href = window.location.href.replace("game", "index");
-        })
+        await delay(500)
+        if(!swal.isVisible()){
+          if(getUrlVars().level){
+            let next_level = parseInt(getUrlVars().level)+1;
+            let ls:any = localStorage;
+            if(ls.player_progress < next_level){
+              ls.player_progress++;
+            }
+            swal({
+              title: "You win!",
+              type: "success",
+              showCancelButton: true,
+              cancelButtonText: "Back to level select",
+              confirmButtonText: "Next Puzzle",
+              useRejections: true,
+            }).then(() => {
+              let base =   window.location.href.split("?")[0]
+              window.location.href = base+"?level="+next_level
+            }).catch(() => {
+              window.location.href = window.location.href.replace("game", "index");
+            })
+          }else{
+            swal({
+              title: "You win!",
+              type: "success",
+              showCancelButton: true,
+              cancelButtonText: "Back to settings",
+              confirmButtonText: "New Puzzle",
+              useRejections: true,
+            }).then(() => {
+              window.location.reload();
+            }).catch(() => {
+              window.location.href = window.location.href.replace("game", "index");
+            })
+          }
+        }
       }
     }
   }
