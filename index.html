@@ -227,6 +227,7 @@ html, #settings{
 
 <script>
 if ('serviceWorker' in navigator) {
+  /*
     if(navigator.onLine){
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
        for(let registration of registrations) {
@@ -240,6 +241,11 @@ if ('serviceWorker' in navigator) {
       // registration failed :(
       console.log('ServiceWorker registration failed: ', err);
     });
+    */
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+ for(let registration of registrations) {
+  registration.unregister()
+} })
 }
 </script>
 
