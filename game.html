@@ -205,17 +205,6 @@ html, body{
         to {transform:rotate(45deg) scale(1);}
     }
 </style>
-<script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js', {scope: './'}).then(function(registration) {
-      // Registration was successful
-      console.log('ServiceWorker registration successful with scope: ', registration.scope);
-    }, function(err) {
-      // registration failed :(
-      console.log('ServiceWorker registration failed: ', err);
-    });
-}
-</script>
 <script src="js/main.js" async></script>
 <noscript><h1>Your browser does not support JavaScript!</h1></noscript>
 <canvas width="2000" height="2000"></canvas>
