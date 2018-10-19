@@ -128,11 +128,11 @@ html, #settings{
           <div class="level-button square-box mb-3"
           v-bind:class="{replay: l.replay && !l.repeat, locked: l.level_number > localStorage.player_progress}">
             <div class="square-content">
-              <div class="d-none d-sm-block">
+              <div class=" d-none d-sm-block">
                 Level
               </div>
               <div class="middle-align level-number">{{l.level_number}}</div>
-              <div class="icon-tray d-none d-sm-block row justify-content-center">
+              <div class="icon-tray row justify-content-center">
                 <i class="fa fa-star" v-if="l.fn"></i>
                 <i class="fa fa-random" v-if="!l.fn"></i>
                 <i class="fa fa-bomb" v-if="l.bombs || l.decoy_bombs"></i>
