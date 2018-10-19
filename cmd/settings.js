@@ -1,10 +1,19 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const vue_1 = __importDefault(require("vue"));
 const jquery_1 = __importDefault(require("jquery"));
+const sweetalert2_1 = __importDefault(require("sweetalert2"));
 vue_1.default.component('vue-slider', require('vue-slider-component'));
 function getUrlVars() {
     var vars = {};
@@ -14,11 +23,20 @@ function getUrlVars() {
     });
     return vars;
 }
+let level_array = [];
+let ls = localStorage;
+if (!ls.player_progress) {
+    ls.player_progress = 1;
+}
 jquery_1.default(document).ready(() => {
     let url_vars = getUrlVars();
     let vm = new vue_1.default({
         'el': '#settings',
         'data': {
+            'settings_open': false,
+            'cheatclick': 0,
+            'localStorage': ls,
+            'levels': level_array,
             'size': parseInt(url_vars["size"]) || 6,
             'orbs': parseInt(url_vars["orbs"]) || 2,
             'brick_density': url_vars['brick_density'] === undefined ? 5 : parseInt(url_vars['brick_density']),
@@ -87,6 +105,18 @@ jquery_1.default(document).ready(() => {
             },
             'fragile_brick_density': function () {
                 this.setUrl();
+            },
+            'cheatclick': function () {
+                if (this.cheatclick >= 10) {
+                    if (ls.player_progress != 1000) {
+                        sweetalert2_1.default({
+                            title: "Cheat?",
+                            text: "Would you like to unlock all levels?",
+                            type: "question",
+                            showCancelButton: true
+                        }).then(() => this.localStorage.player_progress = 1000);
+                    }
+                }
             }
         },
         'computed': {
@@ -157,6 +187,30 @@ jquery_1.default(document).ready(() => {
             }
         }
     });
-    console.log(vm);
+    function get_level_list() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let level_index = yield jquery_1.default.getJSON("levels/level_index.json");
+            for (var level = 1; level <= level_index.total_levels; level++) {
+                let level_data;
+                let repeat = false;
+                for (var j = 0; j < 20; j++) {
+                    level_data = level_index[level - j];
+                    if (level_data !== undefined) {
+                        break;
+                    }
+                    repeat = true; //This means that this level is a repeat of a setting
+                }
+                if (level_data === undefined) {
+                    throw "Level not found";
+                }
+                level_data = Object.assign({}, level_data);
+                level_data.repeat = repeat;
+                level_data.level_number = level;
+                vm.levels.push(level_data);
+            }
+        });
+    }
+    ;
+    get_level_list();
 });
 //# sourceMappingURL=settings.js.map

@@ -69,57 +69,98 @@ stack = stack.reverse();
 let board;
 let moving = false;
 let $tiles;
+let level_index = null;
+function create_level(args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        sweetalert2_1.default({
+            title: 'Generating Level',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            onOpen: () => __awaiter(this, void 0, void 0, function* () {
+                sweetalert2_1.default.showLoading();
+            })
+        });
+        try {
+            let stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
+            sweetalert2_1.default.close();
+            return stack;
+        }
+        catch (e) {
+            sweetalert2_1.default({
+                title: "Couldn't generate level!",
+                text: "feel free to try a few more times",
+                type: "error",
+                showCancelButton: true,
+                cancelButtonText: "Back to settings",
+                confirmButtonText: "New Puzzle",
+                useRejections: true,
+            }).then(() => {
+                window.location.reload();
+            }).catch(() => {
+                window.location.href = window.location.href.replace("game", "index");
+            });
+            return;
+        }
+    });
+}
 jquery_1.default(document).ready(() => {
     explosion_1.setUpExplosions();
     (function () {
         return __awaiter(this, void 0, void 0, function* () {
             let params = getUrlVars();
-            let size = parseInt(params['size']) || 10;
-            let orbs = parseInt(params['orbs']) || 2;
-            let brick_density = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']);
-            let pit_density = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']);
-            let fragile_brick_density = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']);
-            let depth = parseInt(params['depth']) || 4;
-            let mindepth = parseInt(params['mindepth']) || depth;
-            let fragile = params['fragile'] == "true";
-            let crystal = params['crystal'] == "true";
-            let pits = params['pits'] == "true";
-            let bombs = params['bombs'] == "true";
-            let portals = params['portals'] == "true";
-            let decoy_pits = params['decoy_pits'] == "true";
-            let decoy_orbs = params['decoy_orbs'] == "true";
-            let decoy_bombs = params['decoy_bombs'] == "true";
-            let decoy_portals = params['decoy_portals'] == "true";
             let stack = undefined;
-            sweetalert2_1.default({
-                title: 'Generating Level',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                onOpen: () => __awaiter(this, void 0, void 0, function* () {
-                    sweetalert2_1.default.showLoading();
-                })
-            });
-            try {
-                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
-                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
-                sweetalert2_1.default.close();
+            let level = parseInt(params['level']);
+            if (level) {
+                if (level_index === null) {
+                    level_index = yield jquery_1.default.getJSON("levels/level_index.json");
+                    if (!level_index) {
+                        throw "Couldn't load level index";
+                    }
+                }
+                let level_data;
+                for (var i = 0; i < 20; i++) {
+                    level_data = level_index[level];
+                    if (level_data === undefined) {
+                        level--;
+                    }
+                }
+                if (level_data === undefined) {
+                    throw "Level not found";
+                }
+                if (level_data.fn) {
+                    stack = yield orbPuzzleGenerator_1.load_level(level_data.fn);
+                }
+                else {
+                    level_data = Object.assign({}, level_index.default, level_data);
+                    stack = yield create_level(level_data);
+                    if (!stack) {
+                        return;
+                    }
+                }
             }
-            catch (e) {
-                sweetalert2_1.default({
-                    title: "Couldn't generate level!",
-                    text: "feel free to try a few more times",
-                    type: "error",
-                    showCancelButton: true,
-                    cancelButtonText: "Back to settings",
-                    confirmButtonText: "New Puzzle",
-                    useRejections: true,
-                }).then(() => {
-                    window.location.reload();
-                }).catch(() => {
-                    window.location.href = window.location.href.replace("game", "index");
-                });
-                return;
+            else {
+                let size = parseInt(params['size']) || 10;
+                let orbs = parseInt(params['orbs']) || 2;
+                let brick_density = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']);
+                let pit_density = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']);
+                let fragile_brick_density = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']);
+                let depth = parseInt(params['depth']) || 4;
+                let mindepth = parseInt(params['mindepth']) || depth;
+                let fragile = params['fragile'] == "true";
+                let crystal = params['crystal'] == "true";
+                let pits = params['pits'] == "true";
+                let bombs = params['bombs'] == "true";
+                let portals = params['portals'] == "true";
+                let decoy_pits = params['decoy_pits'] == "true";
+                let decoy_orbs = params['decoy_orbs'] == "true";
+                let decoy_bombs = params['decoy_bombs'] == "true";
+                let decoy_portals = params['decoy_portals'] == "true";
+                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
+                stack = yield create_level(args);
+                if (!stack) {
+                    return;
+                }
             }
             board = stack[0][0];
             let solution = stack[1];

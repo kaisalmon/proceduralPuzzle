@@ -7,21 +7,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const orbPuzzle_1 = require("./orbPuzzle");
+const jquery_1 = __importDefault(require("jquery"));
 function randInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
+function load_level(fn) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let json = yield jquery_1.default.getJSON("levels/" + fn);
+        let level = yield from_json(json, false);
+        return level;
+    });
+}
+exports.load_level = load_level;
 function from_json(json, solve = true) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!json) {
-            json = require("../levels/small.json");
-            if (!json) {
-                throw "Couldn't load file";
-            }
-        }
         let o = new orbPuzzle_1.OrbPuzzle(json.width, json.height);
         for (var i = 0; i < json.grid.length; i++) {
             for (var j = 0; j < json.grid[0].length; j++) {

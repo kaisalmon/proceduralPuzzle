@@ -1,5 +1,6 @@
 import Vue from "vue";
 import  $ from 'jquery'
+import swal from 'sweetalert2'
 Vue.component('vue-slider', require('vue-slider-component'));
 
 function getUrlVars(): { [id: string]: string } {
@@ -12,12 +13,20 @@ function getUrlVars(): { [id: string]: string } {
   );
   return vars;
 }
-
+let level_array:any[] = [];
+let ls:any = localStorage;
+if(!ls.player_progress){
+  ls.player_progress = 1;
+}
 $(document).ready(()=>{
   let url_vars = getUrlVars();
   let vm = new Vue({
     'el': '#settings',
     'data': {
+      'settings_open':false,
+      'cheatclick':0,
+      'localStorage': ls,
+      'levels':level_array,
       'size':parseInt(url_vars["size"]) || 6,
       'orbs': parseInt(url_vars["orbs"]) || 2,
       'brick_density': url_vars['brick_density'] === undefined ? 5 : parseInt(url_vars['brick_density']),
@@ -82,6 +91,21 @@ $(document).ready(()=>{
       },
       'fragile_brick_density': function(){
         this.setUrl();
+      },
+      'cheatclick':function(){
+        if(this.cheatclick >= 10){
+          if(ls.player_progress != 1000){
+            swal({
+              title:"Cheat?",
+              text: "Would you like to unlock all levels?",
+              type: "question",
+              showCancelButton:true
+            }).then(()=>{
+              this.localStorage.player_progress = 1000;
+              location.reload();
+            })
+          }
+        }
       }
     },
     'computed': {
@@ -150,5 +174,26 @@ $(document).ready(()=>{
       }
     }
   })
-  console.log(vm);
+  async function get_level_list(){
+    let level_index = await $.getJSON("levels/level_index.json");
+    for(var level = 1; level <= level_index.total_levels; level++){
+      let level_data;
+      let repeat = false;
+      for(var j = 0; j<20; j++){
+        level_data = level_index[level-j]
+        if(level_data !== undefined){
+          break;
+        }
+        repeat = true; //This means that this level is a repeat of a setting
+      }
+      if(level_data === undefined){
+        throw "Level not found"
+      }
+      level_data= Object.assign({}, level_data);
+      level_data.repeat = repeat;
+      level_data.level_number = level;
+      vm.levels.push(level_data);
+    }
+  };
+  get_level_list();
 })

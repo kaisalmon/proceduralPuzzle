@@ -1,4 +1,5 @@
 import {OrbPuzzle, Orb, Tile, OrbMove} from './orbPuzzle'
+import $ from 'jquery'
 
 function randInt(min: number, max: number): number {
   min = Math.ceil(min);
@@ -6,7 +7,7 @@ function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-interface puzzleConfig {
+export interface puzzleConfig {
     size: number;
     fragile: boolean;
     orbs: number;
@@ -37,13 +38,15 @@ interface OrbPuzzleJson{
   "width":number;
   "height":number;
 }
-export async function from_json(json?:OrbPuzzleJson, solve:boolean = true):  Promise<[OrbPuzzle[], OrbMove[]]>{
-  if(!json){
-    json = require("../levels/small.json");
-    if(!json){
-      throw "Couldn't load file"
-    }
-  }
+
+export async function load_level(fn: string): Promise<[OrbPuzzle[], OrbMove[]]>{
+  let json = await $.getJSON("levels/"+fn);
+  let level = await from_json(json, false);
+
+  return level
+}
+
+export async function from_json(json:OrbPuzzleJson, solve:boolean = true):  Promise<[OrbPuzzle[], OrbMove[]]>{
   let o = new OrbPuzzle(json.width, json.height);
   for(var i = 0; i< json.grid.length; i++){
     for(var j = 0; j< json.grid[0].length; j++){

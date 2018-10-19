@@ -28,37 +28,6 @@ n.speed=1;n.running=q;n.remove=function(a){a=M(a);for(var b=q.length;b--;)for(va
 b.duration=0;b.add=function(a){b.children.forEach(function(a){a.began=!0;a.completed=!0});w(a).forEach(function(a){var c=b.duration,d=a.offset;a.autoplay=!1;a.offset=g.und(d)?c:K(d,c);b.seek(a.offset);a=n(a);a.duration>c&&(b.duration=a.duration);a.began=!0;b.children.push(a)});b.reset();b.seek(0);b.autoplay&&b.restart();return b};return b};n.random=function(a,b){return Math.floor(Math.random()*(b-a+1))+a};return n});
 
 },{}],2:[function(require,module,exports){
-module.exports={
-  "criticalTiles": [],
-  "use_crystals": false,
-  "use_pits": false,
-  "use_portals": false,
-  "use_fragile": true,
-  "no_basic": false,
-  "width": 6,
-  "height": 6,
-  "grid": [
-    ["■", " ", " ", " ", " ", "■"],
-    ["■", " ", " ", " ", "□", "■"],
-    ["■", " ", " ", " ", " ", "■"],
-    ["■", "□", "◎", " ", " ", "■"],
-    ["■", "□", "◎", " ", " ", "■"],
-    ["■", " ", " ", " ", "□", "■"]
-  ],
-  "orbs": [{
-    "index": -1,
-    "in_pit": false,
-    "x": 0,
-    "y": 3
-  }, {
-    "index": -1,
-    "in_pit": false,
-    "x": 1,
-    "y": 3
-  }]
-}
-
-},{}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 let anime = require('../js/anime.js');
@@ -201,7 +170,7 @@ function setUpExplosions() {
 }
 exports.setUpExplosions = setUpExplosions;
 
-},{"../js/anime.js":1}],4:[function(require,module,exports){
+},{"../js/anime.js":1}],3:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -273,57 +242,98 @@ stack = stack.reverse();
 let board;
 let moving = false;
 let $tiles;
+let level_index = null;
+function create_level(args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        sweetalert2_1.default({
+            title: 'Generating Level',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            onOpen: () => __awaiter(this, void 0, void 0, function* () {
+                sweetalert2_1.default.showLoading();
+            })
+        });
+        try {
+            let stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
+            sweetalert2_1.default.close();
+            return stack;
+        }
+        catch (e) {
+            sweetalert2_1.default({
+                title: "Couldn't generate level!",
+                text: "feel free to try a few more times",
+                type: "error",
+                showCancelButton: true,
+                cancelButtonText: "Back to settings",
+                confirmButtonText: "New Puzzle",
+                useRejections: true,
+            }).then(() => {
+                window.location.reload();
+            }).catch(() => {
+                window.location.href = window.location.href.replace("game", "index");
+            });
+            return;
+        }
+    });
+}
 jquery_1.default(document).ready(() => {
     explosion_1.setUpExplosions();
     (function () {
         return __awaiter(this, void 0, void 0, function* () {
             let params = getUrlVars();
-            let size = parseInt(params['size']) || 10;
-            let orbs = parseInt(params['orbs']) || 2;
-            let brick_density = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']);
-            let pit_density = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']);
-            let fragile_brick_density = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']);
-            let depth = parseInt(params['depth']) || 4;
-            let mindepth = parseInt(params['mindepth']) || depth;
-            let fragile = params['fragile'] == "true";
-            let crystal = params['crystal'] == "true";
-            let pits = params['pits'] == "true";
-            let bombs = params['bombs'] == "true";
-            let portals = params['portals'] == "true";
-            let decoy_pits = params['decoy_pits'] == "true";
-            let decoy_orbs = params['decoy_orbs'] == "true";
-            let decoy_bombs = params['decoy_bombs'] == "true";
-            let decoy_portals = params['decoy_portals'] == "true";
             let stack = undefined;
-            sweetalert2_1.default({
-                title: 'Generating Level',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                onOpen: () => __awaiter(this, void 0, void 0, function* () {
-                    sweetalert2_1.default.showLoading();
-                })
-            });
-            try {
-                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
-                stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
-                sweetalert2_1.default.close();
+            let level = parseInt(params['level']);
+            if (level) {
+                if (level_index === null) {
+                    level_index = yield jquery_1.default.getJSON("levels/level_index.json");
+                    if (!level_index) {
+                        throw "Couldn't load level index";
+                    }
+                }
+                let level_data;
+                for (var i = 0; i < 20; i++) {
+                    level_data = level_index[level];
+                    if (level_data === undefined) {
+                        level--;
+                    }
+                }
+                if (level_data === undefined) {
+                    throw "Level not found";
+                }
+                if (level_data.fn) {
+                    stack = yield orbPuzzleGenerator_1.load_level(level_data.fn);
+                }
+                else {
+                    level_data = Object.assign({}, level_index.default, level_data);
+                    stack = yield create_level(level_data);
+                    if (!stack) {
+                        return;
+                    }
+                }
             }
-            catch (e) {
-                sweetalert2_1.default({
-                    title: "Couldn't generate level!",
-                    text: "feel free to try a few more times",
-                    type: "error",
-                    showCancelButton: true,
-                    cancelButtonText: "Back to settings",
-                    confirmButtonText: "New Puzzle",
-                    useRejections: true,
-                }).then(() => {
-                    window.location.reload();
-                }).catch(() => {
-                    window.location.href = window.location.href.replace("game", "index");
-                });
-                return;
+            else {
+                let size = parseInt(params['size']) || 10;
+                let orbs = parseInt(params['orbs']) || 2;
+                let brick_density = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']);
+                let pit_density = params['pit_density'] === undefined ? 5 : parseInt(params['pit_density']);
+                let fragile_brick_density = params['fragile_brick_density'] === undefined ? 5 : parseInt(params['fragile_brick_density']);
+                let depth = parseInt(params['depth']) || 4;
+                let mindepth = parseInt(params['mindepth']) || depth;
+                let fragile = params['fragile'] == "true";
+                let crystal = params['crystal'] == "true";
+                let pits = params['pits'] == "true";
+                let bombs = params['bombs'] == "true";
+                let portals = params['portals'] == "true";
+                let decoy_pits = params['decoy_pits'] == "true";
+                let decoy_orbs = params['decoy_orbs'] == "true";
+                let decoy_bombs = params['decoy_bombs'] == "true";
+                let decoy_portals = params['decoy_portals'] == "true";
+                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
+                stack = yield create_level(args);
+                if (!stack) {
+                    return;
+                }
             }
             board = stack[0][0];
             let solution = stack[1];
@@ -622,7 +632,7 @@ function create_board(board) {
     return $tiles;
 }
 
-},{"./explosion":3,"./orbPuzzle":5,"./orbPuzzleGenerator":6,"hammerjs":8,"jquery":9,"sweetalert2":11}],5:[function(require,module,exports){
+},{"./explosion":2,"./orbPuzzle":4,"./orbPuzzleGenerator":5,"hammerjs":7,"jquery":8,"sweetalert2":10}],4:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1300,7 +1310,7 @@ class OrbPuzzle extends puzzleState_1.default {
 }
 exports.OrbPuzzle = OrbPuzzle;
 
-},{"./puzzleState":7,"lodash":10}],6:[function(require,module,exports){
+},{"./puzzleState":6,"lodash":9}],5:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1310,21 +1320,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const orbPuzzle_1 = require("./orbPuzzle");
+const jquery_1 = __importDefault(require("jquery"));
 function randInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
+function load_level(fn) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let json = yield jquery_1.default.getJSON("levels/" + fn);
+        let level = yield from_json(json, false);
+        return level;
+    });
+}
+exports.load_level = load_level;
 function from_json(json, solve = true) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!json) {
-            json = require("../levels/small.json");
-            if (!json) {
-                throw "Couldn't load file";
-            }
-        }
         let o = new orbPuzzle_1.OrbPuzzle(json.width, json.height);
         for (var i = 0; i < json.grid.length; i++) {
             for (var j = 0; j < json.grid[0].length; j++) {
@@ -1451,7 +1467,7 @@ function createOrbPuzzle(args) {
 }
 exports.createOrbPuzzle = createOrbPuzzle;
 
-},{"../levels/small.json":2,"./orbPuzzle":5}],7:[function(require,module,exports){
+},{"./orbPuzzle":4,"jquery":8}],6:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1710,7 +1726,7 @@ class PuzzleState {
 }
 exports.default = PuzzleState;
 
-},{"lodash":10}],8:[function(require,module,exports){
+},{"lodash":9}],7:[function(require,module,exports){
 /*! Hammer.JS - v2.0.7 - 2016-04-22
  * http://hammerjs.github.io/
  *
@@ -4355,7 +4371,7 @@ if (typeof define === 'function' && define.amd) {
 
 })(window, document, 'Hammer');
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -14721,7 +14737,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -31822,7 +31838,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
 * sweetalert2 v7.26.10
 * Released under the MIT License.
@@ -35398,4 +35414,4 @@ if (typeof window !== 'undefined' && window.Sweetalert2){  window.swal = window.
 "  100% {\n" +
 "    -webkit-transform: rotate(360deg);\n" +
 "            transform: rotate(360deg); } }");
-},{}]},{},[4]);
+},{}]},{},[3]);

@@ -1,0 +1,23 @@
+{
+  "criticalTiles": [],
+  "use_crystals": false,
+  "use_pits": false,
+  "use_portals": false,
+  "use_fragile": true,
+  "no_basic": false,
+  "width": 5,
+  "height": 5,
+  "grid": [
+    [" ", " ", " ", " ", " "],
+    ["■", "■", " ", " ", "■"],
+    ["◎", "□", " ", " ", " "],
+    ["■", "■", " ", " ", "■"],
+    [" ", " ", " ", " ", " "]
+  ],
+  "orbs": [{
+    "index": -1,
+    "in_pit": false,
+    "x": 2,
+    "y": 4
+  }]
+}

@@ -1,0 +1,244 @@
+{
+  "total_levels": 65,
+  "default":{
+    "size": 6,
+    "orbs":1,
+    "brick_density": 10,
+    "pit_density": 0,
+    "fragile_brick_density": 10,
+    "depth":1,
+    "mindepth":1,
+    "fragile": true,
+    "crystal": false,
+    "pits": false,
+    "bombs":false,
+    "portals":false,
+    "decoy_pits":false,
+    "decoy_bombs":false,
+    "decoy_orbs": false,
+    "decoy_portals":false
+  },
+  "1":{
+    "fn":"intro_1.json"
+  },
+  "2":{
+    "fn":"intro_2.json"
+  },
+  "3":{
+    "fragile_brick_density": 0,
+    "brick_density": 12,
+    "fragile":false,
+    "depth":3,
+    "mindepth":3
+  },
+  "4":{
+    "fragile_brick_density": 0,
+    "brick_density": 12,
+    "fragile":false,
+    "depth":4,
+    "mindepth":4
+  },
+  "5":{
+    "fragile_brick_density": 0,
+    "brick_density": 12,
+    "fragile":false,
+    "depth":5,
+    "mindepth":5
+  },
+  "8":{
+    "fragile_brick_density": 0,
+    "brick_density": 12,
+    "fragile":false,
+    "size": 7,
+    "depth":5,
+    "mindepth":4
+  },
+  "9":{
+    "fragile_brick_density": 0,
+    "brick_density": 12,
+    "fragile":false,
+    "size": 8,
+    "depth":5,
+    "mindepth":4
+  },
+  "10":{
+    "fn":"cracked_tut_1.json"
+  },
+  "11":{
+    "fn":"cracked_tut_2.json"
+  },
+  "12":{
+    "fn":"runup_tut_1.json"
+  },
+  "13":{
+    "fn":"cracked_tut_3.json"
+  },
+  "14":{
+    "size": 5,
+    "depth":3,
+    "mindepth":3
+  },
+  "15":{
+    "size": 6,
+    "depth":5,
+    "mindepth":5
+  },
+  "18":{
+    "size": 8,
+    "depth":7,
+    "mindepth":6
+  },
+  "20":{
+    "size": 8,
+    "depth":8,
+    "mindepth":7,
+    "comment": "This is getting hard now",
+    "replay": true
+  },
+  "23":{
+    "orbs":2,
+    "fragile": false,
+    "fragile_brick_density": 0,
+    "size": 5,
+    "depth":3,
+    "mindepth":3
+  },
+  "24":{
+    "orbs":2,
+    "comment": "Introduce multi orb",
+    "size": 5,
+    "depth":5,
+    "mindepth":4
+  },
+  "26":{
+    "orbs":2,
+    "size": 7,
+    "depth": 6,
+    "mindepth": 6,
+    "replay":true
+  },
+  "38":{
+    "orbs":2,
+    "size": 6,
+    "depth": 6,
+    "mindepth": 6,
+    "replay":true
+  },
+  "39":{
+    "orbs": 3,
+    "size": 8,
+    "depth": 4,
+    "mindepth": 4,
+    "replay":true
+  },
+  "39":{
+    "size": 5,
+    "depth": 4,
+    "mindepth": 4,
+    "comment": "Introduce useless orb",
+    "fragile": false,
+    "fragile_brick_density": 0,
+    "decoy_orbs": true
+  },
+  "40":{
+    "orbs": 4,
+    "size": 10,
+    "depth": 5,
+    "mindepth": 5,
+    "replay":true
+  },
+  "45":{
+    "size": 8,
+    "depth": 4,
+    "mindepth": 3,
+    "orbs": 2,
+    "comment": "Introduce useless orb",
+    "decoy_orbs": true
+  },
+  "46":{
+    "fn":"bomb_tut_1.json",
+    "bombs":true
+  },
+  "47":{
+    "fn":"bomb_tut_2.json",
+    "bombs":true
+  },
+  "48":{
+    "size": 8,
+    "depth": 4,
+    "mindepth": 4,
+    "bombs":true
+  },
+  "49":{
+    "size": 8,
+    "depth": 7,
+    "mindepth": 6,
+    "bombs":true,
+    "replay":true
+  },
+  "52":{
+    "size": 6,
+    "depth": 7,
+    "mindepth": 6,
+    "orbs": 1,
+    "fragile_brick_density": 0,
+    "decoy_bombs":true,
+    "comment": "Introduce decoy bombs"
+  },
+  "54":{
+    "size": 7,
+    "depth": 8,
+    "mindepth": 7,
+    "orbs": 2,
+    "bombs":true,
+    "replay":true,
+    "comment": "First multi-orb puzzle with bombs"
+  },
+  "55":{
+    "size": 5,
+    "depth": 4,
+    "mindepth": 3,
+    "bombs":true,
+    "decoy_bombs":true,
+    "comment": "Bombs and decoy bombs"
+  },
+  "56":{
+    "size": 8,
+    "depth": 4,
+    "mindepth": 4,
+    "orbs": 2,
+    "bombs":true,
+    "decoy_bombs":true
+  },
+  "57":{
+    "size": 9,
+    "depth": 7,
+    "mindepth": 6,
+    "orbs": 2,
+    "bombs":true,
+    "decoy_bombs":true,
+    "replay": true,
+    "cache": true,
+    "comment": "This is a fun level, but slow to generate"
+  },
+  "59":{
+    "orbs": 2,
+    "size": 10,
+    "depth": 5,
+    "mindepth": 5
+  },
+  "60":{
+    "orbs": 3,
+    "size": 10,
+    "depth": 6,
+    "mindepth": 6,
+    "replay":true
+  },
+  "62":{
+    "orbs": 4,
+    "size": 10,
+    "depth": 6,
+    "mindepth": 6,
+    "replay":true
+  }
+}
