@@ -242,10 +242,17 @@ if ('serviceWorker' in navigator) {
       console.log('ServiceWorker registration failed: ', err);
     });
     */
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
- for(let registration of registrations) {
-  registration.unregister()
-} })
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        //returns installed service workers
+        if (registrations.length) {
+          for(let registration of registrations) {
+            alert("Purge", "If you this in production, I am sorry");
+            registration.unregister();
+          }
+        }
+      });
+    }
 }
 </script>
 
