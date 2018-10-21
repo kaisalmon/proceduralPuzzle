@@ -1,5 +1,5 @@
 {
-  "total_levels": 55,
+  "total_levels": 70,
   "default":{
     "size": 6,
     "orbs":1,
@@ -233,5 +233,63 @@
     "depth": 6,
     "mindepth": 6,
     "replay":true
+  },
+  "56":{
+    "portals": true,
+    "fn": "intro_portal.json"
+  },
+  "57":{
+    "portals": true,
+    "fragile": false,
+    "fragile_brick_density": 0,
+    "depth": 3,
+    "mindepth": 3
+  },
+  "58":{
+    "portals": true,
+    "fragile": false,
+    "size": 6,
+    "fragile_brick_density": 0,
+    "depth": 5,
+    "mindepth": 4
+  },
+  "60":{
+    "portals": true,
+    "size": 7,
+    "depth": 5,
+    "mindepth": 5
+  },
+  "61":{
+    "portals": true,
+    "size": 8,
+    "depth": 6,
+    "mindepth": 6
+  },
+  "63":{
+    "portals": true,
+    "size": 8,
+    "orbs": 2,
+    "depth": 6,
+    "mindepth": 6,
+    "replay": true
+  },
+  "66":{
+    "portals": true,
+    "size": 8,
+    "orbs": 2,
+    "depth": 6,
+    "bombs": true,
+    "mindepth": 6,
+    "replay": true
+  },
+  "68":{
+    "portals": true,
+    "size": 8,
+    "orbs": 2,
+    "depth": 6,
+    "bombs": true,
+    "decoy_bombs":true,
+    "mindepth": 6,
+    "replay": true
   }
 }
