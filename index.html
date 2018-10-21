@@ -32,9 +32,11 @@ html, #settings{
   }
   #settings{
     position: absolute;
-    transform: translateY(-50%);
-    top: 50%;
-    max-height: 100vh;
+  transform: translate(-50%,0);
+  /* top: 50%; */
+  left: 50%;
+  min-height: 100vh;
+  max-width: 1000px;
   }
   .vue-slider-component .vue-slider-tooltip{
     opacity: 0;
@@ -102,6 +104,9 @@ html, #settings{
   color:white;
   opacity: 0.7;
 }
+.icon-tray .fa{
+  margin: 3px;
+}
 .fade-enter-active, .fade-leave-active {
   transition: transform .5s;
   transform-origin: top;
@@ -117,7 +122,7 @@ html, #settings{
 }
 </style>
 
-<div  id="settings" class="container-fluid">
+<div  id="settings" class="container-fluid row">
   <div class="row m-3">
     <div class="col-xl-1"></div>
     <div class="col-12 col-xl-10">
