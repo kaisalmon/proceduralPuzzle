@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 /*
  2017 Julian Garnier
  Released under the MIT license
@@ -203,20 +203,17 @@ function tryUntilSuccess(f, args, debug = false) {
                     try {
                         let result = yield f(args);
                         resolve(result);
-                        if (debug) {
-                            var t1 = performance.now();
-                            sweetalert2_1.default("Generation took " + (t1 - t0) / 1000 + " seconds.");
-                        }
                     }
                     catch (e) {
                         if (debug)
                             console.error(e);
-                        for (var j = 0; j < 10; j++) {
+                        for (var j = 0; j < 100; j++) {
                             i++;
                             if (i % 100 == 0) {
                                 console.warn("Over " + i + " attempts..");
                             }
-                            if (i > 5000) {
+                            var t1 = performance.now();
+                            if (t1 - t0 > 15000) {
                                 reject();
                                 return;
                             }
@@ -279,12 +276,16 @@ function create_level(args) {
 }
 jquery_1.default(document).ready(() => {
     explosion_1.setUpExplosions();
+    setTimeout(() => {
+        jquery_1.default("#level-info").addClass("hoz-hidden");
+    });
     (function () {
         return __awaiter(this, void 0, void 0, function* () {
             let params = getUrlVars();
             let stack = undefined;
             let level = parseInt(params['level']);
             if (level) {
+                jquery_1.default("#level-info").text("Level " + level);
                 if (level_index === null) {
                     level_index = yield jquery_1.default.getJSON("levels/level_index.json");
                     if (!level_index) {
@@ -313,6 +314,7 @@ jquery_1.default(document).ready(() => {
                 }
             }
             else {
+                jquery_1.default("#level-info").text("Custom Level");
                 let size = parseInt(params['size']) || 10;
                 let orbs = parseInt(params['orbs']) || 2;
                 let brick_density = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']);
@@ -1366,7 +1368,7 @@ function load_level(fn) {
     });
 }
 exports.load_level = load_level;
-function from_json(json, solve = true) {
+function from_json(json, solve = true, maxDepth) {
     return __awaiter(this, void 0, void 0, function* () {
         let o = new orbPuzzle_1.OrbPuzzle(json.width, json.height);
         for (var i = 0; i < json.grid.length; i++) {
@@ -1378,7 +1380,7 @@ function from_json(json, solve = true) {
             o.orbs.push(new orbPuzzle_1.Orb(orb.x, orb.y));
         }
         if (solve) {
-            let s = yield o.solve();
+            let s = yield o.solve(maxDepth);
             if (s === null) {
                 throw "Unsolvable";
             }
@@ -1444,7 +1446,7 @@ function createOrbPuzzle(args) {
         p.use_portals = args.portals;
         let stack = p.getStack(args.depth);
         //var t0 = performance.now();
-        let solutionResult = yield stack[0][0].solve();
+        let solutionResult = yield stack[0][0].solve(args.depth);
         //var t1 = performance.now();
         //alert("Call to solve took " + (t1 - t0)/1000 + "seconds.")
         if (!solutionResult) {
@@ -1518,7 +1520,7 @@ function randInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 class PuzzleState {
-    solve() {
+    solve(maxDepth) {
         return __awaiter(this, void 0, void 0, function* () {
             let closedList = {};
             let openList = {};
@@ -1531,6 +1533,9 @@ class PuzzleState {
                 let current = Object.keys(openList).map(hash => openList[hash]).reduce(function (prev, current) {
                     return (prev.estimatedcost < current.estimatedcost) ? prev : current;
                 });
+                if (maxDepth && current.estimatedcost > maxDepth) {
+                    return null;
+                }
                 if (current.state.isSolved()) {
                     console.log("Solved!");
                     let moves = [];

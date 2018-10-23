@@ -17,18 +17,16 @@ async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:
       try {
         let result = await f(args);
         resolve(result)
-        if(debug){
-          var t1 = performance.now();
-          swal("Generation took " + (t1 - t0)/1000 + " seconds.");
-        }
       } catch (e) {
         if(debug)console.error(e)
-        for (var j = 0; j < 10; j++) {
+        for (var j = 0; j < 100; j++) {
           i++;
           if (i % 100 == 0) {
             console.warn("Over " + i + " attempts..")
           }
-          if (i > 5000) {
+
+          var t1 = performance.now();
+          if (t1-t0 > 15000) {
             reject();
             return;
           }
@@ -92,11 +90,15 @@ async function create_level(args:puzzleConfig){
 
 $(document).ready(() => {
   setUpExplosions();
+  setTimeout(()=>{
+    $("#level-info").addClass("hoz-hidden");
+  });
   (async function() {
     let params = getUrlVars();
     let stack: [OrbPuzzle[], OrbMove[]] | undefined = undefined;
     let level = parseInt(params['level']);
     if(level){
+      $("#level-info").text("Level "+level);
       if(level_index === null){
         level_index = await $.getJSON("levels/level_index.json");
         if(!level_index){
@@ -121,6 +123,7 @@ $(document).ready(() => {
         if(!stack){return}
       }
     }else{
+      $("#level-info").text("Custom Level");
       let size: number = parseInt(params['size']) || 10;
       let orbs: number = parseInt(params['orbs']) || 2;
       let brick_density: number = params['brick_density'] === undefined ? 5 : parseInt(params['brick_density']) ;

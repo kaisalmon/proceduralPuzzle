@@ -1,5 +1,5 @@
 {
-  "total_levels": 65,
+  "total_levels": 70,
   "default":{
     "size": 6,
     "orbs":1,
@@ -117,66 +117,59 @@
     "mindepth": 6,
     "replay":true
   },
-  "38":{
+  "30":{
     "orbs":2,
     "size": 6,
     "depth": 6,
     "mindepth": 6,
     "replay":true
   },
-  "39":{
+  "35":{
     "orbs": 3,
     "size": 8,
     "depth": 4,
     "mindepth": 4,
     "replay":true
   },
-  "39":{
+  "37":{
+    "orbs": 3,
+    "size": 8,
+    "depth": 6,
+    "mindepth": 6,
+    "replay":true
+  },
+  "38":{
     "size": 5,
     "depth": 4,
     "mindepth": 4,
-    "comment": "Introduce useless orb",
-    "fragile": false,
-    "fragile_brick_density": 0,
+    "fragile":false,
+    "fragile_brick_density":0,
+    "brick_density": 20,
+    "orbs": 1,
     "decoy_orbs": true
   },
-  "40":{
-    "orbs": 4,
-    "size": 10,
-    "depth": 5,
-    "mindepth": 5,
-    "replay":true
-  },
-  "45":{
-    "size": 8,
-    "depth": 4,
-    "mindepth": 3,
-    "orbs": 2,
-    "comment": "Introduce useless orb",
-    "decoy_orbs": true
-  },
-  "46":{
+  "39":{
     "fn":"bomb_tut_1.json",
     "bombs":true
   },
-  "47":{
+  "40":{
     "fn":"bomb_tut_2.json",
     "bombs":true
   },
-  "48":{
+  "41":{
     "size": 8,
     "depth": 4,
     "mindepth": 4,
     "bombs":true
   },
-  "49":{
+  "42":{
     "size": 8,
     "depth": 7,
     "mindepth": 6,
     "bombs":true,
     "replay":true
   },
-  "52":{
+  "45":{
     "size": 6,
     "depth": 7,
     "mindepth": 6,
@@ -185,7 +178,7 @@
     "decoy_bombs":true,
     "comment": "Introduce decoy bombs"
   },
-  "54":{
+  "46":{
     "size": 7,
     "depth": 8,
     "mindepth": 7,
@@ -194,7 +187,7 @@
     "replay":true,
     "comment": "First multi-orb puzzle with bombs"
   },
-  "55":{
+  "47":{
     "size": 5,
     "depth": 4,
     "mindepth": 3,
@@ -202,7 +195,7 @@
     "decoy_bombs":true,
     "comment": "Bombs and decoy bombs"
   },
-  "56":{
+  "48":{
     "size": 8,
     "depth": 4,
     "mindepth": 4,
@@ -210,7 +203,7 @@
     "bombs":true,
     "decoy_bombs":true
   },
-  "57":{
+  "49":{
     "size": 9,
     "depth": 7,
     "mindepth": 6,
@@ -221,24 +214,82 @@
     "cache": true,
     "comment": "This is a fun level, but slow to generate"
   },
-  "59":{
+  "53":{
     "orbs": 2,
     "size": 10,
     "depth": 5,
     "mindepth": 5
   },
-  "60":{
+  "54":{
     "orbs": 3,
     "size": 10,
     "depth": 6,
     "mindepth": 6,
     "replay":true
   },
-  "62":{
+  "55":{
     "orbs": 4,
     "size": 10,
     "depth": 6,
     "mindepth": 6,
     "replay":true
+  },
+  "56":{
+    "portals": true,
+    "fn": "intro_portal.json"
+  },
+  "57":{
+    "portals": true,
+    "fragile": false,
+    "fragile_brick_density": 0,
+    "depth": 3,
+    "mindepth": 3
+  },
+  "58":{
+    "portals": true,
+    "fragile": false,
+    "size": 6,
+    "fragile_brick_density": 0,
+    "depth": 5,
+    "mindepth": 4
+  },
+  "60":{
+    "portals": true,
+    "size": 7,
+    "depth": 5,
+    "mindepth": 5
+  },
+  "61":{
+    "portals": true,
+    "size": 8,
+    "depth": 6,
+    "mindepth": 6
+  },
+  "63":{
+    "portals": true,
+    "size": 8,
+    "orbs": 2,
+    "depth": 6,
+    "mindepth": 6,
+    "replay": true
+  },
+  "66":{
+    "portals": true,
+    "size": 8,
+    "orbs": 2,
+    "depth": 6,
+    "bombs": true,
+    "mindepth": 6,
+    "replay": true
+  },
+  "68":{
+    "portals": true,
+    "size": 8,
+    "orbs": 2,
+    "depth": 6,
+    "bombs": true,
+    "decoy_bombs":true,
+    "mindepth": 6,
+    "replay": true
   }
 }

@@ -20,7 +20,7 @@ abstract class PuzzleState<MOVE>{
   abstract getHeuristic(): number;
   abstract getReverseMoves(): MOVE[];
 
-  async solve(): Promise<[PuzzleState<MOVE>[], MOVE[]] | null>{
+  async solve(maxDepth?:number): Promise<[PuzzleState<MOVE>[], MOVE[]] | null>{
     interface Edge{
         from: StateEntry,
         to: PuzzleState<MOVE>
@@ -38,6 +38,7 @@ abstract class PuzzleState<MOVE>{
     let openList:{[hash:string]: StateEntry}  = {};
     openList[this.hashString()] = {state:this, totalcost:0, bestedge:null, estimatedcost:0}
 
+
     while(Object.keys(openList).length > 0){
       if(Math.random() < 0.01){
         await sleep(0);
@@ -46,6 +47,9 @@ abstract class PuzzleState<MOVE>{
       let current:StateEntry =  Object.keys(openList).map(hash=>openList[hash]).reduce(function(prev, current) {
           return (prev.estimatedcost < current.estimatedcost) ? prev : current
       })
+      if(maxDepth && current.estimatedcost > maxDepth){
+        return null;
+      }
 
       if(current.state.isSolved()){
         console.log("Solved!")

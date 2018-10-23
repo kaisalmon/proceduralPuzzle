@@ -191,6 +191,24 @@ html, body{
       width: 100%;
       height: 100%;
     }
+    #level-info {
+        background-image: linear-gradient(black, transparent);
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        /* height: 200px; */
+        text-align: center;
+        padding-top: 46px;
+        font-size: 40px;
+        transition: opacity 0.5s ease 2s;
+        z-index: 2;
+    }
+   @media screen and (orientation:landscape) {
+     .hoz-hidden{
+        opacity: 0;
+      }
+    }
   /*  @-moz-keyframes spin {
         from {transform:rotate(0deg);}
         to {transform:rotate(360deg);}
@@ -207,6 +225,8 @@ html, body{
 </style>
 <script src="js/main.js" async></script>
 <noscript><h1>Your browser does not support JavaScript!</h1></noscript>
+<div id="level-info">
+</div>
 <canvas width="2000" height="2000"></canvas>
 <div class="buttons">
   <!--

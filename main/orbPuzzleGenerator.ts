@@ -46,7 +46,7 @@ export async function load_level(fn: string): Promise<[OrbPuzzle[], OrbMove[]]>{
   return level
 }
 
-export async function from_json(json:OrbPuzzleJson, solve:boolean = true):  Promise<[OrbPuzzle[], OrbMove[]]>{
+export async function from_json(json:OrbPuzzleJson, solve:boolean = true, maxDepth?:number):  Promise<[OrbPuzzle[], OrbMove[]]>{
   let o = new OrbPuzzle(json.width, json.height);
   for(var i = 0; i< json.grid.length; i++){
     for(var j = 0; j< json.grid[0].length; j++){
@@ -57,7 +57,7 @@ export async function from_json(json:OrbPuzzleJson, solve:boolean = true):  Prom
     o.orbs.push(new Orb(orb.x, orb.y));
   }
   if(solve){
-    let s = await o.solve();
+    let s = await o.solve(maxDepth);
     if(s === null){
       throw "Unsolvable";
     }
@@ -128,7 +128,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       let stack = p.getStack(args.depth)
 
       //var t0 = performance.now();
-      let solutionResult = await stack[0][0].solve();
+      let solutionResult = await stack[0][0].solve(args.depth);
       //var t1 = performance.now();
       //alert("Call to solve took " + (t1 - t0)/1000 + "seconds.")
 
