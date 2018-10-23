@@ -1,6 +1,6 @@
 var iframe_server_url;
-//iframe_server_url = "https://iframe.coinmode.com";
-iframe_server_url = "http://localhost:8080";
+iframe_server_url = "https://iframe.coinmode.com";
+//iframe_server_url = "http://localhost:8080";
 //iframe_server_url = "http://localhost:18080";
 
 
@@ -55,7 +55,7 @@ function CoinMode( params, options )
 				return;
 			}
 			var url_of_iframe = iframe_server_url + "?game_id=" + this.params.game_id + "#/";
-			create_iframe( iframe_server_url );
+			create_iframe( url_of_iframe );
 		}
 
 		function create_iframe(url) {

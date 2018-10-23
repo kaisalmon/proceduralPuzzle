@@ -18,7 +18,8 @@ abstract class PuzzleState<MOVE>{
   abstract getHeuristic(): number;
   abstract getReverseMoves(): MOVE[];
 
-  constructor(seed:number = Math.floor(Math.random()*1000000)){
+  constructor(seed?:number){
+    if(!seed) seed=Math.floor(Math.random()*1000000)
     this.set_seed(seed);
   }
 
@@ -38,7 +39,9 @@ abstract class PuzzleState<MOVE>{
       this.randInt = function(min: number, max: number): number {
         min = Math.ceil(min);
         max = Math.floor(max);
-        return Math.floor(this.random() * (max - min)) + min;
+        let r =this.random();
+        let result =  Math.floor(r * (max - min)) + min;
+        return result;
       }
   }
 
@@ -251,7 +254,7 @@ abstract class PuzzleState<MOVE>{
             }
             if (next.apply(move).hashString() != p.hashString()) {
               throw {
-                "name": "FatalError",
+                "name": "ImportantError",
                 "message": "Reversing move and applying move have different results",
                 "starting-point": next,
                 "a": next.apply(move),
@@ -263,7 +266,7 @@ abstract class PuzzleState<MOVE>{
             }
             nexts.push([next, move])
           } catch (e) {
-            if (debug) {
+            if (debug || e.name === "ImportantError") {
               console.error(e)
             }
             if (e.name == "FatalError") {

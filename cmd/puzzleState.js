@@ -12,7 +12,9 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 class PuzzleState {
-    constructor(seed = Math.floor(Math.random() * 1000000)) {
+    constructor(seed) {
+        if (!seed)
+            seed = Math.floor(Math.random() * 1000000);
         this.set_seed(seed);
     }
     set_seed(s) {
@@ -30,7 +32,9 @@ class PuzzleState {
         this.randInt = function (min, max) {
             min = Math.ceil(min);
             max = Math.floor(max);
-            return Math.floor(this.random() * (max - min)) + min;
+            let r = this.random();
+            let result = Math.floor(r * (max - min)) + min;
+            return result;
         };
     }
     sample(arr) {
@@ -218,7 +222,7 @@ class PuzzleState {
                         }
                         if (next.apply(move).hashString() != p.hashString()) {
                             throw {
-                                "name": "FatalError",
+                                "name": "ImportantError",
                                 "message": "Reversing move and applying move have different results",
                                 "starting-point": next,
                                 "a": next.apply(move),
@@ -231,7 +235,7 @@ class PuzzleState {
                         nexts.push([next, move]);
                     }
                     catch (e) {
-                        if (debug) {
+                        if (debug || e.name === "ImportantError") {
                             console.error(e);
                         }
                         if (e.name == "FatalError") {

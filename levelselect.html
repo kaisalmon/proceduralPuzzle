@@ -120,8 +120,25 @@ html, #settings{
   left:50%;
   transform: translate(-50%, -50%);
 }
+
+.back-btn{
+  position: absolute;
+  top:1em;
+  left:1em;
+  font-size: 1.6rem;
+  z-index: 1;
+  color:white;
+}
+.back-btn:hover{
+  opacity: 0.6;
+  color:white;
+}
 </style>
 
+<a href="index.html" class="back-btn fa-stack fa-lg">
+  <i class="far fa-circle fa-stack-2x"></i>
+  <i class="fas fa-arrow-left fa-stack-1x"></i>
+</a>
 <div  id="settings" class="container-fluid row">
   <div class="row m-3 col-12">
     <div class="col-xl-1"></div>

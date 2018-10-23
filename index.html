@@ -133,16 +133,25 @@ var cm = new CoinMode({	game_id: 91, methods:{
     {
         let cname =   document.getElementById("#coinmode_iframe").className;
         document.getElementById("#coinmode_iframe").className = cname.replace("coinmode-visible","")
-    },
-    on_iframe_loaded: function(){
-      cm.init();
     }
   }});
 
 
   function start_challenge(){
     cm.helper.getPlaytoken((err, token, details)=>{
-      cm.helper.showRoundSelector();
+      cm.helper.showRoundSelector((err, round_id, props)=>{
+      //  if(!round_id){
+          round_id=  props.data.round_id;
+      //  }
+        if(!err && round_id){
+          let qstring = "?round_id="+round_id
+          let base = window.location.pathname;
+          if(base.indexOf("index.html") === -1){
+            base += "/index.html";
+          }
+          window.location.href = base.replace("index", "game") + qstring;
+        }
+      });
     })
   }
 </script>

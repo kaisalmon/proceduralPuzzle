@@ -20,7 +20,7 @@ const orbPuzzleGenerator_1 = require("./orbPuzzleGenerator");
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-function tryUntilSuccess(f, args, debug = false) {
+function tryUntilSuccess(f, args, on_e, debug = false) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
             let i = 0;
@@ -29,23 +29,31 @@ function tryUntilSuccess(f, args, debug = false) {
                 return __awaiter(this, void 0, void 0, function* () {
                     try {
                         let result = yield f(args);
+                        var t1 = performance.now();
+                        console.log("TIME TO GEN:", (t1 - t0) / 1000);
                         resolve(result);
                     }
                     catch (e) {
+                        if (on_e) {
+                            on_e(args);
+                        }
                         if (debug)
                             console.error(e);
-                        for (var j = 0; j < 100; j++) {
-                            i++;
-                            if (i % 100 == 0) {
-                                console.warn("Over " + i + " attempts..");
-                            }
-                            var t1 = performance.now();
-                            if (t1 - t0 > 15000) {
-                                reject();
-                                return;
-                            }
+                        i++;
+                        if (i % 10 == 0) {
+                            console.warn("Over " + i + " attempts..");
                         }
-                        setTimeout(_attempt);
+                        var t1 = performance.now();
+                        if (t1 - t0 > 15000) {
+                            reject();
+                            return;
+                        }
+                        if (i % 3 == 0) {
+                            setTimeout(_attempt);
+                        }
+                        else {
+                            _attempt();
+                        }
                     }
                 });
             }
@@ -79,7 +87,12 @@ function create_level(args) {
             })
         });
         try {
-            let stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, false);
+            function on_err(args) {
+                if (args.seed) {
+                    args.seed++;
+                }
+            }
+            let stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, on_err, false);
             sweetalert2_1.default.close();
             return stack;
         }
@@ -140,6 +153,21 @@ jquery_1.default(document).ready(() => {
                     }
                 }
             }
+            else if (params.round_id) {
+                if (level_index === null) {
+                    level_index = yield jquery_1.default.getJSON("levels/level_index.json");
+                    if (!level_index) {
+                        throw "Couldn't load level index";
+                    }
+                }
+                jquery_1.default("#level-info").text("Daily Challenge");
+                let seed = parseInt(params.round_id) * 2654435761 % Math.pow(2, 32);
+                let level_data = Object.assign({}, level_index.challenge, { seed: seed });
+                stack = yield create_level(level_data);
+                if (!stack) {
+                    return;
+                }
+            }
             else {
                 jquery_1.default("#level-info").text("Custom Level");
                 let size = parseInt(params['size']) || 10;
@@ -174,7 +202,12 @@ jquery_1.default(document).ready(() => {
                 sweetalert2_1.default(solution.join("\n"));
             });
             jquery_1.default('.back').click(() => {
-                window.location.href = window.location.href.replace("game", "index");
+                if (getUrlVars().round_id) {
+                    window.location.href = window.location.href.replace("game", "index");
+                }
+                else {
+                    window.location.href = window.location.href.replace("game", "levelselect");
+                }
             });
             let orig = board;
             jquery_1.default('.reset').click(() => {

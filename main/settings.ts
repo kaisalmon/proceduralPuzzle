@@ -197,3 +197,11 @@ $(document).ready(()=>{
   };
   get_level_list();
 })
+
+$('.back').click(() => {
+  if(getUrlVars().round_id){
+    window.location.href = window.location.href.replace("game", "index");
+  }else{
+    window.location.href = window.location.href.replace("game", "levelselect");
+  }
+});

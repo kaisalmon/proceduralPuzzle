@@ -9,31 +9,41 @@ function delay(ms: number): Promise<void>{
     return new Promise( resolve => setTimeout(resolve, ms) );
 }
 
-async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:boolean = false): Promise<T> {
+async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS,  on_e?: (args: ARGS) => void, debug:boolean = false): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     let i = 0;
     var t0 = performance.now();
+
     async function  _attempt(): Promise<void> {
       try {
         let result = await f(args);
+        var t1 = performance.now();
+        console.log("TIME TO GEN:", (t1-t0)/1000)
         resolve(result)
       } catch (e) {
-        if(debug)console.error(e)
-        for (var j = 0; j < 100; j++) {
-          i++;
-          if (i % 100 == 0) {
-            console.warn("Over " + i + " attempts..")
-          }
-
-          var t1 = performance.now();
-          if (t1-t0 > 15000) {
-            reject();
-            return;
-          }
+        if(on_e){
+          on_e(args);
         }
+        if(debug)console.error(e)
+        i++;
+        if (i % 10 == 0) {
+          console.warn("Over " + i + " attempts..")
+        }
+
+        var t1 = performance.now();
+        if (t1-t0 > 15000) {
+          reject();
+          return;
+        }
+        if (i % 3 == 0) {
         setTimeout(_attempt)
+        }else{
+          _attempt();
+        }
       }
     }
+
+
     _attempt();
   })
 }
@@ -52,7 +62,7 @@ let board: OrbPuzzle;
 let moving = false;
 let $tiles: (JQuery|undefined)[][];
 
-let level_index:{[l:number]:any, default:any}|null = null;
+let level_index:{[l:number]:any, challenge:any, default:any}|null = null;
 
 
 async function create_level(args:puzzleConfig){
@@ -67,7 +77,12 @@ async function create_level(args:puzzleConfig){
     })
 
     try {
-      let stack = await tryUntilSuccess(createPuzzle, args, false);
+      function on_err(args:puzzleConfig){
+        if(args.seed){
+          args.seed++
+        }
+      }
+      let stack = await tryUntilSuccess(createPuzzle, args, on_err, false);
       swal.close();
       return stack
     } catch (e) {
@@ -122,6 +137,18 @@ $(document).ready(() => {
         stack = await create_level(level_data)
         if(!stack){return}
       }
+    }else if(params.round_id){
+      if(level_index === null){
+        level_index = await $.getJSON("levels/level_index.json");
+        if(!level_index){
+          throw "Couldn't load level index";
+        }
+      }
+      $("#level-info").text("Daily Challenge");
+      let seed = parseInt(params.round_id)*2654435761 % Math.pow(2, 32);
+      let level_data = Object.assign({},level_index.challenge,  {seed: seed})
+      stack = await create_level(level_data)
+      if(!stack){return}
     }else{
       $("#level-info").text("Custom Level");
       let size: number = parseInt(params['size']) || 10;
@@ -156,7 +183,11 @@ $(document).ready(() => {
       swal(solution.join("\n"))
     });
     $('.back').click(() => {
-      window.location.href = window.location.href.replace("game", "index");
+      if(getUrlVars().round_id){
+        window.location.href = window.location.href.replace("game", "index");
+      }else{
+        window.location.href = window.location.href.replace("game", "levelselect");
+      }
     });
     let orig = board;
     $('.reset').click(() => {

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>CoinMode iFrame</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+<body>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script src="js/coinmode_helper.js"></script>
+
+	<div id="app">
+		Hi {{display_name}},
+		<button :disabled="cm != null" v-on:click="on_click_init()" >Init</button>
+		<button :disabled="coinmode_iframe_loaded == false" v-on:click="on_click_getplaytoken()" >Get PlayToken</button>
+		<button :disabled="coinmode_iframe_loaded == false" v-on:click="on_click_deposit()" >Request Deposit</button>
+		<button :disabled="coinmode_iframe_loaded == false" v-on:click="on_click_createround()" >Create New Round</button>
+		<button :disabled="coinmode_iframe_loaded == false" v-on:click="on_click_selectround()" >Select Round</button>
+		<button :disabled="coinmode_iframe_loaded == false" v-on:click="on_click_showresults()" >Show Results</button>
+		<button :disabled="coinmode_iframe_loaded == false" v-on:click="on_click_sendfunds()" >Send Funds</button>
+
+		<div>
+			playtoken_uuid : {{playtoken_uuid}}
+		</div>
+		<div>
+			player name : {{display_name}}
+		</div>
+
+	</div>
+
+<style>
+#coinmode_iframe
+{
+    width: 320px;
+    /* max-width: 100%; */
+    /* max-height: 100%; */
+    height: 640px;
+    /* text-align: center; */
+    position: absolute;
+    left: 50%;
+    top: 0px;
+    margin-left: -160px;
+    margin-top: 10%;
+    border-style: solid;
+    border-width: 4px;
+	box-shadow: 0px 0px 16px #000000a8;
+    border-radius: 4px;
+}
+</style>
+
+<script type="text/javascript">
+
+	var my_game_id = 91;
+	var my_game_public_key = "TODO";
+
+	var app = new Vue({
+		el: '#app',
+		data: {
+			display_name:'Stu',
+			playtoken_uuid : "",
+			cm:null,
+			coinmode_iframe_loaded:false
+		},
+		methods:{
+			on_click_init:function()
+			{
+				var that = this;
+				if( this.cm == null )
+				{
+					this.cm = new CoinMode(
+						{
+							game_id:my_game_id,
+							methods:
+							{
+								// Called when the iframe is ready to display
+								on_iframe_loaded : function(err)
+								{
+									if( err )
+									{
+										alert("There was an error trying to open the CoinMode iframe, this could be a connection error");
+										console.log(err);
+									}
+									else
+									{
+										that.coinmode_iframe_loaded = true;
+									}
+
+									/*
+									// Usually can call getPlaytoken here once it has loaded
+									that.cm.helper.getPlaytoken( function( err, playtoken )
+									{
+										debug.log( "Returned playtoken is:"+playtoken );
+										// With this playtoken we can now do API calls like
+									});
+									*/
+
+								},
+								on_iframe_visible : function()
+								{
+									console.log("The CoinMode helper has enabled the CoinMode iframe");
+								},
+								on_iframe_hidden : function()
+								{
+									console.log("The CoinMode helper has hidden the CoinMode iframe");
+								}
+							}
+						},
+					);
+				}
+				else
+				{
+					console.log("The cm object has already been initialised");
+				}
+
+				console.log(this.cm);
+			},
+			on_click_getplaytoken:function()
+			{
+				if( this.cm == null )
+				{
+					alert("Not called init on CoinMode yet!");
+					return;
+				}
+				var that = this;
+				this.cm.helper.getPlaytoken( function( err, playtoken_uuid, player_data )
+				{
+					/* player_data
+					array_required_verification
+					display_name
+					duration
+					game_id
+					language
+					permissions
+					playtoken_uuid
+					sent_email
+					sent_sms
+					status
+					*/
+
+					debug.log( "Returned playtoken is:"+playtoken_uuid );
+					debug.log( playtoken_uuid );
+					that.playtoken_uuid = playtoken_uuid;
+					// With this playtoken we can now do API calls like
+				});
+			},
+			on_click_deposit:function()
+			{
+				if( this.cm == null )
+				{
+					alert("Not called init on CoinMode yet!");
+					return;
+				}
+				this.cm.helper.showDeposit( function( err, deposit_info )
+				{
+					debug.log( "Deposited amount:"+deposit_info );
+					debug.log( deposit_info );
+					// With this playtoken we can now do API calls like
+				});
+			},
+			on_click_createround:function()
+			{
+				if( this.cm == null )
+				{
+					alert("Not called init on CoinMode yet!");
+					return;
+				}
+				this.cm.helper.showCreateRound( function( err, round_id )
+				{
+					debug.log( "Round selected:"+round_id );
+				});
+			},
+			on_click_selectround:function()
+			{
+				if( this.cm == null )
+				{
+					alert("Not called init on CoinMode yet!");
+					return;
+				}
+				this.cm.helper.showRoundSelector( function( err, round_id )
+				{
+					debug.log( "Round selected:"+round_id );
+				});
+			},
+			on_click_showresults:function()
+			{
+				if( this.cm == null )
+				{
+					alert("Not called init on CoinMode yet!");
+					return;
+				}
+				round_id = 1001;
+				this.cm.helper.showResults( function( err  )
+				{
+					if(err)
+					{
+						// Could not show the results for some reason
+					}
+					// The results have been closed
+					debug.log( "Round results show completed");
+				});
+			},
+			on_click_sendfunds:function()
+			{
+				if( this.cm == null )
+				{
+					alert("Not called init on CoinMode yet!");
+					return;
+				}
+				var params=
+				{
+					to: "stuart@coinmode.com",
+					description: "For testing purposes only",
+					amount: 40000,
+					currency: "BTC"
+				};
+
+				this.cm.helper.sendFunds( params, function( err  )
+				{
+					if(err)
+					{
+						// Could not show the results for some reason
+					}
+					// The results have been closed
+					debug.log( "Round results show completed");
+				});
+			}
+		}
+	})
+
+
+
+
+
+var debug =
+{
+	log:function(text)
+	{
+		console.log("CoinMode:"+text);
+	},
+	warning:function(text)
+	{
+		console.log("!CoinMode:"+text);
+	},
+	error:function(text)
+	{
+		console.log("ERROR CoinMode:"+text);
+	}
+}
+
+
+</script>
+
+
+
+</body>
+</html>
