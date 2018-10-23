@@ -1,0 +1,259 @@
+<title>Orb Puzzle</title>
+<meta name="theme-color" content="#2A9FD6">
+<link rel="manifest" href="manifest.json">
+<meta charset="utf-8">
+  <meta name="viewport"
+     content="width=device-width, initial-scale=1, user-scalable=yes">
+<link rel="stylesheet" type="text/css" href="fonts/all.min.css">
+<link rel="preload" type="text/css" href="fontawesome/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+<link rel="stylesheet" type="text/css" href="animate.css">
+<link rel="stylesheet" type="text/css" href="material-switch.css">
+<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+
+
+<style>
+html, #settings{
+
+  min-width: 350px;
+}
+  body{
+      font-family: 'Josefin Sans', sans-serif;
+      background: #333;
+      --bsize: 80vmin;
+  }
+  @font-face {
+      font-family:'Josefin Sans';
+      src: url("fonts/JosefinSans-Regular.ttf");
+  }
+  @font-face {
+      font-family: 'Josefin Sans';
+      src: url("fonts/JosefinSans-Bold.ttf");
+      font-weight: bold;
+  }
+  #settings{
+    position: absolute;
+    transform: translateY(-50%);
+    top: 50%;
+    max-height: 100vh;
+  }
+  .vue-slider-component .vue-slider-tooltip{
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  .vue-slider-component:hover .vue-slider-tooltip{
+    opacity: 1;
+  }
+.level-button:not(.locked):hover{
+  transform:scale(0.9);
+}
+.level-button{
+  transform:scale(1);
+  transition: transform 0.3s;
+  background: #555;
+  color: #888;
+  border: outset 10px #777;
+  box-shadow: 2px 2px 6px black;
+  min-width:54px;
+  position: relative;
+  cursor: pointer;
+}
+.level-button.replay{
+  color: #a28d1c;
+  border: outset 10px #a28d1c;
+}
+.level-button.replay .level-number, .level-button.replay .icon-tray{
+  color:gold;
+}
+.level-button.locked{
+  filter: grayscale(50%) brightness(40%);
+  cursor: not-allowed;
+}
+.square-box{
+    position: relative;
+    overflow: hidden;
+    min-width:54px;
+}
+.square-box:before{
+    content: "";
+    display: block;
+    padding-top: 100%;
+}
+.square-content{
+    position:  absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    min-width:54px;
+    right: 0;
+    text-align: center;
+}
+.level-number{
+  font-size: 42px;
+  margin-bottom:-12px;
+  margin-top:-12px;
+  color:white;
+}
+.icon-tray{
+  position: absolute;
+  bottom:5px;
+  height:auto;
+  left:0; right:0;
+  color:white;
+  opacity: 0.7;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: transform .5s;
+  transform-origin: top;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  transform: scaley(0);
+}
+.middle-align{
+  position:absolute;
+  top:66%;
+  left:50%;
+  transform: translate(-50%, -50%);
+}
+</style>
+
+<div  id="settings" class="container-fluid">
+  <div class="row m-3">
+    <div class="col-xl-1"></div>
+    <div class="col-12 col-xl-10">
+      <h1 class="text-center">Arcane Orbs</h1>
+      <h4  class="text-center">Level Select</h4>
+      <div class="row text-center">
+        <a v-on:click="cheatclick++" v-bind:href='l.level_number > localStorage.player_progress ? "#locked" : "game.html?level="+ l.level_number' v-for="l in levels" class="col-4 col-sm-3  col-xl-2  text-center" >
+          <div class="level-button square-box mb-3"
+          v-bind:class="{replay: l.replay && !l.repeat, locked: l.level_number > localStorage.player_progress}">
+            <div class="square-content">
+              <div class=" d-none d-sm-block">
+                Level
+              </div>
+              <div class="middle-align level-number">{{l.level_number}}</div>
+              <div class="icon-tray row justify-content-center">
+                <i class="fa fa-star" v-if="l.fn"></i>
+                <i class="fa fa-random" v-if="!l.fn"></i>
+                <i class="fa fa-bomb" v-if="l.bombs || l.decoy_bombs"></i>
+                <i class="fa fa-thumbs-up" v-if="l.replay && !l.repeat"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <h4  class="text-center" v-on:click="settings_open = !settings_open">Custom Game Setup</h4>
+      <transition name="fade">
+        <div class="row" v-if="settings_open">
+          <div class="col-12 col-xl-6 row">
+          <h5 class="mt-4 col-12">Basic Settings</h5>
+            <label class="col-12 col-md-4"> Orbs ({{orbs}})
+              <vue-slider v-model="orbs" :min=1 :max=8>
+              </vue-slider>
+            </label>
+            <label class="col-12 col-md-4 ">Grid Size ({{size}})
+              <vue-slider v-model="size" :min=4 :max=12>
+              </vue-slider>
+            </label>
+            <label class="col-12 col-md-4 ">  Required Moves ({{range_label}})
+              <vue-slider v-model="moverange" :min=1 :max=10>
+              </vue-slider>
+            </label>
+          </div>
+
+            <div class="col-12 col-xl-6 row">
+            <h5 class="mt-4 col-12">Advanced Settings</h5>
+            <label class="col-12 col-md-4 text-nowrap">  Brick Density ({{brick_density}}%)
+              <vue-slider v-model="brick_density" :min=0 :max=50>
+              </vue-slider>
+            </label>
+            <label class="col-12 col-md-4 text-nowrap">  Fragile Brick Density ({{fragile_brick_density}}%)
+              <vue-slider v-model="fragile_brick_density" :min=0 :max=50 :disabled="no_fragile">
+              </vue-slider>
+            </label>
+            <label class="col-12 col-md-4 text-nowrap">  Red-Herring Pit Density ({{pit_density}}%)
+              <vue-slider v-model="pit_density" :min=0 :max=50 :disabled="!decoy_pits">
+              </vue-slider>
+            </label>
+
+          </div>
+            <h5 class="mt-4 col-12">Toggles</h5>
+            <div class="col-6 col-md-4 col-xl-3">
+              <input class="form-control" v-model="no_fragile" id="no_fragile" type="checkbox" />
+              <label for="no_fragile">  No Fragile Blocks  </label>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+              <input class="form-control" v-model="pits" id="pits" type="checkbox" />
+              <label for="pits"> Use Pits in solution</label>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+              <input class="form-control" v-model="decoy_pits" id="decoy_pits" type="checkbox" />
+              <label for="decoy_pits"> Use Pits to avoid</label>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+              <input class="form-control" v-model="decoy_orbs" id="decoy_orbs" type="checkbox" />
+              <label for="decoy_orbs"> Use Extra Orb </label>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+              <input class="form-control" v-model="decoy_bombs" id="decoy_bombs" type="checkbox" />
+              <label for="decoy_bombs"> Use Bombs to Avoid </label>
+            </div>
+
+            <div class="col-6 col-md-4 col-xl-3">
+              <input class="form-control" v-model="bombs" id="bombs" type="checkbox" />
+              <label for="bombs"> Use Bombs in solution</label>
+            </div>
+
+            <div class="col-6 col-md-4 col-xl-3">
+              <input class="form-control" v-model="decoy_portals" id="decoy_portals" type="checkbox" />
+              <label for="decoy_portals"> Use Portals to Avoid </label>
+            </div>
+
+            <div class="col-6 col-md-4 col-xl-3">
+              <input class="form-control" v-model="portals" id="portals" type="checkbox" />
+              <label for="portals"> Use Portals in solution</label>
+            </div>
+
+            <div class="text-center col-12 p-4">
+              <button class="btn-primary btn" v-on:click="play()">
+                Generate Puzzle
+              </button>
+            </div>
+        </div>
+      </div>
+    </div>
+</div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  /*
+    if(navigator.onLine){
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+       for(let registration of registrations) {
+        registration.unregister()
+      } })
+    }
+    navigator.serviceWorker.register('sw.js', {scope: './'}).then(function(registration) {
+      // Registration was successful
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }, function(err) {
+      // registration failed :(
+      console.log('ServiceWorker registration failed: ', err);
+    });
+    */
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        //returns installed service workers
+        if (registrations.length) {
+          for(let registration of registrations) {
+            alert("Purge", "If you this in production, I am sorry");
+            registration.unregister();
+          }
+        }
+      });
+    }
+}
+</script>
+
+<script src="js/settings.js"></script>
