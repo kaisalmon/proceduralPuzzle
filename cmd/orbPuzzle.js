@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const lodash_1 = __importDefault(require("lodash"));
 const puzzleState_1 = __importDefault(require("./puzzleState"));
 var Tile;
 (function (Tile) {
@@ -36,11 +35,6 @@ var OrbMove;
     OrbMove["RightBomb"] = "Right, into a bomb";
     OrbMove["Shatter"] = "Shatter";
 })(OrbMove = exports.OrbMove || (exports.OrbMove = {}));
-function randInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-}
 class Orb {
     constructor(x, y) {
         this.index = -1;
@@ -61,8 +55,8 @@ class Orb {
 }
 exports.Orb = Orb;
 class OrbPuzzle extends puzzleState_1.default {
-    constructor(width, height) {
-        super();
+    constructor(width, height, seed) {
+        super(seed);
         this.criticalTiles = [];
         this.use_crystals = false;
         this.use_pits = false;
@@ -312,8 +306,8 @@ class OrbPuzzle extends puzzleState_1.default {
         if (this.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
             throw "Crystals already present";
         }
-        for (var i = 0; i < randInt(1, 4); i++) {
-            let coord = lodash_1.default.sample(this.criticalTiles);
+        for (var i = 0; i < this.randInt(1, 4); i++) {
+            let coord = this.sample(this.criticalTiles);
             if (coord) {
                 if (this.getTile(coord.x, coord.y) == Tile.Empty) {
                     this.grid[coord.x][coord.y] = Tile.Crystal;
@@ -321,8 +315,8 @@ class OrbPuzzle extends puzzleState_1.default {
             }
         }
         for (var i = 0; i < Math.min(this.height, this.width); i++) {
-            let x = randInt(0, this.width);
-            let y = randInt(0, this.height);
+            let x = this.randInt(0, this.width);
+            let y = this.randInt(0, this.height);
             if (this.getTile(x, y) == Tile.Empty) {
                 this.grid[x][y] = Tile.Crystal;
             }
@@ -361,7 +355,7 @@ class OrbPuzzle extends puzzleState_1.default {
                 positions.push({ x, y });
             }
         }
-        let p = lodash_1.default.sample(positions);
+        let p = this.sample(positions);
         if (!p)
             throw "No valid bomb locations";
         this.setTile(p.x, p.y, Tile.Bomb);
@@ -374,10 +368,10 @@ class OrbPuzzle extends puzzleState_1.default {
                     continue;
                 if (this.getTile(create_x, create_y) !== Tile.Empty)
                     continue;
-                if (Math.random() > 0.3) {
+                if (this.random() > 0.3) {
                     this.setTile(create_x, create_y, Tile.Brick);
                 }
-                else if (Math.random() > 0.3) {
+                else if (this.random() > 0.3) {
                     if (this.use_fragile) {
                         this.setTile(create_x, create_y, Tile.Fragile);
                     }
@@ -410,7 +404,7 @@ class OrbPuzzle extends puzzleState_1.default {
                     possibleCoords.push(coord);
                 }
             }
-            let pit = lodash_1.default.sample(possibleCoords);
+            let pit = this.sample(possibleCoords);
             if (!pit) {
                 throw "No pit locations";
             }
@@ -440,7 +434,7 @@ class OrbPuzzle extends puzzleState_1.default {
             if (!state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox - vec[0], oy - vec[1]) !== Tile.Bomb) {
                 mags.push(0);
             }
-            let mag = lodash_1.default.sample(mags);
+            let mag = this.sample(mags);
             if (mag === undefined) {
                 throw "No options";
             }
@@ -478,7 +472,7 @@ class OrbPuzzle extends puzzleState_1.default {
             if (this.hasPortals()) {
                 throw "Already has a portal pair";
             }
-            let b = lodash_1.default.sample(haveMoved);
+            let b = this.sample(haveMoved);
             if (b) {
                 state.grid[b.x][b.y] = Tile.Portal;
                 let possibleCoords = [];
@@ -489,7 +483,7 @@ class OrbPuzzle extends puzzleState_1.default {
                         }
                     }
                 }
-                let portal = lodash_1.default.sample(possibleCoords);
+                let portal = this.sample(possibleCoords);
                 if (!portal) {
                     throw "No portal locations possible";
                 }
@@ -505,7 +499,7 @@ class OrbPuzzle extends puzzleState_1.default {
                         break;
                     }
                 }
-                let mag = lodash_1.default.sample(mags);
+                let mag = this.sample(mags);
                 if (!mag) {
                     throw "No where to enter portal from (Shouldn't happen)";
                 }
@@ -570,7 +564,7 @@ class OrbPuzzle extends puzzleState_1.default {
         if (this.use_crystals) {
             moves.push(OrbMove.Shatter);
         }
-        if (this.use_portals && !this.hasPortals() && randInt(0, 3) == 0) {
+        if (this.use_portals && !this.hasPortals() && this.randInt(0, 3) == 0) {
             moves.push(OrbMove.UpPortal);
             moves.push(OrbMove.RightPortal);
             moves.push(OrbMove.LeftPortal);

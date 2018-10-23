@@ -183,10 +183,10 @@ jquery_1.default(document).ready(() => {
             'play': function () {
                 let qstring = window.location.href.match(/\?.*|$/);
                 let base = window.location.pathname;
-                if (base.indexOf("index.html") === -1) {
-                    base += "/index.html";
+                if (base.indexOf("levelselect.html") === -1) {
+                    base += "/levelselect.html";
                 }
-                window.location.href = base.replace("index", "game") + qstring;
+                window.location.href = base.replace("levelselect", "game") + qstring;
             }
         }
     });

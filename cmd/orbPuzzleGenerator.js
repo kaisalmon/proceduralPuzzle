@@ -13,11 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const orbPuzzle_1 = require("./orbPuzzle");
 const jquery_1 = __importDefault(require("jquery"));
-function randInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-}
 function load_level(fn) {
     return __awaiter(this, void 0, void 0, function* () {
         let json = yield jquery_1.default.getJSON("levels/" + fn);
@@ -52,48 +47,48 @@ function from_json(json, solve = true, maxDepth) {
 exports.from_json = from_json;
 function createOrbPuzzle(args) {
     return __awaiter(this, void 0, void 0, function* () {
-        let p = new orbPuzzle_1.OrbPuzzle(args.size, args.size);
+        let p = new orbPuzzle_1.OrbPuzzle(args.size, args.size, args.seed);
         for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
-            let x = randInt(0, p.width);
-            let y = randInt(0, p.height);
+            let x = p.randInt(0, p.width);
+            let y = p.randInt(0, p.height);
             p.grid[x][y] = orbPuzzle_1.Tile.Fragile;
         }
         for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
-            let x = randInt(0, p.width);
-            let y = randInt(0, p.height);
+            let x = p.randInt(0, p.width);
+            let y = p.randInt(0, p.height);
             p.grid[x][y] = orbPuzzle_1.Tile.Brick;
         }
         if (args.decoy_pits) {
             for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
-                let x = randInt(0, p.width);
-                let y = randInt(0, p.height);
+                let x = p.randInt(0, p.width);
+                let y = p.randInt(0, p.height);
                 p.grid[x][y] = orbPuzzle_1.Tile.Pit;
             }
         }
         let bomb_density = 3;
         if (args.decoy_bombs) {
             for (let i = 0; i < p.width * p.height / 100 * bomb_density; i++) {
-                let x = randInt(0, p.width);
-                let y = randInt(0, p.height);
+                let x = p.randInt(0, p.width);
+                let y = p.randInt(0, p.height);
                 p.grid[x][y] = orbPuzzle_1.Tile.Bomb;
             }
         }
         if (args.decoy_portals) {
             for (let i = 0; i < 2; i++) {
-                let x = randInt(0, p.width);
-                let y = randInt(0, p.height);
+                let x = p.randInt(0, p.width);
+                let y = p.randInt(0, p.height);
                 p.grid[x][y] = orbPuzzle_1.Tile.Portal;
             }
         }
         if (args.decoy_orbs) {
-            let x = randInt(0, p.width);
-            let y = randInt(0, p.height);
+            let x = p.randInt(0, p.width);
+            let y = p.randInt(0, p.height);
             p.grid[x][y] = orbPuzzle_1.Tile.Empty;
             p.orbs.push(new orbPuzzle_1.Orb(x, y));
         }
         for (let i = 0; i < args.orbs; i++) {
-            let x = randInt(0, p.width);
-            let y = randInt(0, p.height);
+            let x = p.randInt(0, p.width);
+            let y = p.randInt(0, p.height);
             p.grid[x][y] = orbPuzzle_1.Tile.Target;
             p.orbs.push(new orbPuzzle_1.Orb(x, y));
         }
@@ -149,6 +144,7 @@ function createOrbPuzzle(args) {
             }
         }
         console.log(">>>", stack[0][0]);
+        console.log("successful seed", p.seed);
         return [stack[0], solution];
     });
 }

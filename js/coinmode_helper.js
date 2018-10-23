@@ -1,7 +1,7 @@
 var iframe_server_url;
-iframe_server_url = "https://iframe.coinmode.com";
-//iframe_server_url = "http://localhost:8080/?game_id=91#/";
-//iframe_server_url = "http://localhost:18080/?game_id=91#/";
+//iframe_server_url = "https://iframe.coinmode.com";
+iframe_server_url = "http://localhost:8080";
+//iframe_server_url = "http://localhost:18080";
 
 
 function CoinMode( params, options )
@@ -48,6 +48,13 @@ function CoinMode( params, options )
 		iframe = document.getElementById( coinmode_iframe_id );
 		if( iframe == null )
 		{
+			if (( this.params.game_id == null ) ||
+				( this.params.game_id == "" ) )
+			{
+				alert("ERROR: The game developer needs to have set their game_id parameter in 'new CoinMode( { game_id:??? } )' to open this iFrame correctly.  The game_id value must match the value as supplied by the CoinMode portal for the game developers account." );
+				return;
+			}
+			var url_of_iframe = iframe_server_url + "?game_id=" + this.params.game_id + "#/";
 			create_iframe( iframe_server_url );
 		}
 

@@ -1,14 +1,12 @@
-import _ from "lodash";
-
 function sleep(ms:number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-function randInt(min: number, max: number): number {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
-}
+
+
 abstract class PuzzleState<MOVE>{
+  seed: number;
+  random: ()=>number;
+  randInt: (min: number, max: number)=>number;
   abstract toString(): string;
   abstract hashString(): string;
   abstract apply(move: MOVE): PuzzleState<MOVE>;
@@ -20,6 +18,34 @@ abstract class PuzzleState<MOVE>{
   abstract getHeuristic(): number;
   abstract getReverseMoves(): MOVE[];
 
+  constructor(seed:number = Math.floor(Math.random()*1000000)){
+    this.set_seed(seed);
+  }
+
+  set_seed(s: number){
+      this.seed = s;
+      var m_w  = s;
+      var m_z  = 987654321;
+      var mask = 0xffffffff;
+      this.random = function() {
+        m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+        m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+        var result = ((m_z << 16) + m_w) & mask;
+        result /= 4294967296;
+
+        return result + 0.5;
+      }
+      this.randInt = function(min: number, max: number): number {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(this.random() * (max - min)) + min;
+      }
+  }
+
+  sample<T>(arr:T[]): T{
+    let i = this.randInt(0, arr.length);
+    return arr[i];
+  }
   async solve(maxDepth?:number): Promise<[PuzzleState<MOVE>[], MOVE[]] | null>{
     interface Edge{
         from: StateEntry,
@@ -40,7 +66,7 @@ abstract class PuzzleState<MOVE>{
 
 
     while(Object.keys(openList).length > 0){
-      if(Math.random() < 0.01){
+      if(this.random() < 0.01){
         await sleep(0);
       };
 
@@ -113,7 +139,7 @@ abstract class PuzzleState<MOVE>{
     if(curDepth==1){
     }
     try{
-      if(Math.random() < 0.002){
+      if(this.random() < 0.002){
         await sleep(0);
       }
       if(!solutionMap){
@@ -255,7 +281,7 @@ abstract class PuzzleState<MOVE>{
           if (bad_states.indexOf(p.hashString()) === -1) {
             bad_states.push(p.hashString())
           }
-          let to_remove = randInt(1, stack.length-1);
+          let to_remove = this.randInt(1, stack.length-1);
           for(var i = 0; i < to_remove; i++){
             stack.pop()
             moves.pop()
@@ -265,7 +291,7 @@ abstract class PuzzleState<MOVE>{
           }
 
         } else {
-          let next = _.sample(nexts);
+          let next = this.sample(nexts);
           if (!next) {
             throw "No valid options"
           }

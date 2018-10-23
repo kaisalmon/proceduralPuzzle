@@ -140,7 +140,11 @@ $(document).ready(() => {
       let decoy_orbs: boolean = params['decoy_orbs'] == "true";
       let decoy_bombs: boolean = params['decoy_bombs'] == "true";
       let decoy_portals: boolean = params['decoy_portals'] == "true";
-      let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs, decoy_portals};
+      let seed:number|undefined = parseInt(params['seed']);
+      if(isNaN(seed)){
+        seed=undefined;
+      }
+      let args =  {seed, size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs, decoy_portals};
       stack = await create_level(args)
       if(!stack){return}
     }

@@ -1,4 +1,3 @@
-import _ from "lodash";
 import PuzzleState from './puzzleState'
 
 export enum Tile {
@@ -31,13 +30,6 @@ export enum OrbMove {
   RightBomb = "Right, into a bomb",
   Shatter = "Shatter",
 }
-
-function randInt(min: number, max: number): number {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
 
 export class Orb {
   x: number;
@@ -87,8 +79,8 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
   use_fragile: boolean = false;
   no_basic: boolean = false;
 
-  constructor(width: number, height: number) {
-    super();
+  constructor(width: number, height: number, seed?:number) {
+    super(seed);
     this.width = width;
     this.height = height;
     this.grid = [];
@@ -343,8 +335,8 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     if (this.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
       throw "Crystals already present"
     }
-    for (var i = 0; i < randInt(1, 4); i++) {
-      let coord = _.sample(this.criticalTiles);
+    for (var i = 0; i < this.randInt(1, 4); i++) {
+      let coord = this.sample(this.criticalTiles);
       if (coord) {
         if (this.getTile(coord.x, coord.y) == Tile.Empty) {
           this.grid[coord.x][coord.y] = Tile.Crystal;
@@ -352,8 +344,8 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       }
     }
     for (var i = 0; i < Math.min(this.height, this.width); i++) {
-      let x = randInt(0, this.width)
-      let y = randInt(0, this.height)
+      let x = this.randInt(0, this.width)
+      let y = this.randInt(0, this.height)
       if (this.getTile(x, y) == Tile.Empty) {
         this.grid[x][y] = Tile.Crystal;
       }
@@ -393,7 +385,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         positions.push({x, y});
       }
     }
-    let p = _.sample(positions);
+    let p = this.sample(positions);
     if(!p) throw "No valid bomb locations"
     this.setTile(p.x, p.y, Tile.Bomb);
     this.orbs.push(new Orb(p.x + vec[0], p.y + vec[1]));
@@ -403,9 +395,9 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         if(create_x == p.x && create_y == p.y)continue;
         if(this.any_orb_at(create_x, create_y))continue;
         if(this.getTile(create_x, create_y) !== Tile.Empty)continue;
-        if(Math.random() > 0.3){
+        if(this.random() > 0.3){
           this.setTile(create_x, create_y, Tile.Brick);
-        }else if(Math.random() > 0.3){
+        }else if(this.random() > 0.3){
           if(this.use_fragile){
             this.setTile(create_x, create_y, Tile.Fragile);
           }else{
@@ -442,7 +434,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         }
       }
 
-      let pit = _.sample(possibleCoords);
+      let pit = this.sample(possibleCoords);
       if (!pit) {
         throw "No pit locations";
       }
@@ -473,7 +465,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         mags.push(0)
       }
 
-      let mag = _.sample(mags)
+      let mag = this.sample(mags)
       if (mag === undefined) {
         throw "No options"
       }
@@ -513,7 +505,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         throw "Already has a portal pair"
       }
 
-      let b = _.sample(haveMoved);
+      let b = this.sample(haveMoved);
       if (b) {
         state.grid[b.x][b.y] = Tile.Portal;
 
@@ -526,7 +518,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
           }
         }
 
-        let portal = _.sample(possibleCoords);
+        let portal = this.sample(possibleCoords);
         if (!portal) {
           throw "No portal locations possible";
         }
@@ -541,7 +533,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
             break;
           }
         }
-        let mag = _.sample(mags);
+        let mag = this.sample(mags);
         if (!mag) {
           throw "No where to enter portal from (Shouldn't happen)"
         }
@@ -606,7 +598,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     if (this.use_crystals) {
       moves.push(OrbMove.Shatter)
     }
-    if (this.use_portals && !this.hasPortals() && randInt(0, 3) == 0) {
+    if (this.use_portals && !this.hasPortals() && this.randInt(0, 3) == 0) {
       moves.push(OrbMove.UpPortal)
       moves.push(OrbMove.RightPortal)
       moves.push(OrbMove.LeftPortal)

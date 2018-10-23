@@ -1,13 +1,8 @@
 import {OrbPuzzle, Orb, Tile, OrbMove} from './orbPuzzle'
 import $ from 'jquery'
 
-function randInt(min: number, max: number): number {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
 export interface puzzleConfig {
+    seed?:number,
     size: number;
     fragile: boolean;
     orbs: number;
@@ -69,21 +64,21 @@ export async function from_json(json:OrbPuzzleJson, solve:boolean = true, maxDep
 
 export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], OrbMove[]]> {
 
-      let p = new OrbPuzzle(args.size, args.size)
+      let p = new OrbPuzzle(args.size, args.size, args.seed)
       for (let i = 0; i < p.width * p.height / 100 * args.fragile_brick_density; i++) {
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
+        let x = p.randInt(0, p.width);
+        let y = p.randInt(0, p.height);
         p.grid[x][y] = Tile.Fragile;
       }
       for (let i = 0; i < p.width * p.height / 100 * args.brick_density; i++) {
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
+        let x = p.randInt(0, p.width);
+        let y = p.randInt(0, p.height);
         p.grid[x][y] = Tile.Brick;
       }
       if(args.decoy_pits){
           for (let i = 0; i < p.width * p.height / 100 * args.pit_density; i++) {
-          let x = randInt(0, p.width);
-          let y = randInt(0, p.height);
+          let x = p.randInt(0, p.width);
+          let y = p.randInt(0, p.height);
           p.grid[x][y] = Tile.Pit;
         }
       }
@@ -91,30 +86,30 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       let bomb_density = 3;
       if(args.decoy_bombs){
         for (let i = 0; i < p.width * p.height / 100 * bomb_density; i++) {
-          let x = randInt(0, p.width);
-          let y = randInt(0, p.height);
+          let x = p.randInt(0, p.width);
+          let y = p.randInt(0, p.height);
           p.grid[x][y] = Tile.Bomb;
         }
       }
       if(args.decoy_portals){
         for (let i = 0; i < 2; i++) {
-          let x = randInt(0, p.width);
-          let y = randInt(0, p.height);
+          let x = p.randInt(0, p.width);
+          let y = p.randInt(0, p.height);
           p.grid[x][y] = Tile.Portal;
         }
       }
 
       if(args.decoy_orbs){
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
+        let x = p.randInt(0, p.width);
+        let y = p.randInt(0, p.height);
         p.grid[x][y] = Tile.Empty;
         p.orbs.push(new Orb(x, y))
       }
 
 
       for (let i = 0; i < args.orbs; i++) {
-        let x = randInt(0, p.width);
-        let y = randInt(0, p.height);
+        let x = p.randInt(0, p.width);
+        let y = p.randInt(0, p.height);
         p.grid[x][y] = Tile.Target
         p.orbs.push(new Orb(x, y))
       }
@@ -126,7 +121,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
       p.use_portals = args.portals;
 
       let stack = p.getStack(args.depth)
-
+      
       //var t0 = performance.now();
       let solutionResult = await stack[0][0].solve(args.depth);
       //var t1 = performance.now();
@@ -175,5 +170,6 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
         }
       }
       console.log(">>>", stack[0][0])
+      console.log("successful seed", p.seed);
       return [stack[0] as OrbPuzzle[], solution]
     }

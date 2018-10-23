@@ -18,6 +18,24 @@
     "decoy_orbs": false,
     "decoy_portals":false
   },
+  "challenge":{
+    "size": 8,
+    "orbs":2,
+    "brick_density": 10,
+    "pit_density": 0,
+    "fragile_brick_density": 10,
+    "depth":6,
+    "mindepth":5,
+    "fragile": true,
+    "crystal": false,
+    "pits": false,
+    "bombs":true,
+    "portals":false,
+    "decoy_pits":false,
+    "decoy_bombs":true,
+    "decoy_orbs": false,
+    "decoy_portals":false
+  },
   "1":{
     "fn":"intro_1.json"
   },
