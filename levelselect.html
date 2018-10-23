@@ -32,9 +32,11 @@ html, #settings{
   }
   #settings{
     position: absolute;
-    transform: translateY(-50%);
-    top: 50%;
-    max-height: 100vh;
+  transform: translate(-50%,0);
+  /* top: 50%; */
+  left: 50%;
+  min-height: 100vh;
+  max-width: 1000px;
   }
   .vue-slider-component .vue-slider-tooltip{
     opacity: 0;
@@ -102,6 +104,9 @@ html, #settings{
   color:white;
   opacity: 0.7;
 }
+.icon-tray .fa{
+  margin: 3px;
+}
 .fade-enter-active, .fade-leave-active {
   transition: transform .5s;
   transform-origin: top;
@@ -117,8 +122,8 @@ html, #settings{
 }
 </style>
 
-<div  id="settings" class="container-fluid">
-  <div class="row m-3">
+<div  id="settings" class="container-fluid row">
+  <div class="row m-3 col-12">
     <div class="col-xl-1"></div>
     <div class="col-12 col-xl-10">
       <h1 class="text-center">Arcane Orbs</h1>
@@ -136,7 +141,8 @@ html, #settings{
                 <i class="fa fa-star" v-if="l.fn"></i>
                 <i class="fa fa-random" v-if="!l.fn"></i>
                 <i class="fa fa-bomb" v-if="l.bombs || l.decoy_bombs"></i>
-                <i class="fa fa-thumbs-up" v-if="l.replay && !l.repeat"></i>
+                <i class="fa fa-dot-circle" v-if="l.portals || l.decoy_portals"></i>
+                <!---<i class="fa fa-thumbs-up" v-if="l.replay && !l.repeat"></i> ----->
               </div>
             </div>
           </div>
