@@ -1083,7 +1083,7 @@ class OrbPuzzle extends puzzleState_1.default {
             }
         }
     }
-    reverse(move) {
+    reverse(move, retcon) {
         let state = this.clone();
         if (move == OrbMove.Shatter) {
             return state.reverseShatter();
@@ -1120,7 +1120,7 @@ class OrbPuzzle extends puzzleState_1.default {
             if (state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox, oy) != Tile.Pit) {
                 if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty) {
                     if (!state.use_fragile) {
-                        throw "No Fragile supported";
+                        //    throw "No Fragile supported"
                     }
                 }
             }
@@ -1153,10 +1153,21 @@ class OrbPuzzle extends puzzleState_1.default {
             }
             if (state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox, oy) != Tile.Pit) {
                 if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty) {
-                    if (!state.use_fragile) {
-                        throw "No Fragile supported";
+                    if (state.use_fragile) {
+                        state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile;
                     }
-                    state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile;
+                    else {
+                        if (state.criticalTiles.some((t) => t.x === ox - vec[0] && t.y === oy - vec[1])) {
+                            throw "Would need to retcon a brick along critical path";
+                        }
+                        retcon((future_state) => {
+                            if (future_state.grid[ox - vec[0]][oy - vec[1]] !== Tile.Empty) {
+                                throw "Would need to retcon a brick over non empty tile";
+                            }
+                            future_state.grid[ox - vec[0]][oy - vec[1]] = Tile.Brick;
+                        });
+                        state.grid[ox - vec[0]][oy - vec[1]] = Tile.Brick;
+                    }
                 }
                 else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target) {
                     throw "Would need to put fragile block on target";
@@ -1742,27 +1753,40 @@ class PuzzleState {
                 let nexts = [];
                 for (let move of p.getReverseMoves()) {
                     try {
-                        let next = p.reverse(move);
+                        let retcons = [];
+                        function clone_with_retcons(o) {
+                            let result = o.clone();
+                            for (let r of retcons) {
+                                r(result);
+                            }
+                            ;
+                            return result;
+                        }
+                        let next = p.reverse(move, (retcon) => {
+                            retcons.push(retcon);
+                        });
                         if (!next.isValid()) {
                             throw "Invalid state";
                         }
-                        if (nexts.some(m => m[0].hashString() == next.hashString())) {
+                        if (nexts.some(m => clone_with_retcons(m[0]).hashString() == next.hashString())) {
                             console.error("Pointless move");
                             throw "Pointless Move";
                         }
-                        if (next.apply(move).hashString() != p.hashString()) {
+                        let retconned_p = clone_with_retcons(p);
+                        if (next.apply(move).hashString() != retconned_p.hashString()) {
                             throw {
                                 "name": "ImportantError",
                                 "message": "Reversing move and applying move have different results",
                                 "starting-point": next,
                                 "a": next.apply(move),
-                                "b": p,
+                                "b": retconned_p,
                                 "a-hash": next.apply(move).hashString(),
-                                "b-hash": p.hashString(),
-                                "move": move
+                                "b-hash": retconned_p.hashString(),
+                                "move": move,
+                                "starting-point-hash": next.hashString()
                             };
                         }
-                        nexts.push([next, move]);
+                        nexts.push([next, move, retcons]);
                     }
                     catch (e) {
                         if (debug || e.name === "ImportantError") {
@@ -1796,8 +1820,13 @@ class PuzzleState {
                     if (!next) {
                         throw "No valid options";
                     }
-                    stack.push(next[0]);
                     moves.push(next[1]);
+                    for (let future_state of stack) {
+                        for (let r of next[2]) {
+                            r(future_state);
+                        }
+                    }
+                    stack.push(next[0]);
                 }
             }
             return [stack.reverse(), moves.reverse()];
