@@ -12,7 +12,8 @@ abstract class PuzzleState<MOVE>{
   abstract toString(): string;
   abstract hashString(): string;
   abstract apply(move: MOVE): PuzzleState<MOVE>;
-  abstract reverse(move: MOVE): PuzzleState<MOVE>;
+  abstract clone(): PuzzleState<MOVE>;
+  abstract reverse(move: MOVE, retcon:(f:(p:PuzzleState<MOVE>)=>void)=>void): PuzzleState<MOVE>;
   abstract isValid(): boolean;
   abstract isSolved(): boolean;
   abstract isFailed(): boolean;
@@ -212,32 +213,45 @@ abstract class PuzzleState<MOVE>{
 
         let p = stack[stack.length - 1]
 
-        let nexts: [PuzzleState<MOVE>, MOVE][] = [];
+        let nexts: [PuzzleState<MOVE>, MOVE, ((o:PuzzleState<MOVE>)=>void)[]][] = [];
         for (let move of p.getReverseMoves()) {
           try {
-            let next = p.reverse(move);
+            let retcons:((o:PuzzleState<MOVE>)=>void)[] = []
+            function clone_with_retcons(o:PuzzleState<MOVE>): PuzzleState<MOVE>{
+              let result = o.clone();
+              for(let r of retcons){
+                r(result)
+              };
+              return result;
+            }
+            let next = p.reverse(move, (retcon)=>{
+              retcons.push(retcon)
+            });
+
             if (!next.isValid()) {
               throw "Invalid state"
             }
-            if (nexts.some(m => m[0].hashString() == next.hashString())) {
+            if (nexts.some(m => clone_with_retcons(m[0]).hashString() == next.hashString())) {
               console.error("Pointless move")
               throw "Pointless Move"
             }
-            if (next.apply(move).hashString() != p.hashString()) {
+            let retconned_p = clone_with_retcons(p);
+            if (next.apply(move).hashString() != retconned_p.hashString()) {
               throw {
                 "name": "FatalError",
                 "message": "Reversing move and applying move have different results",
                 "starting-point": next,
                 "a": next.apply(move),
-                "b": p,
+                "b": retconned_p,
                 "a-hash": next.apply(move).hashString(),
-                "b-hash": p.hashString(),
-                "move": move
+                "b-hash": retconned_p.hashString(),
+                "move": move,
+                "starting-point-hash": next.hashString()
               }
             }
-            nexts.push([next, move])
+            nexts.push([next, move, retcons])
           } catch (e) {
-            if (debug) {
+            if (true) {
               console.error(e)
             }
             if (e.name == "FatalError") {
@@ -269,8 +283,13 @@ abstract class PuzzleState<MOVE>{
           if (!next) {
             throw "No valid options"
           }
-          stack.push(next[0])
           moves.push(next[1])
+          for(let future_state of stack){
+            for(let r of next[2]){
+              r(future_state)
+            }
+          }
+          stack.push(next[0])
         }
       }
       return [stack.reverse(), moves.reverse()]

@@ -416,7 +416,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     }
   }
 
-  reverse(move: OrbMove): OrbPuzzle {
+  reverse(move: OrbMove, retcon:(f:(o:OrbPuzzle)=>void)=>void): OrbPuzzle {
     let state = this.clone();
     if (move == OrbMove.Shatter) {
       return state.reverseShatter();
@@ -458,7 +458,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       if (state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox, oy) != Tile.Pit) {
         if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty) {
           if (!state.use_fragile) {
-            throw "No Fragile supported"
+        //    throw "No Fragile supported"
           }
         }
       }
@@ -493,10 +493,20 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
 
       if (state.isPassable(ox - vec[0], oy - vec[1]) && state.getTile(ox, oy) != Tile.Pit) {
         if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Empty) {
-          if (!state.use_fragile) {
-            throw "No Fragile supported"
+          if (state.use_fragile) {
+            state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile;
+          }else{
+            if(state.criticalTiles.some((t)=>t.x === ox - vec[0] && t.y === oy - vec[1])){
+              throw "Would need to retcon a brick along critical path"
+            }
+            retcon((future_state: OrbPuzzle)=>{
+              if(future_state.grid[ox - vec[0]][oy - vec[1]] !== Tile.Empty){
+                throw "Would need to retcon a brick over non empty tile"
+              }
+              future_state.grid[ox - vec[0]][oy - vec[1]] = Tile.Brick;
+            })
+            state.grid[ox - vec[0]][oy - vec[1]] = Tile.Brick;
           }
-          state.grid[ox - vec[0]][oy - vec[1]] = Tile.Fragile;
         } else if (state.getTile(ox - vec[0], oy - vec[1]) == Tile.Target) {
           throw "Would need to put fragile block on target";
         }

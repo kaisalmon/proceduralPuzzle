@@ -192,30 +192,43 @@ class PuzzleState {
                 let nexts = [];
                 for (let move of p.getReverseMoves()) {
                     try {
-                        let next = p.reverse(move);
+                        let retcons = [];
+                        function clone_with_retcons(o) {
+                            let result = o.clone();
+                            for (let r of retcons) {
+                                r(result);
+                            }
+                            ;
+                            return result;
+                        }
+                        let next = p.reverse(move, (retcon) => {
+                            retcons.push(retcon);
+                        });
                         if (!next.isValid()) {
                             throw "Invalid state";
                         }
-                        if (nexts.some(m => m[0].hashString() == next.hashString())) {
+                        if (nexts.some(m => clone_with_retcons(m[0]).hashString() == next.hashString())) {
                             console.error("Pointless move");
                             throw "Pointless Move";
                         }
-                        if (next.apply(move).hashString() != p.hashString()) {
+                        let retconned_p = clone_with_retcons(p);
+                        if (next.apply(move).hashString() != retconned_p.hashString()) {
                             throw {
                                 "name": "FatalError",
                                 "message": "Reversing move and applying move have different results",
                                 "starting-point": next,
                                 "a": next.apply(move),
-                                "b": p,
+                                "b": retconned_p,
                                 "a-hash": next.apply(move).hashString(),
-                                "b-hash": p.hashString(),
-                                "move": move
+                                "b-hash": retconned_p.hashString(),
+                                "move": move,
+                                "starting-point-hash": next.hashString()
                             };
                         }
-                        nexts.push([next, move]);
+                        nexts.push([next, move, retcons]);
                     }
                     catch (e) {
-                        if (debug) {
+                        if (true) {
                             console.error(e);
                         }
                         if (e.name == "FatalError") {
@@ -246,8 +259,13 @@ class PuzzleState {
                     if (!next) {
                         throw "No valid options";
                     }
-                    stack.push(next[0]);
                     moves.push(next[1]);
+                    for (let future_state of stack) {
+                        for (let r of next[2]) {
+                            r(future_state);
+                        }
+                    }
+                    stack.push(next[0]);
                 }
             }
             return [stack.reverse(), moves.reverse()];
