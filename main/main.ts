@@ -4,6 +4,7 @@ import swal from 'sweetalert2'
 import { OrbPuzzle, Tile, OrbMove} from './orbPuzzle'
 import {animatedParticlesFromElement, setUpExplosions } from './explosion'
 import { createOrbPuzzle as createPuzzle, load_level, puzzleConfig} from './orbPuzzleGenerator'
+import SFX from './sound';
 
 function delay(ms: number): Promise<void>{
     return new Promise( resolve => setTimeout(resolve, ms) );
@@ -272,7 +273,10 @@ async function move_orbs(n: number = 0){
           $(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition)
           $(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + '))')
           if (b.last_moves.length > 0 && (b.last_moves[0].mag.x != 0 || b.last_moves[0].mag.y != 0)) {
-            $(e).removeClass('orb--on-target');
+            if($(e).hasClass('orb--on-target')){
+              $(e).removeClass('orb--on-target');
+              if(abs_mag > 0) SFX['leave-goal'].play();
+            }
           }
 
           await delay(wait_time * 1000)
@@ -290,10 +294,12 @@ async function move_orbs(n: number = 0){
 
           if (board.getTile(movement.to.x, movement.to.y) == Tile.Target) {
             $(e).addClass('orb--on-target');
+            if(abs_mag > 0) SFX['hit-goal'].play();
           }
           if (b.in_pit) {
             await delay(100)
             $(e).addClass('orb--in-pit');
+            if(abs_mag > 0) SFX['hit-pit'].play();
             $(e).removeClass('orb--on-target');
             $(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + ')) scale(0.7)')
           } else {
@@ -301,9 +307,16 @@ async function move_orbs(n: number = 0){
           }
           if (movement.last_contact) {
             let t = board.getTile(movement.last_contact.x, movement.last_contact.y)
+            if(!t){
+              if(abs_mag > 0) SFX['hit-wall'].play();
+            }
+            if(t == Tile.Brick){
+              if(abs_mag > 0) SFX['hit-wall'].play();
+            }
             let $t = $tiles[movement.last_contact.x][movement.last_contact.y]
-            if ($t) {
+            if ($t && $t.parent()) {
               if($t.hasClass('tile--fragile') && t == Tile.Empty){
+                if(abs_mag > 0) SFX['hit-fragile'].play();
                 $t.addClass('animated');
                 if (movement.last_contact.x > movement.to.x)
                     $t.addClass('fadeOutRight')
@@ -314,13 +327,21 @@ async function move_orbs(n: number = 0){
                 else if (movement.last_contact.y > movement.to.y)
                     $t.addClass('fadeOutDown')
                 setTimeout(() => {
-                  if($t)
-                    $t.remove
+                  if (movement.last_contact) {
+                    let $b = $tiles[movement.last_contact.x][movement.last_contact.y];
+                    if($b){
+                      $b.remove()
+                      $b.removeClass('tile--fragile')
+                      $b.addClass('DELETED')
+                    }
+                  }
                 }, 1000)
               }else if($t.hasClass('tile--bomb')){
                   $t.addClass('animated');
                   $t.addClass('lit shake')
               }
+            }else if(t ===Tile.Empty){
+              if(abs_mag > 0) SFX['hit-orb'].play();
             }
           }
         }
@@ -338,6 +359,8 @@ async function move_orbs(n: number = 0){
     }
     return t;
   }, 0) * 100;
+
+  SFX['roll'].playFor(time/1000);
   await delay(time)
   return time > 0;
 }
@@ -396,6 +419,7 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
             if(ls.player_progress < next_level){
               ls.player_progress++;
             }
+            SFX["ui-victory"].play();
             swal({
               title: "You win!",
               type: "success",

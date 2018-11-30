@@ -17,6 +17,7 @@ const sweetalert2_1 = __importDefault(require("sweetalert2"));
 const orbPuzzle_1 = require("./orbPuzzle");
 const explosion_1 = require("./explosion");
 const orbPuzzleGenerator_1 = require("./orbPuzzleGenerator");
+const sound_1 = __importDefault(require("./sound"));
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -291,7 +292,11 @@ function move_orbs(n = 0) {
                             jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
                             jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + '))');
                             if (b.last_moves.length > 0 && (b.last_moves[0].mag.x != 0 || b.last_moves[0].mag.y != 0)) {
-                                jquery_1.default(e).removeClass('orb--on-target');
+                                if (jquery_1.default(e).hasClass('orb--on-target')) {
+                                    jquery_1.default(e).removeClass('orb--on-target');
+                                    if (abs_mag > 0)
+                                        sound_1.default['leave-goal'].play();
+                                }
                             }
                             yield delay(wait_time * 1000);
                             if (!movement.instant) {
@@ -306,10 +311,14 @@ function move_orbs(n = 0) {
                             }
                             if (board.getTile(movement.to.x, movement.to.y) == orbPuzzle_1.Tile.Target) {
                                 jquery_1.default(e).addClass('orb--on-target');
+                                if (abs_mag > 0)
+                                    sound_1.default['hit-goal'].play();
                             }
                             if (b.in_pit) {
                                 yield delay(100);
                                 jquery_1.default(e).addClass('orb--in-pit');
+                                if (abs_mag > 0)
+                                    sound_1.default['hit-pit'].play();
                                 jquery_1.default(e).removeClass('orb--on-target');
                                 jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + ')) scale(0.7)');
                             }
@@ -318,9 +327,19 @@ function move_orbs(n = 0) {
                             }
                             if (movement.last_contact) {
                                 let t = board.getTile(movement.last_contact.x, movement.last_contact.y);
+                                if (!t) {
+                                    if (abs_mag > 0)
+                                        sound_1.default['hit-wall'].play();
+                                }
+                                if (t == orbPuzzle_1.Tile.Brick) {
+                                    if (abs_mag > 0)
+                                        sound_1.default['hit-wall'].play();
+                                }
                                 let $t = $tiles[movement.last_contact.x][movement.last_contact.y];
-                                if ($t) {
+                                if ($t && $t.parent()) {
                                     if ($t.hasClass('tile--fragile') && t == orbPuzzle_1.Tile.Empty) {
+                                        if (abs_mag > 0)
+                                            sound_1.default['hit-fragile'].play();
                                         $t.addClass('animated');
                                         if (movement.last_contact.x > movement.to.x)
                                             $t.addClass('fadeOutRight');
@@ -331,14 +350,24 @@ function move_orbs(n = 0) {
                                         else if (movement.last_contact.y > movement.to.y)
                                             $t.addClass('fadeOutDown');
                                         setTimeout(() => {
-                                            if ($t)
-                                                $t.remove;
+                                            if (movement.last_contact) {
+                                                let $b = $tiles[movement.last_contact.x][movement.last_contact.y];
+                                                if ($b) {
+                                                    $b.remove();
+                                                    $b.removeClass('tile--fragile');
+                                                    $b.addClass('DELETED');
+                                                }
+                                            }
                                         }, 1000);
                                     }
                                     else if ($t.hasClass('tile--bomb')) {
                                         $t.addClass('animated');
                                         $t.addClass('lit shake');
                                     }
+                                }
+                                else if (t === orbPuzzle_1.Tile.Empty) {
+                                    if (abs_mag > 0)
+                                        sound_1.default['hit-orb'].play();
                                 }
                             }
                         }
@@ -356,6 +385,7 @@ function move_orbs(n = 0) {
             }
             return t;
         }, 0) * 100;
+        sound_1.default['roll'].playFor(time / 1000);
         yield delay(time);
         return time > 0;
     });
@@ -411,6 +441,7 @@ function apply_move(move) {
                             if (ls.player_progress < next_level) {
                                 ls.player_progress++;
                             }
+                            sound_1.default["ui-victory"].play();
                             sweetalert2_1.default({
                                 title: "You win!",
                                 type: "success",

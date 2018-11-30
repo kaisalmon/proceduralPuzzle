@@ -190,6 +190,7 @@ const sweetalert2_1 = __importDefault(require("sweetalert2"));
 const orbPuzzle_1 = require("./orbPuzzle");
 const explosion_1 = require("./explosion");
 const orbPuzzleGenerator_1 = require("./orbPuzzleGenerator");
+const sound_1 = __importDefault(require("./sound"));
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -464,7 +465,11 @@ function move_orbs(n = 0) {
                             jquery_1.default(e).css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
                             jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + '))');
                             if (b.last_moves.length > 0 && (b.last_moves[0].mag.x != 0 || b.last_moves[0].mag.y != 0)) {
-                                jquery_1.default(e).removeClass('orb--on-target');
+                                if (jquery_1.default(e).hasClass('orb--on-target')) {
+                                    jquery_1.default(e).removeClass('orb--on-target');
+                                    if (abs_mag > 0)
+                                        sound_1.default['leave-goal'].play();
+                                }
                             }
                             yield delay(wait_time * 1000);
                             if (!movement.instant) {
@@ -479,10 +484,14 @@ function move_orbs(n = 0) {
                             }
                             if (board.getTile(movement.to.x, movement.to.y) == orbPuzzle_1.Tile.Target) {
                                 jquery_1.default(e).addClass('orb--on-target');
+                                if (abs_mag > 0)
+                                    sound_1.default['hit-goal'].play();
                             }
                             if (b.in_pit) {
                                 yield delay(100);
                                 jquery_1.default(e).addClass('orb--in-pit');
+                                if (abs_mag > 0)
+                                    sound_1.default['hit-pit'].play();
                                 jquery_1.default(e).removeClass('orb--on-target');
                                 jquery_1.default(e).css('transform', 'translate(calc(var(--tsize) * ' + movement.to.x + '), calc(var(--tsize) * ' + movement.to.y + ')) scale(0.7)');
                             }
@@ -491,9 +500,19 @@ function move_orbs(n = 0) {
                             }
                             if (movement.last_contact) {
                                 let t = board.getTile(movement.last_contact.x, movement.last_contact.y);
+                                if (!t) {
+                                    if (abs_mag > 0)
+                                        sound_1.default['hit-wall'].play();
+                                }
+                                if (t == orbPuzzle_1.Tile.Brick) {
+                                    if (abs_mag > 0)
+                                        sound_1.default['hit-wall'].play();
+                                }
                                 let $t = $tiles[movement.last_contact.x][movement.last_contact.y];
-                                if ($t) {
+                                if ($t && $t.parent()) {
                                     if ($t.hasClass('tile--fragile') && t == orbPuzzle_1.Tile.Empty) {
+                                        if (abs_mag > 0)
+                                            sound_1.default['hit-fragile'].play();
                                         $t.addClass('animated');
                                         if (movement.last_contact.x > movement.to.x)
                                             $t.addClass('fadeOutRight');
@@ -504,14 +523,24 @@ function move_orbs(n = 0) {
                                         else if (movement.last_contact.y > movement.to.y)
                                             $t.addClass('fadeOutDown');
                                         setTimeout(() => {
-                                            if ($t)
-                                                $t.remove;
+                                            if (movement.last_contact) {
+                                                let $b = $tiles[movement.last_contact.x][movement.last_contact.y];
+                                                if ($b) {
+                                                    $b.remove();
+                                                    $b.removeClass('tile--fragile');
+                                                    $b.addClass('DELETED');
+                                                }
+                                            }
                                         }, 1000);
                                     }
                                     else if ($t.hasClass('tile--bomb')) {
                                         $t.addClass('animated');
                                         $t.addClass('lit shake');
                                     }
+                                }
+                                else if (t === orbPuzzle_1.Tile.Empty) {
+                                    if (abs_mag > 0)
+                                        sound_1.default['hit-orb'].play();
                                 }
                             }
                         }
@@ -529,6 +558,7 @@ function move_orbs(n = 0) {
             }
             return t;
         }, 0) * 100;
+        sound_1.default['roll'].playFor(time / 1000);
         yield delay(time);
         return time > 0;
     });
@@ -584,6 +614,7 @@ function apply_move(move) {
                             if (ls.player_progress < next_level) {
                                 ls.player_progress++;
                             }
+                            sound_1.default["ui-victory"].play();
                             sweetalert2_1.default({
                                 title: "You win!",
                                 type: "success",
@@ -698,7 +729,7 @@ function create_board(board) {
     return $tiles;
 }
 
-},{"./explosion":2,"./orbPuzzle":4,"./orbPuzzleGenerator":5,"hammerjs":7,"jquery":8,"sweetalert2":9}],4:[function(require,module,exports){
+},{"./explosion":2,"./orbPuzzle":4,"./orbPuzzleGenerator":5,"./sound":7,"hammerjs":8,"jquery":9,"sweetalert2":10}],4:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1538,7 +1569,7 @@ function createOrbPuzzle(args) {
 }
 exports.createOrbPuzzle = createOrbPuzzle;
 
-},{"./orbPuzzle":4,"jquery":8}],6:[function(require,module,exports){
+},{"./orbPuzzle":4,"jquery":9}],6:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1839,6 +1870,73 @@ class PuzzleState {
 exports.default = PuzzleState;
 
 },{}],7:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const PATH = "assets/sounds/";
+const seffects = {
+    "bomb": ["AO_gameplay_bomb.wav"],
+    "hit-fragile": ["AO_gameplay_break.wav"],
+    "hit-goal": ["AO_gameplay_orb_hit_goal.wav"],
+    "hit-orb": ["AO_gameplay_orb_hit_orb.wav"],
+    "hit-pit": ["AO_gameplay_orb_hit_pit.wav"],
+    "hit-wall": [
+        "AO_gameplay_orb_hit_wall_01.wav",
+        "AO_gameplay_orb_hit_wall_02.wav",
+        "AO_gameplay_orb_hit_wall_03.wav",
+        "AO_gameplay_orb_hit_wall_04.wav",
+        "AO_gameplay_orb_hit_wall_05.wav",
+        "AO_gameplay_orb_hit_wall_06.wav"
+    ],
+    "leave-goal": ["AO_gameplay_orb_leave_goal.wav"],
+    "roll": [
+        "AO_gameplay_orb_roll_01.wav",
+        "AO_gameplay_orb_roll_02.wav",
+        "AO_gameplay_orb_roll_03.wav",
+        "AO_gameplay_orb_roll_04.wav",
+        "AO_gameplay_orb_roll_05.wav",
+        "AO_gameplay_orb_roll_06.wav"
+    ],
+    "swipe": [
+        "AO_gameplay_swipe_01.wav",
+        "AO_gameplay_swipe_02.wav",
+        "AO_gameplay_swipe_03.wav",
+        "AO_gameplay_swipe_04.wav"
+    ],
+    "teleport": ["AO_gameplay_teleport.wav"],
+    "ui-pop": ["AO_ui_pop.wav"],
+    "ui-select": ["AO_ui_select.wav"],
+    "ui-victory": ["AO_ui_victorypop.wav"]
+};
+class SEffect {
+    constructor(files) {
+        this.audios = files.map(fn => {
+            let a = new Audio(PATH + fn);
+            a.volume = 0.1;
+            return a;
+        });
+    }
+    play() {
+        //TODO: Do not repeat if possible
+        const i = Math.floor(Math.random() * this.audios.length);
+        let s = this.audios[i];
+        s.currentTime = 0;
+        s.play();
+        return this.audios[i];
+    }
+    playFor(seconds) {
+        let s = this.play();
+        setTimeout(() => {
+            s.pause();
+        }, seconds * 1000);
+    }
+}
+let S_EFFECTS = {};
+for (let n in seffects) {
+    S_EFFECTS[n] = new SEffect(seffects[n]);
+}
+exports.default = S_EFFECTS;
+
+},{}],8:[function(require,module,exports){
 /*! Hammer.JS - v2.0.7 - 2016-04-22
  * http://hammerjs.github.io/
  *
@@ -4483,7 +4581,7 @@ if (typeof define === 'function' && define.amd) {
 
 })(window, document, 'Hammer');
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -14849,7 +14947,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
 * sweetalert2 v7.26.10
 * Released under the MIT License.
