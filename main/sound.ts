@@ -1,6 +1,8 @@
 import $ from 'jquery'
-
+declare const lowLag:any;
 const PATH = "assets/sounds/";
+lowLag.init({'urlPrefix':PATH});
+
 const seffects: { [name: string]: string[] } = {
   "bomb": ["AO_gameplay_bomb.mp3"],
   "hit-fragile": ["AO_gameplay_break.mp3"],
@@ -36,17 +38,30 @@ const seffects: { [name: string]: string[] } = {
   "ui-victory": ["AO_ui_victorypop.mp3"]
 };
 
+interface sound {
+  play: () => any,
+  pause: () => any,
+  currentTime: number
+}
+
 class SEffect {
-  audios: HTMLAudioElement[];
+  audios: sound[];
   constructor(files: string[]) {
     this.audios = files.map(fn => {
-      let a = new Audio(PATH + fn)
-      a.volume = 0.1;
-      return a;
+      lowLag.load(fn, fn);
+      return {
+        currentTime: 0, //TODO: FIX SO THIS EITHER ISN'T NEEDED OR WORKS
+        play: ()=>{
+          lowLag.play(fn);
+        },
+        pause: ()=>{
+          lowLag.pause(fn);
+        }
+      }
     });
   }
 
-  async play(): Promise<HTMLAudioElement> {
+  async play(): Promise<sound> {
     //TODO: Do not repeat if possible
     const i = Math.floor(Math.random() * this.audios.length)
     let s = this.audios[i];

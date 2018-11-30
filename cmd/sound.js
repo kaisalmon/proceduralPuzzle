@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const jquery_1 = __importDefault(require("jquery"));
 const PATH = "assets/sounds/";
+lowLag.init({ 'urlPrefix': PATH });
 const seffects = {
     "bomb": ["AO_gameplay_bomb.mp3"],
     "hit-fragile": ["AO_gameplay_break.mp3"],
@@ -50,9 +51,16 @@ const seffects = {
 class SEffect {
     constructor(files) {
         this.audios = files.map(fn => {
-            let a = new Audio(PATH + fn);
-            a.volume = 0.1;
-            return a;
+            lowLag.load(fn, fn);
+            return {
+                currentTime: 0,
+                play: () => {
+                    lowLag.play(fn);
+                },
+                pause: () => {
+                    lowLag.pause(fn);
+                }
+            };
         });
     }
     play() {
