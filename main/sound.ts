@@ -1,3 +1,5 @@
+import $ from 'jquery'
+
 const PATH = "assets/sounds/";
 const seffects: { [name: string]: string[] } = {
   "bomb": ["AO_gameplay_bomb.wav"],
@@ -35,8 +37,8 @@ const seffects: { [name: string]: string[] } = {
 };
 
 class SEffect {
-  audios:HTMLAudioElement[];
-  constructor(files:string[]){
+  audios: HTMLAudioElement[];
+  constructor(files: string[]) {
     this.audios = files.map(fn => {
       let a = new Audio(PATH + fn)
       a.volume = 0.1;
@@ -44,24 +46,28 @@ class SEffect {
     });
   }
 
-  play(): HTMLAudioElement{
+  async play(): Promise<HTMLAudioElement> {
     //TODO: Do not repeat if possible
-    const i  = Math.floor(Math.random()*this.audios.length)
+    const i = Math.floor(Math.random() * this.audios.length)
     let s = this.audios[i];
     s.currentTime = 0;
-    s.play();
+    await s.play();
     return this.audios[i];
   }
-  playFor(seconds: number){
-    let s = this.play();
-    setTimeout(()=>{
-      s.pause();
-    }, seconds*1000);
+  playFor(seconds: number) {
+    this.play().then((s) => {
+      setTimeout(() => {
+        s.pause();
+      }, seconds * 1000);
+    });
   }
 }
 
-let S_EFFECTS:{[name:string]: SEffect} = {};
-for(let n in seffects){
+let S_EFFECTS: { [name: string]: SEffect } = {};
+for (let n in seffects) {
   S_EFFECTS[n] = new SEffect(seffects[n]);
 }
+$(document).one( "click", "*", function() {
+  S_EFFECTS["ui-select"].playFor(0);
+});
 export default S_EFFECTS;
