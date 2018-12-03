@@ -85,7 +85,9 @@ function createOrbPuzzle(args) {
                 let x = p.randInt(0, p.width);
                 let y = p.randInt(0, p.height);
                 p.grid[x][y] = orbPuzzle_1.Tile.Empty;
-                p.orbs.push(new orbPuzzle_1.Orb(x, y));
+                let o = new orbPuzzle_1.Orb(x, y);
+                o.decoy = true;
+                p.orbs.push(o);
             }
             for (let i = 0; i < args.orbs; i++) {
                 let x = p.randInt(0, p.width);

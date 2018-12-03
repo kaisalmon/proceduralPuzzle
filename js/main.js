@@ -454,6 +454,7 @@ function move_orbs(n = 0) {
                                     if (!$t.hasClass('fadeOut')) {
                                         jquery_1.default(e).css('opacity', '');
                                         delay(200);
+                                        sound_1.default['portal-out'].play();
                                         explosion_1.animatedParticlesFromElement($t, ['#931eaf', '#372f39', '#3a1f41'], 7, 15);
                                         $t.addClass('fadeOut').remove();
                                     }
@@ -477,6 +478,7 @@ function move_orbs(n = 0) {
                                 if ($t && $t.hasClass('tile--portal')) {
                                     if (!$t.hasClass('fadeOut')) {
                                         jquery_1.default(e).css('opacity', 0);
+                                        sound_1.default['portal-in'].play();
                                         explosion_1.animatedParticlesFromElement($t, ['#931eaf', '#372f39', '#3a1f41'], 7, 15);
                                         $t.addClass('fadeOut').remove();
                                     }
@@ -500,15 +502,13 @@ function move_orbs(n = 0) {
                             }
                             if (movement.last_contact) {
                                 let t = board.getTile(movement.last_contact.x, movement.last_contact.y);
-                                if (!t) {
-                                    if (abs_mag > 0)
-                                        sound_1.default['hit-wall'].play();
-                                }
-                                if (t == orbPuzzle_1.Tile.Brick) {
-                                    if (abs_mag > 0)
-                                        sound_1.default['hit-wall'].play();
-                                }
-                                let $t = $tiles[movement.last_contact.x][movement.last_contact.y];
+                                if (abs_mag > 0 && !t)
+                                    sound_1.default['hit-wall'].play();
+                                let $t = $tiles[movement.last_contact.x] ?
+                                    $tiles[movement.last_contact.x][movement.last_contact.y]
+                                    : undefined;
+                                if (abs_mag > 0 && (!$t || !$t.hasClass("portal")))
+                                    sound_1.default['hit-wall'].play();
                                 if ($t && $t.parent()) {
                                     if ($t.hasClass('tile--fragile') && t == orbPuzzle_1.Tile.Empty) {
                                         if (abs_mag > 0)
@@ -533,8 +533,9 @@ function move_orbs(n = 0) {
                                             }
                                         }, 1000);
                                     }
-                                    else if ($t.hasClass('tile--bomb')) {
+                                    else if ($t.hasClass('tile--bomb') && t == orbPuzzle_1.Tile.Empty) {
                                         $t.addClass('animated');
+                                        sound_1.default['hit-bomb'].play();
                                         $t.addClass('lit shake');
                                     }
                                 }
@@ -565,6 +566,7 @@ function move_orbs(n = 0) {
 }
 function apply_move(move) {
     return __awaiter(this, void 0, void 0, function* () {
+        sound_1.default['swipe'].play();
         if (board.isSolved()) {
             return;
         }
@@ -588,6 +590,7 @@ function apply_move(move) {
                     }
                     if ($t && t == orbPuzzle_1.Tile.Empty && $t.hasClass('lit')) {
                         $t.addClass('fadeOut');
+                        sound_1.default['bomb'].play();
                         explosion_1.animatedParticlesFromElement($t);
                         moving = true;
                         setTimeout(() => {
@@ -663,9 +666,6 @@ function create_board(board) {
         for (let y = 0; y < board.height; y++) {
             let t = board.getTile(x, y);
             let layer = "upper";
-            if (t == orbPuzzle_1.Tile.Empty) {
-                continue;
-            }
             let tileName = 'brick';
             let html = '';
             if (t == orbPuzzle_1.Tile.Target) {
@@ -690,6 +690,10 @@ function create_board(board) {
                 tileName = 'pit';
                 layer = "lower";
             }
+            if (t == orbPuzzle_1.Tile.Empty) {
+                tileName = 'empty';
+                layer = "lower";
+            }
             let $tw = jquery_1.default('<div/>')
                 .addClass('tile-wrapper')
                 .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles')
@@ -699,6 +703,11 @@ function create_board(board) {
                 .addClass('tile--' + tileName)
                 .appendTo($tw)
                 .html(html);
+            /*
+            if(board.criticalTiles.find(ct => ct.x == x && ct.y == y)){
+              $t.addClass("tile__critical");
+            }
+            */
             $tiles[x][y] = $t;
         }
     }
@@ -1500,7 +1509,9 @@ function createOrbPuzzle(args) {
                 let x = p.randInt(0, p.width);
                 let y = p.randInt(0, p.height);
                 p.grid[x][y] = orbPuzzle_1.Tile.Empty;
-                p.orbs.push(new orbPuzzle_1.Orb(x, y));
+                let o = new orbPuzzle_1.Orb(x, y);
+                o.decoy = true;
+                p.orbs.push(o);
             }
             for (let i = 0; i < args.orbs; i++) {
                 let x = p.randInt(0, p.width);
@@ -1885,54 +1896,51 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const jquery_1 = __importDefault(require("jquery"));
 const PATH = "assets/sounds/";
-lowLag.init({ 'urlPrefix': PATH });
 const seffects = {
-    "bomb": ["AO_gameplay_bomb.mp3"],
-    "hit-fragile": ["AO_gameplay_break.mp3"],
-    "hit-goal": ["AO_gameplay_orb_hit_goal.mp3"],
-    "hit-orb": ["AO_gameplay_orb_hit_orb.mp3"],
-    "hit-pit": ["AO_gameplay_orb_hit_pit.mp3"],
+    "hit-fragile": ["AO_gameplay_break.ogg"],
+    "hit-goal": ["AO_gameplay_orb_hit_goal.ogg"],
+    "hit-orb": ["AO_gameplay_orb_hit_orb.ogg"],
+    "hit-bomb": ["AO_gameplay_bomb_fizz.ogg"],
+    "hit-pit": ["AO_gameplay_orb_hit_pit.ogg"],
     "hit-wall": [
-        "AO_gameplay_orb_hit_wall_01.mp3",
-        "AO_gameplay_orb_hit_wall_02.mp3",
-        "AO_gameplay_orb_hit_wall_03.mp3",
-        "AO_gameplay_orb_hit_wall_04.mp3",
-        "AO_gameplay_orb_hit_wall_05.mp3",
-        "AO_gameplay_orb_hit_wall_06.mp3"
+        "AO_gameplay_orb_hit_wall_light_01.ogg",
+        "AO_gameplay_orb_hit_wall_light_02.ogg",
+        "AO_gameplay_orb_hit_wall_light_03.ogg",
+        "AO_gameplay_orb_hit_wall_light_04.ogg",
+        "AO_gameplay_orb_hit_wall_light_05.ogg",
+        "AO_gameplay_orb_hit_wall_light_06.ogg"
     ],
-    "leave-goal": ["AO_gameplay_orb_leave_goal.mp3"],
+    "leave-goal": ["AO_gameplay_orb_leave_goal.ogg"],
+    "bomb": ["AO_gameplay_bomb.ogg"],
     "roll": [
-        "AO_gameplay_orb_roll_01.mp3",
-        "AO_gameplay_orb_roll_02.mp3",
-        "AO_gameplay_orb_roll_03.mp3",
-        "AO_gameplay_orb_roll_04.mp3",
-        "AO_gameplay_orb_roll_05.mp3",
-        "AO_gameplay_orb_roll_06.mp3"
+        "AO_gameplay_orb_roll_01.ogg",
+        "AO_gameplay_orb_roll_02.ogg",
+        "AO_gameplay_orb_roll_03.ogg",
+        "AO_gameplay_orb_roll_04.ogg",
+        "AO_gameplay_orb_roll_05.ogg",
+        "AO_gameplay_orb_roll_06.ogg"
     ],
     "swipe": [
-        "AO_gameplay_swipe_01.mp3",
-        "AO_gameplay_swipe_02.mp3",
-        "AO_gameplay_swipe_03.mp3",
-        "AO_gameplay_swipe_04.mp3"
+        "AO_gameplay_quickswipe_01.ogg",
+        "AO_gameplay_quickswipe_02.ogg",
+        "AO_gameplay_quickswipe_03.ogg",
+        "AO_gameplay_quickswipe_04.ogg"
     ],
-    "teleport": ["AO_gameplay_teleport.mp3"],
-    "ui-pop": ["AO_ui_pop.mp3"],
-    "ui-select": ["AO_ui_select.mp3"],
-    "ui-victory": ["AO_ui_victorypop.mp3"]
+    "portal-in": ["AO_gameplay_teleport_in.ogg"],
+    "portal-out": ["AO_gameplay_teleport_out.ogg"],
+    "ui-pop": ["AO_ui_pop.ogg"],
+    "ui-select": ["AO_ui_select.ogg"],
+    "ui-victory": ["AO_ui_victorypop.ogg"]
+};
+const volumes = {
+    "swipe": 0.05
 };
 class SEffect {
-    constructor(files) {
+    constructor(files, name) {
         this.audios = files.map(fn => {
-            lowLag.load(fn, fn);
-            return {
-                currentTime: 0,
-                play: () => {
-                    lowLag.play(fn);
-                },
-                pause: () => {
-                    lowLag.pause(fn);
-                }
-            };
+            let a = new Audio(PATH + fn);
+            a.volume = volumes[name] || 1.0;
+            return a;
         });
     }
     play() {
@@ -1955,7 +1963,7 @@ class SEffect {
 }
 let S_EFFECTS = {};
 for (let n in seffects) {
-    S_EFFECTS[n] = new SEffect(seffects[n]);
+    S_EFFECTS[n] = new SEffect(seffects[n], n);
 }
 jquery_1.default(document).one("click", "*", function () {
     S_EFFECTS["ui-select"].playFor(0);

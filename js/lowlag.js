@@ -116,6 +116,8 @@ var lowLag = new function(){
 				this.msg("init audioTag");
 				this.load= this.loadSoundAudioTag;
 				this.play = this.playSoundAudioTag;
+
+				this.pause = this.playSoundAudioTag;
 			break;
 
 			case 'sm2':
@@ -347,7 +349,7 @@ this.audioContextPendingRequest = {};
 				},lowLag.audioTagTimeToLive);
 		}
 		cloneElem.play();
-
+		return cloneEnum;
 	}
 
 

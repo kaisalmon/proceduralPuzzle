@@ -262,6 +262,7 @@ async function move_orbs(n: number = 0){
               if(!$t.hasClass('fadeOut')){
                 $(e).css('opacity', '')
                 delay(200)
+                SFX['portal-out'].play();
                 animatedParticlesFromElement($t, ['#931eaf', '#372f39', '#3a1f41'],7,15)
                 $t.addClass('fadeOut').remove()
               }
@@ -286,6 +287,7 @@ async function move_orbs(n: number = 0){
             if($t && $t.hasClass('tile--portal')){
               if(!$t.hasClass('fadeOut')){
                 $(e).css('opacity', 0)
+                SFX['portal-in'].play();
                 animatedParticlesFromElement($t, ['#931eaf', '#372f39', '#3a1f41'],7,15)
                 $t.addClass('fadeOut').remove()
               }
@@ -306,14 +308,15 @@ async function move_orbs(n: number = 0){
             $(e).removeClass('orb--in-pit');
           }
           if (movement.last_contact) {
+
             let t = board.getTile(movement.last_contact.x, movement.last_contact.y)
-            if(!t){
-              if(abs_mag > 0) SFX['hit-wall'].play();
-            }
-            if(t == Tile.Brick){
-              if(abs_mag > 0) SFX['hit-wall'].play();
-            }
-            let $t = $tiles[movement.last_contact.x][movement.last_contact.y]
+            if(abs_mag > 0 && !t) SFX['hit-wall'].play();
+            let $t = $tiles[movement.last_contact.x] ?
+                        $tiles[movement.last_contact.x][movement.last_contact.y]
+                        : undefined
+
+            if(abs_mag > 0 && (!$t || !$t.hasClass("portal"))) SFX['hit-wall'].play();
+
             if ($t && $t.parent()) {
               if($t.hasClass('tile--fragile') && t == Tile.Empty){
                 if(abs_mag > 0) SFX['hit-fragile'].play();
@@ -336,8 +339,9 @@ async function move_orbs(n: number = 0){
                     }
                   }
                 }, 1000)
-              }else if($t.hasClass('tile--bomb')){
+              }else if($t.hasClass('tile--bomb') && t == Tile.Empty){
                   $t.addClass('animated');
+                  SFX['hit-bomb'].play();
                   $t.addClass('lit shake')
               }
             }else if(t ===Tile.Empty){
@@ -366,6 +370,7 @@ async function move_orbs(n: number = 0){
 }
 
 async function apply_move(move: OrbMove | undefined): Promise<void> {
+  SFX['swipe'].play();
   if(board.isSolved()){
     return;
   }
@@ -391,6 +396,7 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
         }
         if ($t && t == Tile.Empty && $t.hasClass('lit')) {
           $t.addClass('fadeOut')
+          SFX['bomb'].play();
           animatedParticlesFromElement($t);
           moving = true;
           setTimeout(() => {
@@ -470,9 +476,6 @@ function create_board(board: OrbPuzzle): (JQuery|undefined)[][] {
     for (let y = 0; y < board.height; y++) {
       let t = board.getTile(x, y)
       let layer: "upper" | "lower" = "upper";
-      if (t == Tile.Empty) {
-        continue;
-      }
       let tileName = 'brick';
       let html = '';
       if (t == Tile.Target) {
@@ -497,6 +500,10 @@ function create_board(board: OrbPuzzle): (JQuery|undefined)[][] {
         tileName = 'pit';
         layer = "lower";
       }
+      if (t == Tile.Empty) {
+        tileName = 'empty';
+        layer = "lower";
+      }
       let $tw = $('<div/>')
         .addClass('tile-wrapper')
         .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles')
@@ -506,6 +513,11 @@ function create_board(board: OrbPuzzle): (JQuery|undefined)[][] {
         .addClass('tile--' + tileName)
         .appendTo($tw)
         .html(html);
+      /*
+      if(board.criticalTiles.find(ct => ct.x == x && ct.y == y)){
+        $t.addClass("tile__critical");
+      }
+      */
       $tiles[x][y] = $t
     }
   }

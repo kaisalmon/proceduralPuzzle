@@ -1,5 +1,7 @@
 import $ from 'jquery'
+declare const lowLag:any;
 const PATH = "assets/sounds/";
+lowLag.init({'urlPrefix':PATH});
 
 const seffects: { [name: string]: string[] } = {
   "hit-fragile": ["AO_gameplay_break.ogg"],
@@ -26,10 +28,10 @@ const seffects: { [name: string]: string[] } = {
     "AO_gameplay_orb_roll_06.ogg"
   ],
   "swipe": [
-    "AO_gameplay_quickswipe_01.ogg",
-    "AO_gameplay_quickswipe_02.ogg",
-    "AO_gameplay_quickswipe_03.ogg",
-    "AO_gameplay_quickswipe_04.ogg"
+    "AO_gameplay_swipe_01.ogg",
+    "AO_gameplay_swipe_02.ogg",
+    "AO_gameplay_swipe_03.ogg",
+    "AO_gameplay_swipe_04.ogg"
   ],
   "portal-in": ["AO_gameplay_teleport_in.ogg"],
   "portal-out": ["AO_gameplay_teleport_out.ogg"],
@@ -37,10 +39,6 @@ const seffects: { [name: string]: string[] } = {
   "ui-select": ["AO_ui_select.ogg"],
   "ui-victory": ["AO_ui_victorypop.ogg"]
 };
-
-const volumes:{[name:string]: number} = {
-  "swipe": 0.05
-}
 
 interface sound {
   play: () => any,
@@ -50,11 +48,19 @@ interface sound {
 
 class SEffect {
   audios: sound[];
-  constructor(files: string[], name:string) {
+  tag: any;
+  constructor(files: string[]) {
     this.audios = files.map(fn => {
-      let a = new Audio(PATH+fn)
-      a.volume = volumes[name] || 1.0;
-      return a
+      lowLag.load(fn, fn);
+      return {
+        currentTime: 0, //TODO: FIX SO THIS EITHER ISN'T NEEDED OR WORKS
+        play: ()=>{
+          this.tag =  lowLag.play(fn);
+        },
+        pause: ()=>{
+          this.tag.pause();
+        }
+      }
     });
   }
 
@@ -77,7 +83,7 @@ class SEffect {
 
 let S_EFFECTS: { [name: string]: SEffect } = {};
 for (let n in seffects) {
-  S_EFFECTS[n] = new SEffect(seffects[n], n);
+  S_EFFECTS[n] = new SEffect(seffects[n]);
 }
 $(document).one( "click", "*", function() {
   S_EFFECTS["ui-select"].playFor(0);

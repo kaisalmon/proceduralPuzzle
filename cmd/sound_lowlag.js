@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const jquery_1 = __importDefault(require("jquery"));
 const PATH = "assets/sounds/";
+lowLag.init({ 'urlPrefix': PATH });
 const seffects = {
     "hit-fragile": ["AO_gameplay_break.ogg"],
     "hit-goal": ["AO_gameplay_orb_hit_goal.ogg"],
@@ -38,10 +39,10 @@ const seffects = {
         "AO_gameplay_orb_roll_06.ogg"
     ],
     "swipe": [
-        "AO_gameplay_quickswipe_01.ogg",
-        "AO_gameplay_quickswipe_02.ogg",
-        "AO_gameplay_quickswipe_03.ogg",
-        "AO_gameplay_quickswipe_04.ogg"
+        "AO_gameplay_swipe_01.ogg",
+        "AO_gameplay_swipe_02.ogg",
+        "AO_gameplay_swipe_03.ogg",
+        "AO_gameplay_swipe_04.ogg"
     ],
     "portal-in": ["AO_gameplay_teleport_in.ogg"],
     "portal-out": ["AO_gameplay_teleport_out.ogg"],
@@ -49,15 +50,19 @@ const seffects = {
     "ui-select": ["AO_ui_select.ogg"],
     "ui-victory": ["AO_ui_victorypop.ogg"]
 };
-const volumes = {
-    "swipe": 0.05
-};
 class SEffect {
-    constructor(files, name) {
+    constructor(files) {
         this.audios = files.map(fn => {
-            let a = new Audio(PATH + fn);
-            a.volume = volumes[name] || 1.0;
-            return a;
+            lowLag.load(fn, fn);
+            return {
+                currentTime: 0,
+                play: () => {
+                    this.tag = lowLag.play(fn);
+                },
+                pause: () => {
+                    this.tag.pause();
+                }
+            };
         });
     }
     play() {
@@ -80,10 +85,10 @@ class SEffect {
 }
 let S_EFFECTS = {};
 for (let n in seffects) {
-    S_EFFECTS[n] = new SEffect(seffects[n], n);
+    S_EFFECTS[n] = new SEffect(seffects[n]);
 }
 jquery_1.default(document).one("click", "*", function () {
     S_EFFECTS["ui-select"].playFor(0);
 });
 exports.default = S_EFFECTS;
-//# sourceMappingURL=sound.js.map
+//# sourceMappingURL=sound_lowlag.js.map

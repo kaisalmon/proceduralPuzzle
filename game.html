@@ -56,10 +56,10 @@ html, body{
       border: calc(var(--tsize) * 0.1) solid orange;
       filter: blur(calc(var(--tsize) * 0.1));
       transition: transform 0.5s ease-in, border 0.5s;
-      top: calc(var(--tsize) * 0.15);
-      left: calc(var(--tsize) * 0.15);
-      width: calc(var(--tsize) * 0.7);
-      height: calc(var(--tsize) * 0.7);
+      top: calc(var(--tsize) * 0.05);
+      left: calc(var(--tsize) * 0.05);
+      width: calc(var(--tsize) * 0.9);
+      height: calc(var(--tsize) * 0.9);
       border-radius: 100%;
       box-sizing:border-box;
       z-index: 2;
@@ -89,7 +89,10 @@ html, body{
         border: calc(var(--tsize) * 0.2) outset white;
         color: white;
     }
-
+    .tile__critical{
+      background:yellow;
+      border:red 1px solid;
+    }
     .tile--fragile {
       background: url(assets/cracked.png);
       background-size: cover;

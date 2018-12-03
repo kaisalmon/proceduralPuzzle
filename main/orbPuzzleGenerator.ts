@@ -103,7 +103,9 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
           let x = p.randInt(0, p.width);
           let y = p.randInt(0, p.height);
           p.grid[x][y] = Tile.Empty;
-          p.orbs.push(new Orb(x, y))
+          let o = new Orb(x, y);
+          o.decoy = true;
+          p.orbs.push(o)
         }
 
 

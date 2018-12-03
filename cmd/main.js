@@ -281,6 +281,7 @@ function move_orbs(n = 0) {
                                     if (!$t.hasClass('fadeOut')) {
                                         jquery_1.default(e).css('opacity', '');
                                         delay(200);
+                                        sound_1.default['portal-out'].play();
                                         explosion_1.animatedParticlesFromElement($t, ['#931eaf', '#372f39', '#3a1f41'], 7, 15);
                                         $t.addClass('fadeOut').remove();
                                     }
@@ -304,6 +305,7 @@ function move_orbs(n = 0) {
                                 if ($t && $t.hasClass('tile--portal')) {
                                     if (!$t.hasClass('fadeOut')) {
                                         jquery_1.default(e).css('opacity', 0);
+                                        sound_1.default['portal-in'].play();
                                         explosion_1.animatedParticlesFromElement($t, ['#931eaf', '#372f39', '#3a1f41'], 7, 15);
                                         $t.addClass('fadeOut').remove();
                                     }
@@ -327,15 +329,13 @@ function move_orbs(n = 0) {
                             }
                             if (movement.last_contact) {
                                 let t = board.getTile(movement.last_contact.x, movement.last_contact.y);
-                                if (!t) {
-                                    if (abs_mag > 0)
-                                        sound_1.default['hit-wall'].play();
-                                }
-                                if (t == orbPuzzle_1.Tile.Brick) {
-                                    if (abs_mag > 0)
-                                        sound_1.default['hit-wall'].play();
-                                }
-                                let $t = $tiles[movement.last_contact.x][movement.last_contact.y];
+                                if (abs_mag > 0 && !t)
+                                    sound_1.default['hit-wall'].play();
+                                let $t = $tiles[movement.last_contact.x] ?
+                                    $tiles[movement.last_contact.x][movement.last_contact.y]
+                                    : undefined;
+                                if (abs_mag > 0 && (!$t || !$t.hasClass("portal")))
+                                    sound_1.default['hit-wall'].play();
                                 if ($t && $t.parent()) {
                                     if ($t.hasClass('tile--fragile') && t == orbPuzzle_1.Tile.Empty) {
                                         if (abs_mag > 0)
@@ -360,8 +360,9 @@ function move_orbs(n = 0) {
                                             }
                                         }, 1000);
                                     }
-                                    else if ($t.hasClass('tile--bomb')) {
+                                    else if ($t.hasClass('tile--bomb') && t == orbPuzzle_1.Tile.Empty) {
                                         $t.addClass('animated');
+                                        sound_1.default['hit-bomb'].play();
                                         $t.addClass('lit shake');
                                     }
                                 }
@@ -392,6 +393,7 @@ function move_orbs(n = 0) {
 }
 function apply_move(move) {
     return __awaiter(this, void 0, void 0, function* () {
+        sound_1.default['swipe'].play();
         if (board.isSolved()) {
             return;
         }
@@ -415,6 +417,7 @@ function apply_move(move) {
                     }
                     if ($t && t == orbPuzzle_1.Tile.Empty && $t.hasClass('lit')) {
                         $t.addClass('fadeOut');
+                        sound_1.default['bomb'].play();
                         explosion_1.animatedParticlesFromElement($t);
                         moving = true;
                         setTimeout(() => {
@@ -490,9 +493,6 @@ function create_board(board) {
         for (let y = 0; y < board.height; y++) {
             let t = board.getTile(x, y);
             let layer = "upper";
-            if (t == orbPuzzle_1.Tile.Empty) {
-                continue;
-            }
             let tileName = 'brick';
             let html = '';
             if (t == orbPuzzle_1.Tile.Target) {
@@ -517,6 +517,10 @@ function create_board(board) {
                 tileName = 'pit';
                 layer = "lower";
             }
+            if (t == orbPuzzle_1.Tile.Empty) {
+                tileName = 'empty';
+                layer = "lower";
+            }
             let $tw = jquery_1.default('<div/>')
                 .addClass('tile-wrapper')
                 .appendTo(layer == "upper" ? '.upper-layer' : '.puzzles')
@@ -526,6 +530,11 @@ function create_board(board) {
                 .addClass('tile--' + tileName)
                 .appendTo($tw)
                 .html(html);
+            /*
+            if(board.criticalTiles.find(ct => ct.x == x && ct.y == y)){
+              $t.addClass("tile__critical");
+            }
+            */
             $tiles[x][y] = $t;
         }
     }
