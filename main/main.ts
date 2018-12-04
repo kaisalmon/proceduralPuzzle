@@ -5,6 +5,9 @@ import { OrbPuzzle, Tile, OrbMove} from './orbPuzzle'
 import {animatedParticlesFromElement, setUpExplosions } from './explosion'
 import { createOrbPuzzle as createPuzzle, load_level, puzzleConfig} from './orbPuzzleGenerator'
 import SFX from './sound';
+/*globals*/
+let player_made_move:boolean = false;
+let level_number:number|undefined = undefined;
 
 function delay(ms: number): Promise<void>{
     return new Promise( resolve => setTimeout(resolve, ms) );
@@ -104,6 +107,26 @@ async function create_level(args:puzzleConfig){
     }
 }
 
+function on_level_created():void{
+    setTimeout(()=>{
+      if(!player_made_move && level_number == 1){
+        $('.swipe-prompt-container').css('display', 'block');
+        setTimeout(()=>{
+          $('.swipe-prompt-container').css('opacity', '1');
+        }, 1000);
+      }
+    }, 2000)
+}
+function on_player_move():void{
+  if(!player_made_move){
+      player_made_move = true;
+     $('.swipe-prompt-container').css('opacity', '');
+     setTimeout(()=>{
+       $('.swipe-prompt-container').css('opacity', '');
+     }, 1000);
+  }
+}
+
 $(document).ready(() => {
   setUpExplosions();
   setTimeout(()=>{
@@ -115,6 +138,7 @@ $(document).ready(() => {
     let level = parseInt(params['level']);
     if(level){
       $("#level-info").text("Level "+level);
+      level_number = level;
       if(level_index === null){
         level_index = await $.getJSON("levels/level_index.json");
         if(!level_index){
@@ -231,6 +255,7 @@ $(document).ready(() => {
     })
 
 
+    on_level_created();
   })();
 
 })
@@ -383,6 +408,8 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
       let any_movement = await move_orbs(i);
       if(!any_movement){
         break
+      }else{
+        on_player_move();
       }
     }
     moving = false;

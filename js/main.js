@@ -191,6 +191,9 @@ const orbPuzzle_1 = require("./orbPuzzle");
 const explosion_1 = require("./explosion");
 const orbPuzzleGenerator_1 = require("./orbPuzzleGenerator");
 const sound_1 = __importDefault(require("./sound"));
+/*globals*/
+let player_made_move = false;
+let level_number = undefined;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -288,6 +291,25 @@ function create_level(args) {
         }
     });
 }
+function on_level_created() {
+    setTimeout(() => {
+        if (!player_made_move && level_number == 1) {
+            jquery_1.default('.swipe-prompt-container').css('display', 'block');
+            setTimeout(() => {
+                jquery_1.default('.swipe-prompt-container').css('opacity', '1');
+            }, 1000);
+        }
+    }, 2000);
+}
+function on_player_move() {
+    if (!player_made_move) {
+        player_made_move = true;
+        jquery_1.default('.swipe-prompt-container').css('opacity', '');
+        setTimeout(() => {
+            jquery_1.default('.swipe-prompt-container').css('opacity', '');
+        }, 1000);
+    }
+}
 jquery_1.default(document).ready(() => {
     explosion_1.setUpExplosions();
     setTimeout(() => {
@@ -300,6 +322,7 @@ jquery_1.default(document).ready(() => {
             let level = parseInt(params['level']);
             if (level) {
                 jquery_1.default("#level-info").text("Level " + level);
+                level_number = level;
                 if (level_index === null) {
                     level_index = yield jquery_1.default.getJSON("levels/level_index.json");
                     if (!level_index) {
@@ -422,6 +445,7 @@ jquery_1.default(document).ready(() => {
                     });
                 })();
             });
+            on_level_created();
         });
     })();
 });
@@ -578,6 +602,9 @@ function apply_move(move) {
                 let any_movement = yield move_orbs(i);
                 if (!any_movement) {
                     break;
+                }
+                else {
+                    on_player_move();
                 }
             }
             moving = false;

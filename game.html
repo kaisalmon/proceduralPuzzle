@@ -227,12 +227,57 @@ html, body{
         50% {transform:rotate(22.5deg) scale(0.8);}
         to {transform:rotate(45deg) scale(1);}
     }
+
+    html {
+  background-color:#eee;
+  height:100%;
+}
+
+.swipe-prompt-container {
+  position: fixed;
+  box-shadow: 0 0 50px 50px rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.8);
+  bottom:30%;
+  left:0%;
+  pointer-events: none;
+  position:absolute;
+  right:0%;
+  top:30%;
+  z-index: 5;
+  opacity: 0;
+  display: none;
+  transition: opacity 1s;
+}
+
+.hand {
+  animation:swipe 1s ease-in-out infinite;
+  color:#EEE;
+  font-size:100px;
+  height:100px;
+  left:calc(50% - 50px);
+  position:absolute;
+  top:calc(50% - 50px);
+  transform-origin:bottom;
+  width:100px;
+}
+
+@keyframes swipe {
+  0% {
+    transform:translate(-100%) rotate(-15deg);
+  }
+  100% {
+    transform:translate(100%) rotate(0deg);
+  }
+}
 </style>
 <script src="js/main.js" async></script>
 <noscript><h1>Your browser does not support JavaScript!</h1></noscript>
 <div id="level-info">
 </div>
 <canvas width="2000" height="2000"></canvas>
+<div class="swipe-prompt-container">
+  <i class="hand fas fa-hand-pointer"></i>
+</div>
 <div class="buttons">
   <!--
   <span class="fa-stack fa-lg">
