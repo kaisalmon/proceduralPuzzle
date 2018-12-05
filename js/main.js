@@ -811,6 +811,7 @@ class Orb {
         this.in_portal = false;
         this.exploded = false;
         this.last_moves = [];
+        this.reversed_move_count = 0;
         this.x = x;
         this.y = y;
     }
@@ -1208,6 +1209,7 @@ class OrbPuzzle extends puzzleState_1.default {
             }
             if (mag != 0) {
                 haveMoved.push(b);
+                b.reversed_move_count++;
             }
             b.x += vec[0] * mag;
             b.y += vec[1] * mag;
@@ -1576,6 +1578,9 @@ function createOrbPuzzle(args) {
             let board = stack[0][0];
             if (args.crystal && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Crystal))) {
                 throw "No crystals";
+            }
+            if (board.orbs.some(o => o.reversed_move_count === 0)) {
+                throw "At least one orb did not move";
             }
             if (args.depth > 2) {
                 if (args.pits && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Pit))) {

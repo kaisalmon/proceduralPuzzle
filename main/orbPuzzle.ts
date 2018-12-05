@@ -40,6 +40,7 @@ export class Orb {
   in_portal: boolean = false;
   exploded: boolean = false;
   last_moves: Movement[] = [];
+  reversed_move_count: number = 0;
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
@@ -471,6 +472,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       }
       if (mag != 0) {
         haveMoved.push(b)
+        b.reversed_move_count++;
       }
       b.x += vec[0] * mag
       b.y += vec[1] * mag

@@ -151,6 +151,9 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
         if (args.crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
           throw "No crystals"
         }
+        if(board.orbs.some(o => o.reversed_move_count === 0)){
+          throw "At least one orb did not move";
+        }
         if(args.depth > 2){
           if (args.pits && !board.grid.some(line => line.some(tile => tile == Tile.Pit))) {
             throw "No Pits"

@@ -43,6 +43,7 @@ class Orb {
         this.in_portal = false;
         this.exploded = false;
         this.last_moves = [];
+        this.reversed_move_count = 0;
         this.x = x;
         this.y = y;
     }
@@ -440,6 +441,7 @@ class OrbPuzzle extends puzzleState_1.default {
             }
             if (mag != 0) {
                 haveMoved.push(b);
+                b.reversed_move_count++;
             }
             b.x += vec[0] * mag;
             b.y += vec[1] * mag;
