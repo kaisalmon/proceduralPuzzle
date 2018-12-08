@@ -147,6 +147,9 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
           console.error("too short", solution.length, args.mindepth);
           throw "too short "
         }
+        if(new Set(solution).size === 1 && solution.length > 1){
+          throw "Only one move type"
+        }
         let board: OrbPuzzle = stack[0][0] as OrbPuzzle;
         if (args.crystal && !board.grid.some(line => line.some(tile => tile == Tile.Crystal))) {
           throw "No crystals"

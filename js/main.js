@@ -1575,6 +1575,9 @@ function createOrbPuzzle(args) {
                 console.error("too short", solution.length, args.mindepth);
                 throw "too short ";
             }
+            if (new Set(solution).size === 1 && solution.length > 1) {
+                throw "Only one move type";
+            }
             let board = stack[0][0];
             if (args.crystal && !board.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Crystal))) {
                 throw "No crystals";

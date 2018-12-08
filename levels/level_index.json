@@ -1,5 +1,5 @@
 {
-  "total_levels": 70,
+  "total_levels": 90,
   "default":{
     "size": 6,
     "orbs":1,
@@ -309,5 +309,111 @@
     "decoy_bombs":true,
     "mindepth": 6,
     "replay": true
+  },
+  "70":{
+    "pits": true,
+    "fn":"pit_tut_1.json"
+  },
+  "71":{
+    "pits": true,
+    "fn":"pit_tut_2.json"
+  },
+  "72":{
+    "size": 5,
+    "fragile":false,
+    "fragile_brick_density":0,
+    "brick_density":10,
+    "depth": 4,
+    "mindepth": 4,
+    "pits":true
+  },
+  "73":{
+    "size": 6,
+    "fragile":false,
+    "fragile_brick_density":0,
+    "brick_density":10,
+    "depth": 6,
+    "mindepth": 6,
+    "pits":true
+  },
+  "75":{
+    "size": 7,
+    "fragile":true,
+    "fragile_brick_density":5,
+    "brick_density":5,
+    "depth": 6,
+    "mindepth": 6,
+    "pits":true
+  },
+  "77":{
+    "size": 5,
+    "orbs":2,
+    "fragile":false,
+    "fragile_brick_density":0,
+    "brick_density":7,
+    "depth": 6,
+    "mindepth": 6,
+    "pits":true
+  },
+  "78":{
+    "size": 6,
+    "orbs":2,
+    "fragile":false,
+    "fragile_brick_density":0,
+    "brick_density":10,
+    "depth": 6,
+    "mindepth": 6,
+    "pits":true
+  },
+  "80":{
+    "size": 6,
+    "orbs":2,
+    "fragile":false,
+    "fragile_brick_density":0,
+    "brick_density":10,
+    "depth": 6,
+    "mindepth": 6,
+    "pits":true
+  },
+  "82":{
+    "size": 8,
+    "orbs":2,
+    "depth": 7,
+    "mindepth": 7,
+    "pits":true
+  },
+  "85":{
+    "size": 9,
+    "orbs":2,
+    "fragile":false,
+    "fragile_brick_density":0,
+    "brick_density":10,
+    "depth": 7,
+    "mindepth": 6,
+    "pit_density":10,
+    "decoy_pits": true
+  },
+  "86":{
+    "size": 9,
+    "orbs":2,
+    "fragile":false,
+    "fragile_brick_density":0,
+    "brick_density":10,
+    "depth": 7,
+    "mindepth": 6,
+    "pit_density":10,
+    "decoy_pits": true,
+    "pits": true
+  },
+  "88":{
+    "size": 7,
+    "orbs":3,
+    "fragile_brick_density": 2,
+    "brick_density": 6,
+    "depth": 8,
+    "mindepth": 8,
+    "pit_density": 6,
+    "decoy_pits": true,
+    "pits": true
   }
 }
