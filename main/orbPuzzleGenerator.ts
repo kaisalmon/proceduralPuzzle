@@ -1,5 +1,5 @@
 import {OrbPuzzle, Orb, Tile, OrbMove} from './orbPuzzle'
-import $ from 'jquery'
+import {tryUntilSuccess, localFetch} from './lib';
 
 export interface puzzleConfig {
     seed?:number,
@@ -33,12 +33,40 @@ interface OrbPuzzleJson{
   "width":number;
   "height":number;
 }
-
-export async function load_level(fn: string): Promise<[OrbPuzzle[], OrbMove[]]>{
-  let json = await $.getJSON("levels/"+fn);
-  let level = await from_json(json, false);
+export async function load_level_from_file(fn: string): Promise<[OrbPuzzle[], OrbMove[]]>{
+  let json = await localFetch("levels/"+fn);
+  let level = await from_json(json, true);
 
   return level
+}
+
+let level_index:{[l:number]:any, default:any}|null = null;
+export async function createLevel(level: number): Promise<[OrbPuzzle[], OrbMove[]]|undefined>{
+  let stack:[OrbPuzzle[], OrbMove[]]|undefined = undefined;
+  if(level_index === null){
+    level_index = await localFetch("levels/level_index.json");
+    if(!level_index){
+      throw "Couldn't load level index";
+    }
+  }
+  let level_data;
+  for(var i = 0; i<20; i++){
+    level_data = level_index[level]
+    if(level_data === undefined){
+      level--;
+    }
+  }
+  if(level_data === undefined){
+    throw "Level not found"
+  }
+  if(level_data.fn){
+    stack = await load_level_from_file(level_data.fn);
+  }else{
+    level_data = Object.assign({},level_index.default,  level_data)
+    stack = await tryUntilSuccess(createOrbPuzzle, level_data, false);
+    if(!stack){return}
+  }
+  return stack;
 }
 
 export async function from_json(json:OrbPuzzleJson, solve:boolean = true, maxDepth?:number):  Promise<[OrbPuzzle[], OrbMove[]]>{

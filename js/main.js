@@ -1,4 +1,6 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+
+},{}],2:[function(require,module,exports){
 /*
  2017 Julian Garnier
  Released under the MIT license
@@ -27,7 +29,7 @@ e){c["ease"+a.type+b[e]]=g.fnc(d)?d:y.apply($jscomp$this,d)}}(e)),e={type:e.type
 n.speed=1;n.running=q;n.remove=function(a){a=M(a);for(var b=q.length;b--;)for(var d=q[b],c=d.animations,e=c.length;e--;)F(a,c[e].animatable.target)&&(c.splice(e,1),c.length||d.pause())};n.getValue=J;n.path=function(a,b){var d=g.str(a)?v(a)[0]:a,c=b||100;return function(a){return{el:d,property:a,totalLength:d.getTotalLength()*(c/100)}}};n.setDashoffset=function(a){var b=a.getTotalLength();a.setAttribute("stroke-dasharray",b);return b};n.bezier=y;n.easings=N;n.timeline=function(a){var b=n(a);b.pause();
 b.duration=0;b.add=function(a){b.children.forEach(function(a){a.began=!0;a.completed=!0});w(a).forEach(function(a){var c=b.duration,d=a.offset;a.autoplay=!1;a.offset=g.und(d)?c:K(d,c);b.seek(a.offset);a=n(a);a.duration>c&&(b.duration=a.duration);a.began=!0;b.children.push(a)});b.reset();b.seek(0);b.autoplay&&b.restart();return b};return b};n.random=function(a,b){return Math.floor(Math.random()*(b-a+1))+a};return n});
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 let anime = require('../js/anime.js');
@@ -170,7 +172,77 @@ function setUpExplosions() {
 }
 exports.setUpExplosions = setUpExplosions;
 
-},{"../js/anime.js":1}],3:[function(require,module,exports){
+},{"../js/anime.js":2}],4:[function(require,module,exports){
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+let performance;
+if (typeof window === "undefined") {
+    performance = require('perf_hooks').performance;
+}
+else {
+    performance = window.performance;
+}
+const jquery_1 = __importDefault(require("jquery"));
+function tryUntilSuccess(f, args, debug = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
+            let i = 0;
+            var t0 = performance.now();
+            function _attempt() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        let result = yield f(args);
+                        resolve(result);
+                    }
+                    catch (e) {
+                        if (debug)
+                            console.error(e);
+                        for (var j = 0; j < 100; j++) {
+                            i++;
+                            if (i % 100 == 0 && debug) {
+                                console.warn("Over " + i + " attempts..");
+                            }
+                            var t1 = performance.now();
+                            if (t1 - t0 > 15000) {
+                                reject();
+                                return;
+                            }
+                        }
+                        setTimeout(_attempt);
+                    }
+                });
+            }
+            _attempt();
+        });
+    });
+}
+exports.tryUntilSuccess = tryUntilSuccess;
+function localFetch(fn) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((res) => {
+            if (typeof window === "undefined") {
+                res(require("../" + fn));
+            }
+            else {
+                res(jquery_1.default.getJSON(fn));
+            }
+        });
+    });
+}
+exports.localFetch = localFetch;
+
+},{"jquery":11,"perf_hooks":1}],5:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -197,47 +269,6 @@ let level_number = undefined;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-function tryUntilSuccess(f, args, on_e, debug = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve, reject) => {
-            let i = 0;
-            var t0 = performance.now();
-            function _attempt() {
-                return __awaiter(this, void 0, void 0, function* () {
-                    try {
-                        let result = yield f(args);
-                        var t1 = performance.now();
-                        console.log("TIME TO GEN:", (t1 - t0) / 1000);
-                        resolve(result);
-                    }
-                    catch (e) {
-                        if (on_e) {
-                            on_e(args);
-                        }
-                        if (debug)
-                            console.error(e);
-                        i++;
-                        if (i % 10 == 0) {
-                            console.warn("Over " + i + " attempts..");
-                        }
-                        var t1 = performance.now();
-                        if (t1 - t0 > 15000) {
-                            reject();
-                            return;
-                        }
-                        if (i % 3 == 0) {
-                            setTimeout(_attempt);
-                        }
-                        else {
-                            _attempt();
-                        }
-                    }
-                });
-            }
-            _attempt();
-        });
-    });
-}
 /*
 let stack:OrbPuzzle[] = []
 let p =new OrbPuzzle(10,10)
@@ -251,8 +282,7 @@ stack = stack.reverse();
 let board;
 let moving = false;
 let $tiles;
-let level_index = null;
-function create_level(args) {
+function runWithLoadingSwals(f, args) {
     return __awaiter(this, void 0, void 0, function* () {
         sweetalert2_1.default({
             title: 'Generating Level',
@@ -264,12 +294,7 @@ function create_level(args) {
             })
         });
         try {
-            function on_err(args) {
-                if (args.seed) {
-                    args.seed++;
-                }
-            }
-            let stack = yield tryUntilSuccess(orbPuzzleGenerator_1.createOrbPuzzle, args, on_err, false);
+            let stack = yield f(args);
             sweetalert2_1.default.close();
             return stack;
         }
@@ -322,48 +347,9 @@ jquery_1.default(document).ready(() => {
             let level = parseInt(params['level']);
             if (level) {
                 jquery_1.default("#level-info").text("Level " + level);
-                level_number = level;
-                if (level_index === null) {
-                    level_index = yield jquery_1.default.getJSON("levels/level_index.json");
-                    if (!level_index) {
-                        throw "Couldn't load level index";
-                    }
-                }
-                let level_data;
-                for (var i = 0; i < 20; i++) {
-                    level_data = level_index[level];
-                    if (level_data === undefined) {
-                        level--;
-                    }
-                }
-                if (level_data === undefined) {
-                    throw "Level not found";
-                }
-                if (level_data.fn) {
-                    stack = yield orbPuzzleGenerator_1.load_level(level_data.fn);
-                }
-                else {
-                    level_data = Object.assign({}, level_index.default, level_data);
-                    stack = yield create_level(level_data);
-                    if (!stack) {
-                        return;
-                    }
-                }
-            }
-            else if (params.round_id) {
-                if (level_index === null) {
-                    level_index = yield jquery_1.default.getJSON("levels/level_index.json");
-                    if (!level_index) {
-                        throw "Couldn't load level index";
-                    }
-                }
-                jquery_1.default("#level-info").text("Daily Challenge");
-                let seed = parseInt(params.round_id) * 2654435761 % Math.pow(2, 32);
-                let level_data = Object.assign({}, level_index.challenge, { seed: seed });
-                stack = yield create_level(level_data);
-                if (!stack) {
+                stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createLevel, level);
+                if (!stack)
                     return;
-                }
             }
             else {
                 jquery_1.default("#level-info").text("Custom Level");
@@ -383,12 +369,8 @@ jquery_1.default(document).ready(() => {
                 let decoy_orbs = params['decoy_orbs'] == "true";
                 let decoy_bombs = params['decoy_bombs'] == "true";
                 let decoy_portals = params['decoy_portals'] == "true";
-                let seed = parseInt(params['seed']);
-                if (isNaN(seed)) {
-                    seed = undefined;
-                }
-                let args = { seed, size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
-                stack = yield create_level(args);
+                let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
+                stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createOrbPuzzle, args);
                 if (!stack) {
                     return;
                 }
@@ -765,7 +747,7 @@ function create_board(board) {
     return $tiles;
 }
 
-},{"./explosion":2,"./orbPuzzle":4,"./orbPuzzleGenerator":5,"./sound":7,"hammerjs":8,"jquery":9,"sweetalert2":10}],4:[function(require,module,exports){
+},{"./explosion":3,"./orbPuzzle":6,"./orbPuzzleGenerator":7,"./sound":9,"hammerjs":10,"jquery":11,"sweetalert2":12}],6:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1450,7 +1432,7 @@ class OrbPuzzle extends puzzleState_1.default {
 }
 exports.OrbPuzzle = OrbPuzzle;
 
-},{"./puzzleState":6}],5:[function(require,module,exports){
+},{"./puzzleState":8}],7:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1460,20 +1442,51 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const orbPuzzle_1 = require("./orbPuzzle");
-const jquery_1 = __importDefault(require("jquery"));
-function load_level(fn) {
+const lib_1 = require("./lib");
+function load_level_from_file(fn) {
     return __awaiter(this, void 0, void 0, function* () {
-        let json = yield jquery_1.default.getJSON("levels/" + fn);
-        let level = yield from_json(json, false);
+        let json = yield lib_1.localFetch("levels/" + fn);
+        let level = yield from_json(json, true);
         return level;
     });
 }
-exports.load_level = load_level;
+exports.load_level_from_file = load_level_from_file;
+let level_index = null;
+function createLevel(level) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let stack = undefined;
+        if (level_index === null) {
+            level_index = yield lib_1.localFetch("levels/level_index.json");
+            if (!level_index) {
+                throw "Couldn't load level index";
+            }
+        }
+        let level_data;
+        for (var i = 0; i < 20; i++) {
+            level_data = level_index[level];
+            if (level_data === undefined) {
+                level--;
+            }
+        }
+        if (level_data === undefined) {
+            throw "Level not found";
+        }
+        if (level_data.fn) {
+            stack = yield load_level_from_file(level_data.fn);
+        }
+        else {
+            level_data = Object.assign({}, level_index.default, level_data);
+            stack = yield lib_1.tryUntilSuccess(createOrbPuzzle, level_data, false);
+            if (!stack) {
+                return;
+            }
+        }
+        return stack;
+    });
+}
+exports.createLevel = createLevel;
 function from_json(json, solve = true, maxDepth) {
     return __awaiter(this, void 0, void 0, function* () {
         let o = new orbPuzzle_1.OrbPuzzle(json.width, json.height);
@@ -1615,7 +1628,7 @@ function createOrbPuzzle(args) {
 }
 exports.createOrbPuzzle = createOrbPuzzle;
 
-},{"./orbPuzzle":4,"jquery":9}],6:[function(require,module,exports){
+},{"./lib":4,"./orbPuzzle":6}],8:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1915,7 +1928,7 @@ class PuzzleState {
 }
 exports.default = PuzzleState;
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -2005,7 +2018,7 @@ jquery_1.default(document).one("click", "*", function () {
 });
 exports.default = S_EFFECTS;
 
-},{"jquery":9}],8:[function(require,module,exports){
+},{"jquery":11}],10:[function(require,module,exports){
 /*! Hammer.JS - v2.0.7 - 2016-04-22
  * http://hammerjs.github.io/
  *
@@ -4650,7 +4663,7 @@ if (typeof define === 'function' && define.amd) {
 
 })(window, document, 'Hammer');
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -15016,7 +15029,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*!
 * sweetalert2 v7.26.10
 * Released under the MIT License.
@@ -18592,4 +18605,4 @@ if (typeof window !== 'undefined' && window.Sweetalert2){  window.swal = window.
 "  100% {\n" +
 "    -webkit-transform: rotate(360deg);\n" +
 "            transform: rotate(360deg); } }");
-},{}]},{},[3]);
+},{}]},{},[5]);

@@ -13,11 +13,13 @@
     "strictNullChecks": true,
     "target": "es2015",
     "experimentalDecorators": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "lib":["es2015", "dom"]
   },
   "include": [
     "main/*.ts",
     "cmd/*.ts",
+    "server/*.ts",
     "typings/**/*.d.ts"
   ],
   "exclude":[

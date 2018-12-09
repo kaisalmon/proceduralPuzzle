@@ -3,7 +3,8 @@ import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 import { OrbPuzzle, Tile, OrbMove} from './orbPuzzle'
 import {animatedParticlesFromElement, setUpExplosions } from './explosion'
-import { createOrbPuzzle as createPuzzle, load_level, puzzleConfig} from './orbPuzzleGenerator'
+
+import { createOrbPuzzle as createCustomPuzzle, createLevel} from './orbPuzzleGenerator'
 import SFX from './sound';
 /*globals*/
 let player_made_move:boolean = false;
@@ -11,45 +12,6 @@ let level_number:number|undefined = undefined;
 
 function delay(ms: number): Promise<void>{
     return new Promise( resolve => setTimeout(resolve, ms) );
-}
-
-async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS,  on_e?: (args: ARGS) => void, debug:boolean = false): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    let i = 0;
-    var t0 = performance.now();
-
-    async function  _attempt(): Promise<void> {
-      try {
-        let result = await f(args);
-        var t1 = performance.now();
-        console.log("TIME TO GEN:", (t1-t0)/1000)
-        resolve(result)
-      } catch (e) {
-        if(on_e){
-          on_e(args);
-        }
-        if(debug)console.error(e)
-        i++;
-        if (i % 10 == 0) {
-          console.warn("Over " + i + " attempts..")
-        }
-
-        var t1 = performance.now();
-        if (t1-t0 > 15000) {
-          reject();
-          return;
-        }
-        if (i % 3 == 0) {
-        setTimeout(_attempt)
-        }else{
-          _attempt();
-        }
-      }
-    }
-
-
-    _attempt();
-  })
 }
 
 /*
@@ -66,10 +28,9 @@ let board: OrbPuzzle;
 let moving = false;
 let $tiles: (JQuery|undefined)[][];
 
-let level_index:{[l:number]:any, challenge:any, default:any}|null = null;
 
 
-async function create_level(args:puzzleConfig){
+async function runWithLoadingSwals<T, ARGS>(f: (args: ARGS) => T, args: ARGS){
     swal({
       title: 'Generating Level',
       allowOutsideClick: false,
@@ -81,12 +42,7 @@ async function create_level(args:puzzleConfig){
     })
 
     try {
-      function on_err(args:puzzleConfig){
-        if(args.seed){
-          args.seed++
-        }
-      }
-      let stack = await tryUntilSuccess(createPuzzle, args, on_err, false);
+      let stack = await f(args);
       swal.close();
       return stack
     } catch (e) {
@@ -138,42 +94,8 @@ $(document).ready(() => {
     let level = parseInt(params['level']);
     if(level){
       $("#level-info").text("Level "+level);
-      level_number = level;
-      if(level_index === null){
-        level_index = await $.getJSON("levels/level_index.json");
-        if(!level_index){
-          throw "Couldn't load level index";
-        }
-      }
-      let level_data;
-      for(var i = 0; i<20; i++){
-        level_data = level_index[level]
-        if(level_data === undefined){
-          level--;
-        }
-      }
-      if(level_data === undefined){
-        throw "Level not found"
-      }
-      if(level_data.fn){
-        stack = await load_level(level_data.fn);
-      }else{
-        level_data = Object.assign({},level_index.default,  level_data)
-        stack = await create_level(level_data)
-        if(!stack){return}
-      }
-    }else if(params.round_id){
-      if(level_index === null){
-        level_index = await $.getJSON("levels/level_index.json");
-        if(!level_index){
-          throw "Couldn't load level index";
-        }
-      }
-      $("#level-info").text("Daily Challenge");
-      let seed = parseInt(params.round_id)*2654435761 % Math.pow(2, 32);
-      let level_data = Object.assign({},level_index.challenge,  {seed: seed})
-      stack = await create_level(level_data)
-      if(!stack){return}
+      stack = await runWithLoadingSwals(createLevel, level);
+      if(!stack) return;
     }else{
       $("#level-info").text("Custom Level");
       let size: number = parseInt(params['size']) || 10;
@@ -192,12 +114,8 @@ $(document).ready(() => {
       let decoy_orbs: boolean = params['decoy_orbs'] == "true";
       let decoy_bombs: boolean = params['decoy_bombs'] == "true";
       let decoy_portals: boolean = params['decoy_portals'] == "true";
-      let seed:number|undefined = parseInt(params['seed']);
-      if(isNaN(seed)){
-        seed=undefined;
-      }
-      let args =  {seed, size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs, decoy_portals};
-      stack = await create_level(args)
+      let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs, decoy_portals};
+      stack =  await runWithLoadingSwals(createCustomPuzzle, args);
       if(!stack){return}
     }
 
