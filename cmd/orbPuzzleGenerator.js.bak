@@ -10,6 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const orbPuzzle_1 = require("./orbPuzzle");
 const jquery_1 = __importDefault(require("jquery"));
@@ -20,8 +27,8 @@ function randInt(min, max) {
 }
 function load_level(fn) {
     return __awaiter(this, void 0, void 0, function* () {
-        let json = yield jquery_1.default.getJSON("levels/" + fn);
-        let level = yield from_json(json, false);
+        let json = (typeof window === 'undefined') ? Promise.resolve().then(() => __importStar(require("levels/" + fn))) : yield jquery_1.default.getJSON("levels/" + fn);
+        let level = yield from_json(json, true);
         return level;
     });
 }

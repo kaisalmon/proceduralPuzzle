@@ -487,4 +487,4 @@ function create_board(board) {
     });
     return $tiles;
 }
-//# sourceMappingURL=main.js.map
+//# sourceMappingURL=cmd.js.map

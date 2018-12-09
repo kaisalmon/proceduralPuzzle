@@ -3,39 +3,9 @@ import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 import { OrbPuzzle, Tile, OrbMove} from './orbPuzzle'
 import {animatedParticlesFromElement, setUpExplosions } from './explosion'
-import { createOrbPuzzle as createPuzzle, load_level, puzzleConfig} from './orbPuzzleGenerator'
-
+import { createOrbPuzzle as createCustomPuzzle, createLevel} from './orbPuzzleGenerator'
 function delay(ms: number): Promise<void>{
     return new Promise( resolve => setTimeout(resolve, ms) );
-}
-
-async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:boolean = false): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    let i = 0;
-    var t0 = performance.now();
-    async function  _attempt(): Promise<void> {
-      try {
-        let result = await f(args);
-        resolve(result)
-      } catch (e) {
-        if(debug)console.error(e)
-        for (var j = 0; j < 100; j++) {
-          i++;
-          if (i % 100 == 0) {
-            console.warn("Over " + i + " attempts..")
-          }
-
-          var t1 = performance.now();
-          if (t1-t0 > 15000) {
-            reject();
-            return;
-          }
-        }
-        setTimeout(_attempt)
-      }
-    }
-    _attempt();
-  })
 }
 
 /*
@@ -52,10 +22,9 @@ let board: OrbPuzzle;
 let moving = false;
 let $tiles: (JQuery|undefined)[][];
 
-let level_index:{[l:number]:any, default:any}|null = null;
 
 
-async function create_level(args:puzzleConfig){
+async function runWithLoadingSwals<T, ARGS>(f: (args: ARGS) => T, args: ARGS){
     swal({
       title: 'Generating Level',
       allowOutsideClick: false,
@@ -67,7 +36,7 @@ async function create_level(args:puzzleConfig){
     })
 
     try {
-      let stack = await tryUntilSuccess(createPuzzle, args, false);
+      let stack = await f(args);
       swal.close();
       return stack
     } catch (e) {
@@ -99,29 +68,8 @@ $(document).ready(() => {
     let level = parseInt(params['level']);
     if(level){
       $("#level-info").text("Level "+level);
-      if(level_index === null){
-        level_index = await $.getJSON("levels/level_index.json");
-        if(!level_index){
-          throw "Couldn't load level index";
-        }
-      }
-      let level_data;
-      for(var i = 0; i<20; i++){
-        level_data = level_index[level]
-        if(level_data === undefined){
-          level--;
-        }
-      }
-      if(level_data === undefined){
-        throw "Level not found"
-      }
-      if(level_data.fn){
-        stack = await load_level(level_data.fn);
-      }else{
-        level_data = Object.assign({},level_index.default,  level_data)
-        stack = await create_level(level_data)
-        if(!stack){return}
-      }
+      stack = await runWithLoadingSwals(createLevel, level);
+      if(!stack) return;
     }else{
       $("#level-info").text("Custom Level");
       let size: number = parseInt(params['size']) || 10;
@@ -141,7 +89,7 @@ $(document).ready(() => {
       let decoy_bombs: boolean = params['decoy_bombs'] == "true";
       let decoy_portals: boolean = params['decoy_portals'] == "true";
       let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs, decoy_portals};
-      stack = await create_level(args)
+      stack =  await runWithLoadingSwals(createCustomPuzzle, args);
       if(!stack){return}
     }
 
