@@ -1,9 +1,16 @@
+require('browserify-ignore-code');
+
 let performance:any;
+try{
+// browserify-ignore-start
+let perf_hook_performance = require('perf_hooks').performance;
 if(typeof window === "undefined"){
-  performance = require('perf_hooks').performance;
+  performance = perf_hook_performance;
 }else{
   performance = window.performance;
 }
+// browserify-ignore-end
+}catch(e){}
 import $ from 'jquery'
 
 export async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:boolean = false): Promise<T> {

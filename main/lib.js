@@ -11,13 +11,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require('browserify-ignore-code');
 let performance;
-if (typeof window === "undefined") {
-    performance = require('perf_hooks').performance;
+try {
+    // browserify-ignore-start
+    let perf_hook_performance = require('perf_hooks').performance;
+    if (typeof window === "undefined") {
+        performance = perf_hook_performance;
+    }
+    else {
+        performance = window.performance;
+    }
+    // browserify-ignore-end
 }
-else {
-    performance = window.performance;
-}
+catch (e) { }
 const jquery_1 = __importDefault(require("jquery"));
 function tryUntilSuccess(f, args, debug = false) {
     return __awaiter(this, void 0, void 0, function* () {
