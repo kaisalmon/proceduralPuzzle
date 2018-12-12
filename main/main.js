@@ -54,6 +54,7 @@ function runWithLoadingSwals(f, args) {
             return stack;
         }
         catch (e) {
+            console.error(e);
             sweetalert2_1.default({
                 title: "Couldn't generate level!",
                 text: "feel free to try a few more times",

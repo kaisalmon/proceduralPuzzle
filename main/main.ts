@@ -46,6 +46,7 @@ async function runWithLoadingSwals<T, ARGS>(f: (args: ARGS) => T, args: ARGS){
       swal.close();
       return stack
     } catch (e) {
+      console.error(e)
       swal({
         title: "Couldn't generate level!",
         text: "feel free to try a few more times",

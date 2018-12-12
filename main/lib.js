@@ -15,8 +15,8 @@ require('browserify-ignore-code');
 let performance;
 try {
     // browserify-ignore-start
-    let perf_hook_performance = require('perf_hooks').performance;
     if (typeof window === "undefined") {
+        let perf_hook_performance = require('perf_hooks').performance;
         performance = perf_hook_performance;
     }
     else {
@@ -24,7 +24,8 @@ try {
     }
     // browserify-ignore-end
 }
-catch (e) { }
+catch (e) {
+}
 const jquery_1 = __importDefault(require("jquery"));
 function tryUntilSuccess(f, args, debug = false) {
     return __awaiter(this, void 0, void 0, function* () {
