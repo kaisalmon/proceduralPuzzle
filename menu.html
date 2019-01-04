@@ -1,0 +1,162 @@
+<title>Orb Puzzle</title>
+<meta name="theme-color" content="#2A9FD6">
+<link rel="manifest" href="manifest.json">
+<meta charset="utf-8">
+  <meta name="viewport"
+     content="width=device-width, initial-scale=1, user-scalable=yes">
+<link rel="stylesheet" type="text/css" href="fonts/all.min.css">
+<link rel="preload" type="text/css" href="fontawesome/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+<link rel="stylesheet" type="text/css" href="animate.css">
+<link rel="stylesheet" type="text/css" href="material-switch.css">
+<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+
+
+<style>
+  body{
+      font-family: 'Josefin Sans', sans-serif;
+      background: #333;
+  }
+  @font-face {
+      font-family:'Josefin Sans';
+      src: url("fonts/JosefinSans-Regular.ttf");
+  }
+  @font-face {
+      font-family: 'Josefin Sans';
+      src: url("fonts/JosefinSans-Bold.ttf");
+      font-weight: bold;
+  }
+  #main{
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    max-height: 100vh;
+  }
+  a.menu-button{
+    background: rgba(0,0,0,0.3);
+    font-size: 36px;
+    min-height: 2em;
+    padding:1em;
+    border-radius: 0.6em;
+    cursor: pointer;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    transition: transform 0.3s;
+    position: relative;
+  }
+
+  a.menu-button:hover{
+    transform:scale(0.9);
+    text-decoration: none;
+  }
+
+  .menu-button .logo{
+    height:0.5em;
+    width:auto;
+    float: left;
+    position: absolute;
+    left:1em;
+    transform: translate(0%, -50%);
+    top: 50%;
+  }
+  @media (max-width: 620px){
+      .menu-button .logo{
+        transform: translate(-50%, 0);
+        top: default;
+        left: 50%;
+        top:0.3em;
+      }
+  }
+
+  #coinmode_iframe{
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: calc(100vw - 60px);
+    height: calc(100vh - 60px);
+    max-width: 700px;
+    max-height: 1000px;
+    box-shadow: 10px 10px 10px black;
+    border: none;
+    border-radius: 10x;
+  }
+</style>
+<div   class="container-fluid">
+  <div class="row m-3">
+    <div id="main" class="col-12 col-xl-10">
+      <h1 class="text-center">Arcane Orbs</h1>
+      <div class="row  p-3">
+        <a class="menu-button col-12 mb-5" href="levelselect.html">
+          Free Play
+        </a>
+        <a class="menu-button col-12" href="#" onclick="start_challenge()">
+          <img class="logo" src="https://coinmode.com/img/logo-coinmode.png">
+          Challenge Mode
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+
+var debug =
+{
+	log:function(text)
+	{
+		console.log("CoinMode:"+text);
+	},
+	warning:function(text)
+	{
+		console.log("!CoinMode:"+text);
+	},
+	error:function(text)
+	{
+		console.log("ERROR CoinMode:"+text);
+	}
+}
+</script>
+
+<script src="js/jquery.js"></script>
+<script src="js/coinmode_helper.js"></script>
+
+<script>
+var cm = new CoinMode({	game_id: 91, methods:{
+    on_iframe_visible : function()
+    {
+      document.getElementById("#coinmode_iframe").className += " coinmode-visible";
+    },
+    on_iframe_hidden : function()
+    {
+        let cname =   document.getElementById("#coinmode_iframe").className;
+        document.getElementById("#coinmode_iframe").className = cname.replace("coinmode-visible","")
+    }
+  }});
+
+  function set_background_audio(audio_element){
+    audio_element.play();
+    document.addEventListener('click',audio_element.play, false);
+  }
+
+  function start_challenge(){
+    cm.helper.getPlaytoken((err, token, details)=>{
+      cm.helper.showRoundSelector((err, round_id, props)=>{
+      //  if(!round_id){
+          round_id=  props.data.round_id;
+      //  }
+        if(!err && round_id){
+          let qstring = "?round_id="+round_id
+          let base = window.location.pathname;
+          if(base.indexOf("index.html") === -1){
+            base += "/index.html";
+          }
+          window.location.href = base.replace("index", "game") + qstring;
+        }
+      });
+    })
+  }
+</script>

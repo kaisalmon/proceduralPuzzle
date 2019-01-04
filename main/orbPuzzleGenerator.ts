@@ -63,7 +63,7 @@ export async function createLevel(level: number): Promise<[OrbPuzzle[], OrbMove[
     stack = await load_level_from_file(level_data.fn);
   }else{
     level_data = Object.assign({},level_index.default,  level_data)
-    stack = await tryUntilSuccess(createOrbPuzzle, level_data, false);
+    stack = await tryUntilSuccess(createOrbPuzzle, level_data, true, 100);
     if(!stack){return}
   }
   return stack;

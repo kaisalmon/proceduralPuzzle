@@ -27,7 +27,7 @@ try {
 catch (e) {
 }
 const jquery_1 = __importDefault(require("jquery"));
-function tryUntilSuccess(f, args, debug = false) {
+function tryUntilSuccess(f, args, debug = false, time = 15) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
             let i = 0;
@@ -35,22 +35,20 @@ function tryUntilSuccess(f, args, debug = false) {
             function _attempt() {
                 return __awaiter(this, void 0, void 0, function* () {
                     try {
+                        i++;
                         let result = yield f(args);
                         resolve(result);
                     }
                     catch (e) {
                         if (debug)
                             console.error(e);
-                        for (var j = 0; j < 100; j++) {
-                            i++;
-                            if (i % 100 == 0 && debug) {
-                                console.warn("Over " + i + " attempts..");
-                            }
-                            var t1 = performance.now();
-                            if (t1 - t0 > 15000) {
-                                reject();
-                                return;
-                            }
+                        if (i % 25 == 0 && debug) {
+                            console.warn("Over " + i + " attempts..");
+                        }
+                        var t1 = performance.now();
+                        if (t1 - t0 > time * 1000) {
+                            reject();
+                            return;
                         }
                         setTimeout(_attempt);
                     }

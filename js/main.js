@@ -5599,7 +5599,7 @@ try {
 catch (e) {
 }
 const jquery_1 = __importDefault(require("jquery"));
-function tryUntilSuccess(f, args, debug = false) {
+function tryUntilSuccess(f, args, debug = false, time = 15) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
             let i = 0;
@@ -5607,22 +5607,20 @@ function tryUntilSuccess(f, args, debug = false) {
             function _attempt() {
                 return __awaiter(this, void 0, void 0, function* () {
                     try {
+                        i++;
                         let result = yield f(args);
                         resolve(result);
                     }
                     catch (e) {
                         if (debug)
                             console.error(e);
-                        for (var j = 0; j < 100; j++) {
-                            i++;
-                            if (i % 100 == 0 && debug) {
-                                console.warn("Over " + i + " attempts..");
-                            }
-                            var t1 = performance.now();
-                            if (t1 - t0 > 15000) {
-                                reject();
-                                return;
-                            }
+                        if (i % 25 == 0 && debug) {
+                            console.warn("Over " + i + " attempts..");
+                        }
+                        var t1 = performance.now();
+                        if (t1 - t0 > time * 1000) {
+                            reject();
+                            return;
                         }
                         setTimeout(_attempt);
                     }
@@ -6884,7 +6882,7 @@ function createLevel(level) {
         }
         else {
             level_data = Object.assign({}, level_index.default, level_data);
-            stack = yield lib_1.tryUntilSuccess(createOrbPuzzle, level_data, false);
+            stack = yield lib_1.tryUntilSuccess(createOrbPuzzle, level_data, true, 100);
             if (!stack) {
                 return;
             }
@@ -7080,6 +7078,7 @@ class PuzzleState {
     }
     solve(maxDepth) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("Start Solve");
             let closedList = {};
             let openList = {};
             openList[this.hashString()] = { state: this, totalcost: 0, bestedge: null, estimatedcost: 0 };
@@ -7233,7 +7232,7 @@ class PuzzleState {
         });
     }
     getStack(depth, debug = false) {
-        console.log("start stack");
+        //console.log("start stack");
         try {
             let bad_states = [];
             let bad_count = 0;
@@ -7242,7 +7241,7 @@ class PuzzleState {
             let moves = [];
             while (stack.length < depth) {
                 itr_count++;
-                if (itr_count > 2000) {
+                if (itr_count > 100) {
                     throw "Too many iterations";
                 }
                 let p = stack[stack.length - 1];
@@ -7265,43 +7264,45 @@ class PuzzleState {
                             throw "Invalid state";
                         }
                         if (nexts.some(m => clone_with_retcons(m[0]).hashString() == next.hashString())) {
-                            console.error("Pointless move");
                             throw "Pointless Move";
                         }
                         let retconned_p = clone_with_retcons(p);
                         if (next.apply(move).hashString() != retconned_p.hashString()) {
-                            throw {
-                                "name": "ImportantError",
-                                "message": "Reversing move and applying move have different results",
-                                "starting-point": next,
-                                "a": next.apply(move),
-                                "b": retconned_p,
-                                "a-hash": next.apply(move).hashString(),
-                                "b-hash": retconned_p.hashString(),
-                                "move": move,
-                                "starting-point-hash": next.hashString()
-                            };
+                            /* throw {
+                              "name": "ImportantError",
+                              "message": "Reversing move and applying move have different results",
+                              "starting-point": next,
+                              "a": next.apply(move),
+                              "b": retconned_p,
+                              "a-hash": next.apply(move).hashString(),
+                              "b-hash": retconned_p.hashString(),
+                              "move": move,
+                              "starting-point-hash": next.hashString()
+                            } */
+                            throw "Reversing move and applying move have different results";
                         }
-                        nexts.push([next, move, retcons]);
+                        if (bad_states.indexOf(this.hashString()) == -1) {
+                            nexts.push([next, move, retcons]);
+                        }
                     }
                     catch (e) {
-                        if (debug || e.name === "ImportantError") {
+                        if (debug) {
                             console.error(e);
                         }
                         if (e.name == "FatalError") {
-                            console.error(e);
-                            throw e;
+                            throw "Fatal Error";
                         }
                     }
                 }
                 if (nexts.length == 0) {
                     bad_count++;
-                    if (bad_count > 1000) {
+                    if (bad_count > 100) {
                         throw "Maximum bad states exceeded";
                     }
                     if (bad_states.indexOf(p.hashString()) === -1) {
                         bad_states.push(p.hashString());
                     }
+                    "Reversing move and applying move have different results";
                     let to_remove = this.randInt(1, stack.length - 1);
                     for (var i = 0; i < to_remove; i++) {
                         stack.pop();
@@ -7328,7 +7329,7 @@ class PuzzleState {
             return [stack.reverse(), moves.reverse()];
         }
         finally {
-            console.log("end stack");
+            //  console.log("end stack");
         }
     }
 }

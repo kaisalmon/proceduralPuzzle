@@ -493,8 +493,5 @@ function create_board(board: OrbPuzzle): (JQuery|undefined)[][] {
   mc.on("swipedown", function() {
     apply_move(OrbMove.Down)
   });
-
-
-
   return $tiles;
 }

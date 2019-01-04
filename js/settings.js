@@ -404,12 +404,7 @@ jquery_1.default(document).ready(() => {
     get_level_list();
 });
 jquery_1.default('.back').click(() => {
-    if (getUrlVars().round_id) {
-        window.location.href = window.location.href.replace("game", "index");
-    }
-    else {
-        window.location.href = window.location.href.replace("game", "levelselect");
-    }
+    window.location.href = window.location.href.replace("levelselect", "menu");
 });
 
 },{"jquery":3,"sweetalert2":4,"vue":6,"vue-slider-component":5}],3:[function(require,module,exports){

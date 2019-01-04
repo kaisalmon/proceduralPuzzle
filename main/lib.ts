@@ -14,27 +14,25 @@ if(typeof window === "undefined"){
 }
 import $ from 'jquery'
 
-export async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:boolean = false): Promise<T> {
+export async function tryUntilSuccess<T, ARGS>(f: (args: ARGS) => T, args: ARGS, debug:boolean = false, time:number = 15): Promise<T> {
 
   return new Promise<T>((resolve, reject) => {
     let i = 0;
     var t0 = performance.now();
     async function  _attempt(): Promise<void> {
       try {
+        i++;
         let result = await f(args);
         resolve(result)
       } catch (e) {
         if(debug)console.error(e)
-        for (var j = 0; j < 100; j++) {
-          i++;
-          if (i % 100 == 0 && debug) {
-            console.warn("Over " + i + " attempts..")
-          }
-          var t1 = performance.now();
-          if (t1-t0 > 15000) {
-            reject();
-            return;
-          }
+        if (i % 25 == 0 && debug) {
+          console.warn("Over " + i + " attempts..")
+        }
+        var t1 = performance.now();
+        if (t1-t0 > time * 1000) {
+          reject();
+          return;
         }
         setTimeout(_attempt)
       }

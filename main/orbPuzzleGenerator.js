@@ -43,7 +43,7 @@ function createLevel(level) {
         }
         else {
             level_data = Object.assign({}, level_index.default, level_data);
-            stack = yield lib_1.tryUntilSuccess(createOrbPuzzle, level_data, false);
+            stack = yield lib_1.tryUntilSuccess(createOrbPuzzle, level_data, true, 100);
             if (!stack) {
                 return;
             }
