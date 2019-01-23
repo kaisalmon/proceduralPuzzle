@@ -100,7 +100,7 @@ jquery_1.default(document).ready(() => {
         return __awaiter(this, void 0, void 0, function* () {
             let params = getUrlVars();
             let stack = undefined;
-            let level = parseInt(params['level']);
+            let level = params.round_id ? "challenge" : parseInt(params.level);
             if (level) {
                 jquery_1.default("#level-info").text("Level " + level);
                 stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createLevel, level);
@@ -138,7 +138,7 @@ jquery_1.default(document).ready(() => {
             });
             jquery_1.default('.back').click(() => {
                 if (getUrlVars().round_id) {
-                    window.location.href = window.location.href.replace("game", "index");
+                    window.location.href = window.location.href.replace("game", "menu");
                 }
                 else {
                     window.location.href = window.location.href.replace("game", "levelselect");
@@ -383,6 +383,7 @@ function apply_move(move) {
                                 ls.player_progress++;
                             }
                             sound_1.default["ui-victory"].play();
+                            alert(JSON.stringify(getUrlVars()));
                             sweetalert2_1.default({
                                 title: "You win!",
                                 type: "success",
@@ -394,7 +395,7 @@ function apply_move(move) {
                                 let base = window.location.href.split("?")[0];
                                 window.location.href = base + "?level=" + next_level;
                             }).catch(() => {
-                                window.location.href = window.location.href.replace("game", "index");
+                                window.location.href = window.location.href.replace("game", getUrlVars().round_id ? "menu" : "levelselect");
                             });
                         }
                         else {
@@ -402,13 +403,13 @@ function apply_move(move) {
                                 title: "You win!",
                                 type: "success",
                                 showCancelButton: true,
-                                cancelButtonText: "Back to settings",
-                                confirmButtonText: "New Puzzle",
+                                showConfirmButton: getUrlVars().round_id === undefined,
+                                cancelButtonText: getUrlVars().round_id ? "Back to menu" : "Back to settings",
                                 useRejections: true,
                             }).then(() => {
                                 window.location.reload();
                             }).catch(() => {
-                                window.location.href = window.location.href.replace("game", "index");
+                                window.location.href = window.location.href.replace("game", getUrlVars().round_id ? "menu" : "levelselect");
                             });
                         }
                     }

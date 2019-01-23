@@ -19,13 +19,13 @@
     "decoy_portals":false
   },
   "challenge":{
-    "size": 17,
+    "size": 12,
     "orbs": 1 ,
     "brick_density": 0,
     "pit_density": 0,
     "fragile_brick_density": 0,
-    "depth": 12,
-    "mindepth":10,
+    "depth": 2,
+    "mindepth":2,
     "fragile": true,
     "crystal": false,
     "pits": true,

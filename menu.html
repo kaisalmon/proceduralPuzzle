@@ -93,7 +93,7 @@
           Free Play
         </a>
         <a class="menu-button col-12" href="#" onclick="start_challenge()">
-          <img class="logo" src="https://coinmode.com/img/logo-coinmode.png">
+          <img class="logo" src="https://coinmode.com/static/img/logo-coinmode.png">
           Challenge Mode
         </a>
       </div>
@@ -151,10 +151,10 @@ var cm = new CoinMode({	game_id: 91, methods:{
         if(!err && round_id){
           let qstring = "?round_id="+round_id
           let base = window.location.pathname;
-          if(base.indexOf("index.html") === -1){
-            base += "/index.html";
+          if(base.indexOf("menu.html") === -1){
+            base += "/menu.html";
           }
-          window.location.href = base.replace("index", "game") + qstring;
+          window.location.href = base.replace("menu", "game") + qstring;
         }
       });
     })

@@ -28,8 +28,6 @@ let board: OrbPuzzle;
 let moving = false;
 let $tiles: (JQuery|undefined)[][];
 
-
-
 async function runWithLoadingSwals<T, ARGS>(f: (args: ARGS) => T, args: ARGS){
     swal({
       title: 'Generating Level',
@@ -58,7 +56,7 @@ async function runWithLoadingSwals<T, ARGS>(f: (args: ARGS) => T, args: ARGS){
       }).then(() => {
         window.location.reload();
       }).catch(() => {
-        window.location.href = window.location.href.replace("game", "index");
+        window.location.href = window.location.href.replace("game", "levelselect");
       })
       return
     }
@@ -92,7 +90,7 @@ $(document).ready(() => {
   (async function() {
     let params = getUrlVars();
     let stack: [OrbPuzzle[], OrbMove[]] | undefined = undefined;
-    let level = parseInt(params['level']);
+    let level = params.round_id ? "challenge" : parseInt(params.level);
     if(level){
       $("#level-info").text("Level "+level);
       stack = await runWithLoadingSwals(createLevel, level);
@@ -128,7 +126,7 @@ $(document).ready(() => {
     });
     $('.back').click(() => {
       if(getUrlVars().round_id){
-        window.location.href = window.location.href.replace("game", "index");
+        window.location.href = window.location.href.replace("game", "menu");
       }else{
         window.location.href = window.location.href.replace("game", "levelselect");
       }
@@ -376,27 +374,27 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
               title: "You win!",
               type: "success",
               showCancelButton: true,
-              cancelButtonText: "Back to level select",
+              cancelButtonText:  "Back to level select",
               confirmButtonText: "Next Puzzle",
               useRejections: true,
             }).then(() => {
               let base =   window.location.href.split("?")[0]
               window.location.href = base+"?level="+next_level
             }).catch(() => {
-              window.location.href = window.location.href.replace("game", "index");
+              window.location.href = window.location.href.replace("game",  getUrlVars().round_id ? "menu" : "levelselect");
             })
           }else{
             swal({
               title: "You win!",
               type: "success",
               showCancelButton: true,
-              cancelButtonText: "Back to settings",
-              confirmButtonText: "New Puzzle",
+              showConfirmButton: getUrlVars().round_id === undefined,
+              cancelButtonText: getUrlVars().round_id ? "Back to menu" : "Back to settings",
               useRejections: true,
             }).then(() => {
               window.location.reload();
             }).catch(() => {
-              window.location.href = window.location.href.replace("game", "index");
+              window.location.href = window.location.href.replace("game",  getUrlVars().round_id ? "menu" : "levelselect");
             })
           }
         }
