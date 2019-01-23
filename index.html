@@ -30,13 +30,30 @@
 <head>
 <body>
   <iframe id="iframe" src="menu.html"></iframe>
-  <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg" controls>
+  <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg">
   <script>
     document.getElementById("iframe").onload=function(){
       if(this.contentWindow.set_background_audio){
         this.contentWindow.set_background_audio(document.getElementById("music"));
       };
     };
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'Arcane Ambience',
+        artist: 'Lewis Thompson',
+        album: 'Arcane Orbs',
+        artwork: [
+          { src: 'https://www.kaisalmon.com/puzzle/assets/icon.png',   sizes: '105x105',   type: 'image/png' },
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler('play', function() {});
+      navigator.mediaSession.setActionHandler('pause', function() {});
+      navigator.mediaSession.setActionHandler('seekbackward', function() {});
+      navigator.mediaSession.setActionHandler('seekforward', function() {});
+      navigator.mediaSession.setActionHandler('previoustrack', function() {});
+      navigator.mediaSession.setActionHandler('nexttrack', function() {});
+    }
   </script>
 
 </body>
