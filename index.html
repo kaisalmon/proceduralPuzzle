@@ -30,7 +30,7 @@
 <head>
 <body>
   <iframe id="iframe" src="menu.html"></iframe>
-  <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg">
+  <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg" loop>
   <script>
     document.getElementById("iframe").onload=function(){
       if(this.contentWindow.set_background_audio){
@@ -47,12 +47,6 @@
         ]
       });
 
-      navigator.mediaSession.setActionHandler('play', function() {});
-      navigator.mediaSession.setActionHandler('pause', function() {});
-      navigator.mediaSession.setActionHandler('seekbackward', function() {});
-      navigator.mediaSession.setActionHandler('seekforward', function() {});
-      navigator.mediaSession.setActionHandler('previoustrack', function() {});
-      navigator.mediaSession.setActionHandler('nexttrack', function() {});
     }
   </script>
 
