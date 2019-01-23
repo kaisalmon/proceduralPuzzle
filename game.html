@@ -272,6 +272,13 @@ html, body{
 }
 </style>
 <script src="js/main.js" async></script>
+<script>
+  function set_background_audio(audio_element){
+    audio_element.play();
+    window.background_audio = audio_element;
+    document.addEventListener('click',audio_element.play, false);
+  }
+</script>
 <noscript><h1>Your browser does not support JavaScript!</h1></noscript>
 <div id="level-info">
 </div>

@@ -277,6 +277,11 @@ if ('serviceWorker' in navigator) {
       });
     }
 }
+function set_background_audio(audio_element){
+  audio_element.play();
+  window.background_audio = audio_element;
+  document.addEventListener('click',audio_element.play, false);
+}
 </script>
 
 <script src="js/settings.js"></script>

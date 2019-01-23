@@ -139,9 +139,10 @@ var cm = new CoinMode({	game_id: 91, methods:{
 
   function set_background_audio(audio_element){
     audio_element.play();
+    window.background_audio = audio_element;
     document.addEventListener('click',audio_element.play, false);
   }
-
+  
   function start_challenge(){
     cm.helper.getPlaytoken((err, token, details)=>{
       cm.helper.showRoundSelector((err, round_id, props)=>{
