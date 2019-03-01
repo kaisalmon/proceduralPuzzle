@@ -66,7 +66,7 @@ function runWithLoadingSwals(f, args) {
             }).then(() => {
                 window.location.reload();
             }).catch(() => {
-                window.location.href = window.location.href.replace("game", "index");
+                window.location.href = window.location.href.replace("game", "levelselect");
             });
             return;
         }
@@ -383,7 +383,6 @@ function apply_move(move) {
                                 ls.player_progress++;
                             }
                             sound_1.default["ui-victory"].play();
-                            alert(JSON.stringify(getUrlVars()));
                             sweetalert2_1.default({
                                 title: "You win!",
                                 type: "success",
