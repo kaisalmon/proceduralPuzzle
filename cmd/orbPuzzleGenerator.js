@@ -7,27 +7,51 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const orbPuzzle_1 = require("./orbPuzzle");
-const jquery_1 = __importDefault(require("jquery"));
-function load_level(fn) {
+const lib_1 = require("./lib");
+function load_level_from_file(fn) {
     return __awaiter(this, void 0, void 0, function* () {
-        let json = (typeof window === 'undefined') ? Promise.resolve().then(() => __importStar(require("levels/" + fn))) : yield jquery_1.default.getJSON("levels/" + fn);
+        let json = yield lib_1.localFetch("levels/" + fn);
         let level = yield from_json(json, true);
         return level;
     });
 }
-exports.load_level = load_level;
+exports.load_level_from_file = load_level_from_file;
+let level_index = null;
+function createLevel(level) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let stack = undefined;
+        if (level_index === null) {
+            level_index = yield lib_1.localFetch("levels/level_index.json");
+            if (!level_index) {
+                throw "Couldn't load level index";
+            }
+        }
+        let level_data;
+        for (var i = 0; i < 20; i++) {
+            level_data = level_index[level];
+            if (level_data === undefined) {
+                level--;
+            }
+        }
+        if (level_data === undefined) {
+            throw "Level not found";
+        }
+        if (level_data.fn) {
+            stack = yield load_level_from_file(level_data.fn);
+        }
+        else {
+            level_data = Object.assign({}, level_index.default, level_data);
+            stack = yield lib_1.tryUntilSuccess(createOrbPuzzle, level_data, true, 100);
+            if (!stack) {
+                return;
+            }
+        }
+        return stack;
+    });
+}
+exports.createLevel = createLevel;
 function from_json(json, solve = true, maxDepth) {
     return __awaiter(this, void 0, void 0, function* () {
         let o = new orbPuzzle_1.OrbPuzzle(json.width, json.height);
