@@ -139,7 +139,9 @@ function createOrbPuzzle(args) {
             if (!solutionResult) {
                 throw "Couldn't solve";
             }
-            let fastestSolvedState = solutionResult[0].pop();
+            let solutionStates = solutionResult[0];
+            console.log(">>>>>>\n", p.toString());
+            let fastestSolvedState = solutionStates[solutionStates.length - 1];
             if (fastestSolvedState) {
                 if (!args.decoy_bombs) {
                     if (fastestSolvedState.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Bomb))) {
@@ -183,8 +185,7 @@ function createOrbPuzzle(args) {
                     throw "No Bombs";
                 }
             }
-            console.log(">>>", stack[0][0]);
-            return [stack[0], solution];
+            return [solutionStates, solution];
         }
         catch (e) {
             throw e;

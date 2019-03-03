@@ -6315,6 +6315,7 @@ function show_hint() {
         var hint_paths = orbPuzzle_1.OrbPuzzle.getHintCoords(golden_path);
         console.log(hint_paths);
         jquery_1.default('.hint-orb').remove();
+        let base_transition = "opacity 0.5s";
         var hint_length = -1;
         var orb_count = hint_paths.length;
         for (var path of hint_paths) {
@@ -6322,27 +6323,26 @@ function show_hint() {
             hint_length = path.length;
             var $e = jquery_1.default('<div/>').addClass('hint-orb').appendTo('.upper-layer');
             $e.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
+            $e.css('transition', base_transition);
             $e.data('x', coord.x);
             $e.data('y', coord.y);
         }
-        yield delay(100);
+        yield delay(50);
+        jquery_1.default('.hint-orb').css('opacity', 0.7);
+        yield delay(750);
         if (hint_length < 1)
             throw "Golden path had length of zero";
         for (var i = 0; i < hint_length; i++) {
-            console.log(i);
             var wait_time = 0;
+            ';';
             for (var n = 0; n < orb_count; n++) {
-                console.log(i, n);
                 var $orb = jquery_1.default(jquery_1.default('.hint-orb')[n]);
                 var coord = hint_paths[n][i];
-                console.log($orb.data());
                 var mag = Math.abs($orb.data('x') - coord.x) + Math.abs($orb.data('y') - coord.y);
                 $orb.data('x', coord.x);
                 $orb.data('y', coord.y);
                 var s = mag * 0.1;
                 wait_time = Math.max(wait_time, s);
-                let base_transition = "opacity 0.5s";
-                jquery_1.default('.hint-orb').css('opacity', 0.7);
                 $orb.css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
                 $orb.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
             }
@@ -7351,8 +7351,9 @@ class OrbPuzzle extends puzzleState_1.default {
     }
     static getHintCoords(solution) {
         var result = [];
-        //var steps_to_show = OrbPuzzle.getNumberOfMovesForHint(solution.length) + 1;
-        var stack = solution;
+        var steps_to_show = OrbPuzzle.getNumberOfMovesForHint(solution.length) + 1;
+        var stack = solution.slice(-steps_to_show);
+        solution.forEach(s => console.log(s.toString()));
         for (var step of stack) {
             for (var i = 0; i < step.orbs.length; i++) {
                 var orb = step.orbs[i];
@@ -7508,7 +7509,9 @@ function createOrbPuzzle(args) {
             if (!solutionResult) {
                 throw "Couldn't solve";
             }
-            let fastestSolvedState = solutionResult[0].pop();
+            let solutionStates = solutionResult[0];
+            console.log(">>>>>>\n", p.toString());
+            let fastestSolvedState = solutionStates[solutionStates.length - 1];
             if (fastestSolvedState) {
                 if (!args.decoy_bombs) {
                     if (fastestSolvedState.grid.some(line => line.some(tile => tile == orbPuzzle_1.Tile.Bomb))) {
@@ -7552,8 +7555,7 @@ function createOrbPuzzle(args) {
                     throw "No Bombs";
                 }
             }
-            console.log(">>>", stack[0][0]);
-            return [stack[0], solution];
+            return [solutionStates, solution];
         }
         catch (e) {
             throw e;
@@ -7626,7 +7628,7 @@ class PuzzleState {
                 if (current.state.isSolved()) {
                     console.log("Solved!");
                     let moves = [];
-                    let states = [];
+                    let states = [current.state];
                     while (true) {
                         let e = current.bestedge;
                         if (!e || e.to.hashString() === this.hashString()) {

@@ -161,7 +161,9 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
         if(!solutionResult){
           throw "Couldn't solve";
         }
-        let fastestSolvedState = solutionResult[0].pop() as OrbPuzzle;
+        let solutionStates = solutionResult[0];
+        console.log(">>>>>>\n",p.toString());
+        let fastestSolvedState = solutionStates[solutionStates.length - 1] as OrbPuzzle;
         if(fastestSolvedState){
           if(!args.decoy_bombs){
             if (fastestSolvedState.grid.some(line => line.some(tile => tile == Tile.Bomb))) {
@@ -206,8 +208,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
             throw "No Bombs"
           }
         }
-        console.log(">>>", stack[0][0])
-        return [stack[0] as OrbPuzzle[], solution]
+        return [solutionStates as OrbPuzzle[], solution]
       }catch(e){
 
         throw e;

@@ -84,7 +84,7 @@ abstract class PuzzleState<MOVE>{
       if(current.state.isSolved()){
         console.log("Solved!")
         let moves:MOVE[] = [];
-        let states:PuzzleState<MOVE>[] = [];
+        let states:PuzzleState<MOVE>[] = [current.state];
         while(true){
           let e = current.bestedge;
           if(!e || e.to.hashString() === this.hashString()){

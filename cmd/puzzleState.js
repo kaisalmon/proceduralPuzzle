@@ -61,7 +61,7 @@ class PuzzleState {
                 if (current.state.isSolved()) {
                     console.log("Solved!");
                     let moves = [];
-                    let states = [];
+                    let states = [current.state];
                     while (true) {
                         let e = current.bestedge;
                         if (!e || e.to.hashString() === this.hashString()) {

@@ -723,8 +723,9 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
 
   static getHintCoords(solution: OrbPuzzle[]): {x:number, y:number}[][]{
     var result:  {x:number, y:number}[][] = [];
-    //var steps_to_show = OrbPuzzle.getNumberOfMovesForHint(solution.length) + 1;
-    var stack = solution;
+    var steps_to_show = OrbPuzzle.getNumberOfMovesForHint(solution.length) + 1;
+    var stack = solution.slice(-steps_to_show);
+    solution.forEach(s => console.log(s.toString()));
     for(var step of stack){
       for(var i = 0; i < step.orbs.length; i++){
         var orb = step.orbs[i];
