@@ -694,7 +694,7 @@ class OrbPuzzle extends puzzleState_1.default {
                 var orb = step.orbs[i];
                 if (!result[i])
                     result[i] = [];
-                result[i].push({ x: orb.x, y: orb.y });
+                result[i].push({ x: orb.x, y: orb.y, visible: !orb.exploded });
             }
         }
         return result;

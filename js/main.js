@@ -6326,9 +6326,12 @@ function show_hint() {
             $e.css('transition', base_transition);
             $e.data('x', coord.x);
             $e.data('y', coord.y);
+            $e.data('start_visible', coord.visible);
         }
         yield delay(50);
-        jquery_1.default('.hint-orb').css('opacity', 0.7);
+        jquery_1.default('.hint-orb').each((i, e) => {
+            jquery_1.default(e).css('opacity', jquery_1.default(e).data('start_visible') ? 0.7 : 0);
+        });
         yield delay(750);
         if (hint_length < 1)
             throw "Golden path had length of zero";
@@ -6343,6 +6346,7 @@ function show_hint() {
                 $orb.data('y', coord.y);
                 var s = mag * 0.1;
                 wait_time = Math.max(wait_time, s);
+                $orb.css('opacity', coord.visible ? 0.7 : 0);
                 $orb.css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
                 $orb.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
             }
@@ -7359,7 +7363,7 @@ class OrbPuzzle extends puzzleState_1.default {
                 var orb = step.orbs[i];
                 if (!result[i])
                     result[i] = [];
-                result[i].push({ x: orb.x, y: orb.y });
+                result[i].push({ x: orb.x, y: orb.y, visible: !orb.exploded });
             }
         }
         return result;

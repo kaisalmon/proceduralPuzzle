@@ -721,8 +721,8 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     return 3;
   }
 
-  static getHintCoords(solution: OrbPuzzle[]): {x:number, y:number}[][]{
-    var result:  {x:number, y:number}[][] = [];
+  static getHintCoords(solution: OrbPuzzle[]): {x:number, y:number, visible:boolean}[][]{
+    var result:  {x:number, y:number, visible:boolean}[][] = [];
     var steps_to_show = OrbPuzzle.getNumberOfMovesForHint(solution.length) + 1;
     var stack = solution.slice(-steps_to_show);
     solution.forEach(s => console.log(s.toString()));
@@ -730,7 +730,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       for(var i = 0; i < step.orbs.length; i++){
         var orb = step.orbs[i];
         if(!result[i]) result[i] = [];
-        result[i].push({x: orb.x, y:orb.y});
+        result[i].push({x: orb.x, y:orb.y, visible: !orb.exploded});
       }
     }
     return result;

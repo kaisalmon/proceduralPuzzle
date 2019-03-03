@@ -195,9 +195,12 @@ async function show_hint(){
     $e.css('transition', base_transition)
     $e.data('x', coord.x);
     $e.data('y', coord.y);
+    $e.data('start_visible', coord.visible);
   }
   await delay(50);
-  $('.hint-orb').css('opacity', 0.7);
+  $('.hint-orb').each((i,e)=>{
+    $(e).css('opacity', $(e).data('start_visible') ? 0.7 : 0);
+  })
   await delay(750);
   if(hint_length < 1) throw "Golden path had length of zero"
   for(var i = 0; i < hint_length; i++){
@@ -211,6 +214,7 @@ async function show_hint(){
       var s = mag * 0.1;
       wait_time = Math.max(wait_time, s);
 
+      $orb.css('opacity', coord.visible ? 0.7 : 0);
       $orb.css('transition', 'transform ' + s + 's ease-in, ' + base_transition)
       $orb.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))')
     }
