@@ -3,6 +3,7 @@ import Hammer from 'hammerjs'
 import swal from 'sweetalert2'
 import { OrbPuzzle, Tile, OrbMove} from './orbPuzzle'
 import {animatedParticlesFromElement, setUpExplosions } from './explosion'
+import {tryUntilSuccess} from './lib';
 
 import { createOrbPuzzle as createCustomPuzzle, createLevel} from './orbPuzzleGenerator'
 import SFX from './sound';
@@ -106,7 +107,11 @@ $(document).ready(() => {
       let decoy_bombs: boolean = params['decoy_bombs'] == "true";
       let decoy_portals: boolean = params['decoy_portals'] == "true";
       let args =  {size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density,decoy_orbs,decoy_bombs, decoy_portals};
-      stack =  await runWithLoadingSwals(createCustomPuzzle, args);
+      stack =  await runWithLoadingSwals(args => {
+        return tryUntilSuccess(args=>{
+          return createCustomPuzzle(args)
+        }, args);
+      }, args);
       if(!stack){return}
     }
 

@@ -6138,6 +6138,7 @@ const hammerjs_1 = __importDefault(require("hammerjs"));
 const sweetalert2_1 = __importDefault(require("sweetalert2"));
 const orbPuzzle_1 = require("./orbPuzzle");
 const explosion_1 = require("./explosion");
+const lib_1 = require("./lib");
 const orbPuzzleGenerator_1 = require("./orbPuzzleGenerator");
 const sound_1 = __importDefault(require("./sound"));
 /*globals*/
@@ -6240,7 +6241,11 @@ jquery_1.default(document).ready(() => {
                 let decoy_bombs = params['decoy_bombs'] == "true";
                 let decoy_portals = params['decoy_portals'] == "true";
                 let args = { size, orbs, depth, mindepth, fragile, crystal, pits, bombs, portals, decoy_pits, brick_density, fragile_brick_density, pit_density, decoy_orbs, decoy_bombs, decoy_portals };
-                stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createOrbPuzzle, args);
+                stack = yield runWithLoadingSwals(args => {
+                    return lib_1.tryUntilSuccess(args => {
+                        return orbPuzzleGenerator_1.createOrbPuzzle(args);
+                    }, args);
+                }, args);
                 if (!stack) {
                     return;
                 }
@@ -6681,7 +6686,7 @@ function create_board(board) {
     return $tiles;
 }
 
-},{"./explosion":32,"./orbPuzzle":35,"./orbPuzzleGenerator":36,"./sound":38,"hammerjs":40,"jquery":41,"sweetalert2":42}],35:[function(require,module,exports){
+},{"./explosion":32,"./lib":33,"./orbPuzzle":35,"./orbPuzzleGenerator":36,"./sound":38,"hammerjs":40,"jquery":41,"sweetalert2":42}],35:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
