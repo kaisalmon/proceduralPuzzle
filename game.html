@@ -49,6 +49,22 @@ html, body{
         height:  var(--bsize);
         transform: translate(-50%, -50%);
     }
+    .hint-orb{
+      display: inline-block;
+      position: absolute;
+      background: white;
+      opacity: 0;
+      border: calc(var(--tsize) * 0.1) solid cyan;
+      filter: blur(calc(var(--tsize) * 0.1));
+      transition: transform 0.5s ease-in, border 0.5s;
+      top: calc(var(--tsize) * 0.05);
+      left: calc(var(--tsize) * 0.05);
+      width: calc(var(--tsize) * 0.9);
+      height: calc(var(--tsize) * 0.9);
+      border-radius: 100%;
+      box-sizing:border-box;
+      z-index: 2;
+    }
     .orb{
       display: inline-block;
       position: absolute;

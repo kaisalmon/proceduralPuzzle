@@ -153,6 +153,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
         let stack = p.getStack(args.depth)
 
         //var t0 = performance.now();
+
         let solutionResult = await stack[0][0].solve(args.depth);
         //var t1 = performance.now();
         //alert("Call to solve took " + (t1 - t0)/1000 + "seconds.")

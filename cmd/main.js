@@ -24,17 +24,8 @@ let level_number = undefined;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-/*
-let stack:OrbPuzzle[] = []
-let p =new OrbPuzzle(10,10)
-p.grid[4][3] = Tile.Pit;
-p.orbs.push(new Orb(4,4))
-stack.push(p)
-p = p.reverse(OrbMove.Up)
-stack.push(p)
-stack = stack.reverse();
-*/
 let board;
+let golden_path = null;
 let moving = false;
 let $tiles;
 function runWithLoadingSwals(f, args) {
@@ -132,9 +123,9 @@ jquery_1.default(document).ready(() => {
                 }
             }
             board = stack[0][0];
-            let solution = stack[1];
+            golden_path = stack[0];
             jquery_1.default('.hint').click(() => {
-                sweetalert2_1.default(solution.join("\n"));
+                show_hint();
             });
             jquery_1.default('.back').click(() => {
                 if (getUrlVars().round_id) {
@@ -194,6 +185,52 @@ function getUrlVars() {
         return "";
     });
     return vars;
+}
+function show_hint() {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!golden_path)
+            throw "There is no golden path";
+        var hint_paths = orbPuzzle_1.OrbPuzzle.getHintCoords(golden_path);
+        console.log(hint_paths);
+        jquery_1.default('.hint-orb').remove();
+        var hint_length = -1;
+        var orb_count = hint_paths.length;
+        for (var path of hint_paths) {
+            var coord = path[0];
+            hint_length = path.length;
+            var $e = jquery_1.default('<div/>').addClass('hint-orb').appendTo('.upper-layer');
+            $e.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
+            $e.data('x', coord.x);
+            $e.data('y', coord.y);
+        }
+        yield delay(100);
+        if (hint_length < 1)
+            throw "Golden path had length of zero";
+        for (var i = 0; i < hint_length; i++) {
+            console.log(i);
+            var wait_time = 0;
+            for (var n = 0; n < orb_count; n++) {
+                console.log(i, n);
+                var $orb = jquery_1.default(jquery_1.default('.hint-orb')[n]);
+                var coord = hint_paths[n][i];
+                console.log($orb.data());
+                var mag = Math.abs($orb.data('x') - coord.x) + Math.abs($orb.data('y') - coord.y);
+                $orb.data('x', coord.x);
+                $orb.data('y', coord.y);
+                var s = mag * 0.1;
+                wait_time = Math.max(wait_time, s);
+                let base_transition = "opacity 0.5s";
+                jquery_1.default('.hint-orb').css('opacity', 0.7);
+                $orb.css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
+                $orb.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
+            }
+            wait_time += 0.1;
+            //alert(`${i}/${hint_length}`);
+            yield delay(wait_time * 1000);
+            //alert(`${i}/${hint_length}`);
+        }
+        jquery_1.default('.hint-orb').css('opacity', 0);
+    });
 }
 function move_orbs(n = 0) {
     return __awaiter(this, void 0, void 0, function* () {

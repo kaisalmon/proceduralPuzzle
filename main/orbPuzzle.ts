@@ -715,4 +715,23 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     }
     return v/this.width/this.height * 50
   }
+
+  static getNumberOfMovesForHint(minMoves: number):number{
+    if(minMoves < 3) return 1;
+    return 3;
+  }
+
+  static getHintCoords(solution: OrbPuzzle[]): {x:number, y:number}[][]{
+    var result:  {x:number, y:number}[][] = [];
+    //var steps_to_show = OrbPuzzle.getNumberOfMovesForHint(solution.length) + 1;
+    var stack = solution;
+    for(var step of stack){
+      for(var i = 0; i < step.orbs.length; i++){
+        var orb = step.orbs[i];
+        if(!result[i]) result[i] = [];
+        result[i].push({x: orb.x, y:orb.y});
+      }
+    }
+    return result;
+  }
 }

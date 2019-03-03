@@ -679,6 +679,25 @@ class OrbPuzzle extends puzzleState_1.default {
         }
         return v / this.width / this.height * 50;
     }
+    static getNumberOfMovesForHint(minMoves) {
+        if (minMoves < 3)
+            return 1;
+        return 3;
+    }
+    static getHintCoords(solution) {
+        var result = [];
+        //var steps_to_show = OrbPuzzle.getNumberOfMovesForHint(solution.length) + 1;
+        var stack = solution;
+        for (var step of stack) {
+            for (var i = 0; i < step.orbs.length; i++) {
+                var orb = step.orbs[i];
+                if (!result[i])
+                    result[i] = [];
+                result[i].push({ x: orb.x, y: orb.y });
+            }
+        }
+        return result;
+    }
 }
 exports.OrbPuzzle = OrbPuzzle;
 //# sourceMappingURL=orbPuzzle.js.map
