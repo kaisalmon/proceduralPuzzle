@@ -682,7 +682,7 @@ class OrbPuzzle extends puzzleState_1.default {
     static getNumberOfMovesForHint(minMoves) {
         if (minMoves < 3)
             return 1;
-        return 3;
+        return 2;
     }
     static getHintCoords(solution) {
         var result = [];
@@ -694,7 +694,20 @@ class OrbPuzzle extends puzzleState_1.default {
                 var orb = step.orbs[i];
                 if (!result[i])
                     result[i] = [];
-                result[i].push({ x: orb.x, y: orb.y, visible: !orb.exploded });
+                var movements = [];
+                orb.last_moves.forEach(move => {
+                    var movement = {
+                        x: move.to.x,
+                        y: move.to.y,
+                        visible: !orb.exploded,
+                        instant: move.instant,
+                    };
+                    if (orb.last_moves.length == 0) {
+                        movements.push({ x: orb.x, y: orb.y, visible: !orb.exploded });
+                    }
+                    movements.push(movement);
+                });
+                result[i].push(movements);
             }
         }
         return result;

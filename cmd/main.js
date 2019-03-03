@@ -27,6 +27,7 @@ function delay(ms) {
 let board;
 let golden_path = null;
 let moving = false;
+let hint_playing = false;
 let $tiles;
 function runWithLoadingSwals(f, args) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -188,6 +189,10 @@ function getUrlVars() {
 }
 function show_hint() {
     return __awaiter(this, void 0, void 0, function* () {
+        if (hint_playing)
+            return;
+        jquery_1.default('.buttons .hint').attr('disabled', 'true');
+        hint_playing = true;
         if (!golden_path)
             throw "There is no golden path";
         var hint_paths = orbPuzzle_1.OrbPuzzle.getHintCoords(golden_path);
@@ -197,7 +202,7 @@ function show_hint() {
         var hint_length = -1;
         var orb_count = hint_paths.length;
         for (var path of hint_paths) {
-            var coord = path[0];
+            var coord = path[0][0];
             hint_length = path.length;
             var $e = jquery_1.default('<div/>').addClass('hint-orb').appendTo('.upper-layer');
             $e.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
@@ -207,7 +212,7 @@ function show_hint() {
             $e.data('start_visible', coord.visible);
         }
         yield delay(50);
-        jquery_1.default('.hint-orb').each((i, e) => {
+        jquery_1.default('.hint-orb').each((_, e) => {
             jquery_1.default(e).css('opacity', jquery_1.default(e).data('start_visible') ? 0.7 : 0);
         });
         yield delay(750);
@@ -215,25 +220,35 @@ function show_hint() {
             throw "Golden path had length of zero";
         for (var i = 0; i < hint_length; i++) {
             var wait_time = 0;
-            ';';
-            for (var n = 0; n < orb_count; n++) {
-                var $orb = jquery_1.default(jquery_1.default('.hint-orb')[n]);
-                var coord = hint_paths[n][i];
-                var mag = Math.abs($orb.data('x') - coord.x) + Math.abs($orb.data('y') - coord.y);
-                $orb.data('x', coord.x);
-                $orb.data('y', coord.y);
-                var s = mag * 0.1;
-                wait_time = Math.max(wait_time, s);
-                $orb.css('opacity', coord.visible ? 0.7 : 0);
-                $orb.css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
-                $orb.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
+            var k = 0;
+            while (true) {
+                var shouldBreak = true;
+                for (var n = 0; n < orb_count; n++) {
+                    var $orb = jquery_1.default(jquery_1.default('.hint-orb')[n]);
+                    var coord = hint_paths[n][i][k];
+                    if (coord) {
+                        shouldBreak = false;
+                        var mag = Math.abs($orb.data('x') - coord.x) + Math.abs($orb.data('y') - coord.y);
+                        $orb.data('x', coord.x);
+                        $orb.data('y', coord.y);
+                        var s = coord.instant ? 0 : mag * 0.1;
+                        wait_time = Math.max(wait_time, s);
+                        $orb.css('opacity', coord.visible ? 0.7 : 0);
+                        $orb.css('transition', 'transform ' + s + 's ease-in, ' + base_transition);
+                        $orb.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
+                    }
+                }
+                wait_time += 0.1;
+                yield delay(wait_time * 1000);
+                if (shouldBreak)
+                    break;
+                k++;
             }
-            wait_time += 0.1;
-            //alert(`${i}/${hint_length}`);
-            yield delay(wait_time * 1000);
-            //alert(`${i}/${hint_length}`);
         }
         jquery_1.default('.hint-orb').css('opacity', 0);
+        yield delay(500);
+        hint_playing = false;
+        jquery_1.default('.buttons .hint').attr('disabled', 'false');
     });
 }
 function move_orbs(n = 0) {

@@ -17,6 +17,7 @@ function delay(ms: number): Promise<void>{
 let board: OrbPuzzle;
 let golden_path: OrbPuzzle[]|null = null;
 let moving = false;
+let hint_playing = false;
 let $tiles: (JQuery|undefined)[][];
 
 async function runWithLoadingSwals<T, ARGS>(f: (args: ARGS) => T, args: ARGS){
@@ -179,6 +180,9 @@ function getUrlVars(): { [id: string]: string } {
 }
 
 async function show_hint(){
+  if(hint_playing) return;
+  $('.buttons .hint').attr('disabled', 'true');
+  hint_playing = true;
   if(!golden_path) throw "There is no golden path";
   var hint_paths = OrbPuzzle.getHintCoords(golden_path)
   console.log(hint_paths);
@@ -188,7 +192,7 @@ async function show_hint(){
   var hint_length:number = -1;
   var orb_count: number = hint_paths.length;
   for(var path of hint_paths){
-    var coord = path[0];
+    var coord = path[0][0];
     hint_length = path.length;
     var $e = $('<div/>').addClass('hint-orb').appendTo('.upper-layer');
     $e.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))')
@@ -198,33 +202,42 @@ async function show_hint(){
     $e.data('start_visible', coord.visible);
   }
   await delay(50);
-  $('.hint-orb').each((i,e)=>{
+  $('.hint-orb').each((_,e)=>{
     $(e).css('opacity', $(e).data('start_visible') ? 0.7 : 0);
   })
   await delay(750);
   if(hint_length < 1) throw "Golden path had length of zero"
   for(var i = 0; i < hint_length; i++){
-    var wait_time = 0;';'
-    for(var n = 0; n < orb_count; n++){
-      var $orb = $($('.hint-orb')[n]);
-      var coord = hint_paths[n][i];
-      var mag = Math.abs($orb.data('x') - coord.x) +  Math.abs($orb.data('y') - coord.y);
-      $orb.data('x', coord.x);
-      $orb.data('y', coord.y);
-      var s = mag * 0.1;
-      wait_time = Math.max(wait_time, s);
+    var wait_time = 0;
+    var k = 0;
+    while(true){
+      var shouldBreak = true;
+      for(var n = 0; n < orb_count; n++){
+        var $orb = $($('.hint-orb')[n]);
+        var coord = hint_paths[n][i][k];
+        if(coord){
+          shouldBreak = false;
+          var mag = Math.abs($orb.data('x') - coord.x) +  Math.abs($orb.data('y') - coord.y);
+          $orb.data('x', coord.x);
+          $orb.data('y', coord.y);
+          var s = coord.instant ? 0 : mag * 0.1;
+          wait_time = Math.max(wait_time, s);
 
-      $orb.css('opacity', coord.visible ? 0.7 : 0);
-      $orb.css('transition', 'transform ' + s + 's ease-in, ' + base_transition)
-      $orb.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))')
+          $orb.css('opacity', coord.visible ? 0.7 : 0);
+          $orb.css('transition', 'transform ' + s + 's ease-in, ' + base_transition)
+          $orb.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))')
+        }
+      }
+      wait_time += 0.1;
+      await delay(wait_time * 1000);
+      if(shouldBreak) break;
+      k++;
     }
-    wait_time += 0.1;
-    //alert(`${i}/${hint_length}`);
-    await delay(wait_time * 1000);
-    //alert(`${i}/${hint_length}`);
   }
-
   $('.hint-orb').css('opacity', 0);
+  await delay(500);
+  hint_playing = false;
+  $('.buttons .hint').attr('disabled', 'false');
 }
 
 async function move_orbs(n: number = 0){
