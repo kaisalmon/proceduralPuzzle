@@ -15,11 +15,68 @@ function delay(ms: number): Promise<void>{
     return new Promise( resolve => setTimeout(resolve, ms) );
 }
 
+declare global {
+    interface Window { cm: any; set_cm:(cm:any)=>void}
+}
+window.set_cm = function(cm:any):void{
+  window.cm = cm;
+}
+
+
+
+class GameRecord {
+    start?:number;
+    penality:number = 0;
+    frozenTime?:number; //Time if stopped
+    mode:"CHALLENGE"|"NORMAL" = "NORMAL";
+
+    init():void{
+      this.start = performance.now();
+    }
+
+    freeze():void{
+      this.frozenTime = this.getTime();
+    }
+
+    getTime():number{
+      if(this.frozenTime) return this.frozenTime;
+      if(!this.start) return 0;
+      return performance.now() - this.start + this.penality;
+    }
+
+    addPenalty(time:number):void{
+      this.penality += time;
+    }
+
+    getFormattedTime():string{
+      let t = this.getTime();
+      let seconds = t/1000;
+      let s = Math.floor(seconds%60);
+      let m = Math.floor(seconds/60);
+      let ss = s < 10 ? "0"+s : ""+s;
+      let mm = m < 10 ? "0"+m : ""+m;
+      return mm+":"+ss;
+    }
+}
+
+/*
+let stack:OrbPuzzle[] = []
+let p =new OrbPuzzle(10,10)
+p.grid[4][3] = Tile.Pit;
+p.orbs.push(new Orb(4,4))
+stack.push(p)
+p = p.reverse(OrbMove.Up)
+stack.push(p)
+stack = stack.reverse();
+*/
 let board: OrbPuzzle;
 let golden_path: OrbPuzzle[]|null = null;
 let moving = false;
 let hint_playing = false;
 let $tiles: (JQuery|undefined)[][];
+let gameRecord = new GameRecord();
+
+
 
 async function runWithLoadingSwals<T, ARGS>(f: (args: ARGS) => T, args: ARGS){
     swal({
@@ -55,7 +112,14 @@ async function runWithLoadingSwals<T, ARGS>(f: (args: ARGS) => T, args: ARGS){
     }
 }
 
+
+
 function on_level_created():void{
+    gameRecord.init();
+    setInterval(()=>{
+      $('.timer').text(gameRecord.getFormattedTime());
+    },500)
+
     setTimeout(()=>{
       if(!player_made_move && level_number == 1){
         $('.swipe-prompt-container').css('display', 'block');
@@ -85,7 +149,18 @@ $(document).ready(() => {
     let stack: [OrbPuzzle[], OrbMove[]] | undefined = undefined
     let level = params.round_id ? "challenge" : parseInt(params.level);
     if(level){
-      $("#level-info").text("Level "+level);
+      if(level === "challenge"){
+        gameRecord.mode = "CHALLENGE";
+        $("#level-info")
+          .css("padding-top", "10px")
+          .text("Daily Challenge")
+          .append(
+            $("<div />").addClass("timer")
+          );
+        $('.buttons .hint').remove();
+      }else{
+        $("#level-info").text("Level "+level);
+      }
       stack = await runWithLoadingSwals(createLevel, level);
       if(!stack) return;
     }else{
@@ -141,6 +216,15 @@ $(document).ready(() => {
       }).then(() => {
         board = orig;
         $tiles = create_board(board);
+        gameRecord.addPenalty(10000);
+        $('.timer')
+          .css("color", "red")
+          .css("transition", "")
+        setTimeout(()=>{
+          $('.timer')
+            .css("color", "")
+            .css("transition", "color 1s")
+          }, 50)
         moving = false;
       });
     });
@@ -442,18 +526,30 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
             }).catch(() => {
               window.location.href = window.location.href.replace("game",  getUrlVars().round_id ? "menu" : "levelselect");
             })
-          }else{
+          }else if (gameRecord.mode === "CHALLENGE"){
+            gameRecord.freeze();
+            swal({
+              title: "You win!",
+              type: "success",
+              confirmButtonText: "Submit Score",
+              useRejections: true,
+            }).then(() => {
+              window.cm.orbs_submit_score(gameRecord.getTime()).then(() => {
+                window.location.href = window.location.href.replace("game", "menu");
+              });
+            })
+          }else {
             swal({
               title: "You win!",
               type: "success",
               showCancelButton: true,
-              showConfirmButton: getUrlVars().round_id === undefined,
-              cancelButtonText: getUrlVars().round_id ? "Back to menu" : "Back to settings",
+              showConfirmButton: true,
+              cancelButtonText: "Back to settings",
               useRejections: true,
             }).then(() => {
               window.location.reload();
             }).catch(() => {
-              window.location.href = window.location.href.replace("game",  getUrlVars().round_id ? "menu" : "levelselect");
+              window.location.href = window.location.href.replace("game", "levelselect");
             })
           }
         }
@@ -461,6 +557,7 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
     }
   }
 }
+
 
 function create_board(board: OrbPuzzle): (JQuery|undefined)[][] {
   $('.puzzle-wrapper').remove();

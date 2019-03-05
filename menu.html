@@ -103,61 +103,18 @@
 
 <script>
 
-
-var debug =
-{
-	log:function(text)
-	{
-		console.log("CoinMode:"+text);
-	},
-	warning:function(text)
-	{
-		console.log("!CoinMode:"+text);
-	},
-	error:function(text)
-	{
-		console.log("ERROR CoinMode:"+text);
-	}
-}
-</script>
-
-<script src="js/jquery.js"></script>
-<script src="js/coinmode_helper.js"></script>
-
-<script>
-var cm = new CoinMode({	game_id: 91, methods:{
-    on_iframe_visible : function()
-    {
-      document.getElementById("#coinmode_iframe").className += " coinmode-visible";
-    },
-    on_iframe_hidden : function()
-    {
-        let cname =   document.getElementById("#coinmode_iframe").className;
-        document.getElementById("#coinmode_iframe").className = cname.replace("coinmode-visible","")
-    }
-  }});
-
   function set_background_audio(audio_element){
     audio_element.play();
     window.background_audio = audio_element;
     document.addEventListener('click',audio_element.play, false);
   }
-  
-  function start_challenge(){
-    cm.helper.getPlaytoken((err, token, details)=>{
-      cm.helper.showRoundSelector((err, round_id, props)=>{
-      //  if(!round_id){
-          round_id=  props.data.round_id;
-      //  }
-        if(!err && round_id){
-          let qstring = "?round_id="+round_id
-          let base = window.location.pathname;
-          if(base.indexOf("menu.html") === -1){
-            base += "/menu.html";
-          }
-          window.location.href = base.replace("menu", "game") + qstring;
-        }
-      });
-    })
+
+  function set_cm(cm){
+    window.cm = cm;
   }
+
+  function start_challenge(){
+    window.cm.start_challenge(); //Injected from index
+  }
+
 </script>

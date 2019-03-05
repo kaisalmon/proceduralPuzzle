@@ -29,25 +29,68 @@
        </style>
 <head>
 <body>
-  <iframe id="iframe" src="menu.html"></iframe>
-  <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg" loop>
+
   <script>
+    var debug =
+    {
+    	log:function(text)
+    	{
+    		console.log("CoinMode:"+text);
+    	},
+    	warning:function(text)
+    	{
+    		console.log("!CoinMode:"+text);
+    	},
+    	error:function(text)
+    	{
+    		console.log("ERROR CoinMode:"+text);
+    	}
+    }
+  </script>
+
+
+  <script src="js/jquery.js"></script>
+  <script src="js/coinmode_helper.js"></script>
+  <iframe id="iframe" src="menu.html"></iframe>
+  <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg" controls>
+  <script>
+    var cm = new CoinMode({	game_id: 91, methods:{}});
+    cm.start_challenge = function(){
+      cm.init(()=>{alert("does init have a callback?")});
+      cm.helper.getPlaytoken((err, token, details)=>{
+        cm.helper.showRoundSelector((err, round_id, props)=>{
+        //  if(!round_id){
+            round_id=  props.data.round_id;
+        //  }
+          if(!err && round_id){
+            let qstring = "?round_id="+round_id
+            let base = window.location.pathname;
+            if(base.indexOf("menu.html") === -1){
+              base += "/menu.html";
+            }
+            document.getElementById("iframe").contentWindow.location.href = base.replace("menu", "game") + qstring;
+            document.getElementById("coinmode_iframe").style.visibility = "hidden";
+          }
+        });
+      })
+    }
+
+    cm.orbs_submit_score = function(score){
+      score = Math.floor(score);
+      alert("Look at me wanting to submit a score! [score = "+score+"]");
+      return new Promise( (resolve) => {
+        resolve();
+      });
+    }
+
     document.getElementById("iframe").onload=function(){
+      if(this.contentWindow.set_cm){
+        this.contentWindow.set_cm(cm)
+      };
       if(this.contentWindow.set_background_audio){
         this.contentWindow.set_background_audio(document.getElementById("music"));
       };
     };
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: 'Arcane Ambience',
-        artist: 'Lewis Thompson',
-        album: 'Arcane Orbs',
-        artwork: [
-          { src: 'https://www.kaisalmon.com/puzzle/assets/icon.png',   sizes: '105x105',   type: 'image/png' },
-        ]
-      });
-
-    }
   </script>
 
 </body>

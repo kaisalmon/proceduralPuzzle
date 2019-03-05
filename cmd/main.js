@@ -25,11 +25,56 @@ let level_number = undefined;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+window.set_cm = function (cm) {
+    window.cm = cm;
+};
+class GameRecord {
+    constructor() {
+        this.penality = 0;
+        this.mode = "NORMAL";
+    }
+    init() {
+        this.start = performance.now();
+    }
+    freeze() {
+        this.frozenTime = this.getTime();
+    }
+    getTime() {
+        if (this.frozenTime)
+            return this.frozenTime;
+        if (!this.start)
+            return 0;
+        return performance.now() - this.start + this.penality;
+    }
+    addPenalty(time) {
+        this.penality += time;
+    }
+    getFormattedTime() {
+        let t = this.getTime();
+        let seconds = t / 1000;
+        let s = Math.floor(seconds % 60);
+        let m = Math.floor(seconds / 60);
+        let ss = s < 10 ? "0" + s : "" + s;
+        let mm = m < 10 ? "0" + m : "" + m;
+        return mm + ":" + ss;
+    }
+}
+/*
+let stack:OrbPuzzle[] = []
+let p =new OrbPuzzle(10,10)
+p.grid[4][3] = Tile.Pit;
+p.orbs.push(new Orb(4,4))
+stack.push(p)
+p = p.reverse(OrbMove.Up)
+stack.push(p)
+stack = stack.reverse();
+*/
 let board;
 let golden_path = null;
 let moving = false;
 let hint_playing = false;
 let $tiles;
+let gameRecord = new GameRecord();
 function runWithLoadingSwals(f, args) {
     return __awaiter(this, void 0, void 0, function* () {
         sweetalert2_1.default({
@@ -66,6 +111,10 @@ function runWithLoadingSwals(f, args) {
     });
 }
 function on_level_created() {
+    gameRecord.init();
+    setInterval(() => {
+        jquery_1.default('.timer').text(gameRecord.getFormattedTime());
+    }, 500);
     setTimeout(() => {
         if (!player_made_move && level_number == 1) {
             jquery_1.default('.swipe-prompt-container').css('display', 'block');
@@ -95,7 +144,17 @@ jquery_1.default(document).ready(() => {
             let stack = undefined;
             let level = params.round_id ? "challenge" : parseInt(params.level);
             if (level) {
-                jquery_1.default("#level-info").text("Level " + level);
+                if (level === "challenge") {
+                    gameRecord.mode = "CHALLENGE";
+                    jquery_1.default("#level-info")
+                        .css("padding-top", "10px")
+                        .text("Daily Challenge")
+                        .append(jquery_1.default("<div />").addClass("timer"));
+                    jquery_1.default('.buttons .hint').remove();
+                }
+                else {
+                    jquery_1.default("#level-info").text("Level " + level);
+                }
                 stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createLevel, level);
                 if (!stack)
                     return;
@@ -154,6 +213,15 @@ jquery_1.default(document).ready(() => {
                 }).then(() => {
                     board = orig;
                     $tiles = create_board(board);
+                    gameRecord.addPenalty(10000);
+                    jquery_1.default('.timer')
+                        .css("color", "red")
+                        .css("transition", "");
+                    setTimeout(() => {
+                        jquery_1.default('.timer')
+                            .css("color", "")
+                            .css("transition", "color 1s");
+                    }, 50);
                     moving = false;
                 });
             });
@@ -458,18 +526,31 @@ function apply_move(move) {
                                 window.location.href = window.location.href.replace("game", getUrlVars().round_id ? "menu" : "levelselect");
                             });
                         }
+                        else if (gameRecord.mode === "CHALLENGE") {
+                            gameRecord.freeze();
+                            sweetalert2_1.default({
+                                title: "You win!",
+                                type: "success",
+                                confirmButtonText: "Submit Score",
+                                useRejections: true,
+                            }).then(() => {
+                                window.cm.orbs_submit_score(gameRecord.getTime()).then(() => {
+                                    window.location.href = window.location.href.replace("game", "menu");
+                                });
+                            });
+                        }
                         else {
                             sweetalert2_1.default({
                                 title: "You win!",
                                 type: "success",
                                 showCancelButton: true,
-                                showConfirmButton: getUrlVars().round_id === undefined,
-                                cancelButtonText: getUrlVars().round_id ? "Back to menu" : "Back to settings",
+                                showConfirmButton: true,
+                                cancelButtonText: "Back to settings",
                                 useRejections: true,
                             }).then(() => {
                                 window.location.reload();
                             }).catch(() => {
-                                window.location.href = window.location.href.replace("game", getUrlVars().round_id ? "menu" : "levelselect");
+                                window.location.href = window.location.href.replace("game", "levelselect");
                             });
                         }
                     }
