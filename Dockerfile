@@ -1,5 +1,5 @@
 FROM node
-LABEL author="Stuart Radforth <stuart@coinmode.com>"
+LABEL author="Kai Salmon <kaisalmon@hotmail.com>"
 RUN npm install
 COPY package.json .
 WORKDIR /usr/src/app
