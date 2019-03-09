@@ -152,6 +152,7 @@ $(document).ready(() => {
       if(level === "challenge"){
         gameRecord.mode = "CHALLENGE";
         $("#level-info")
+          .css('opacity',  1)
           .css("padding-top", "10px")
           .text("Daily Challenge")
           .append(

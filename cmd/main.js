@@ -147,6 +147,7 @@ jquery_1.default(document).ready(() => {
                 if (level === "challenge") {
                     gameRecord.mode = "CHALLENGE";
                     jquery_1.default("#level-info")
+                        .css('opacity', 1)
                         .css("padding-top", "10px")
                         .text("Daily Challenge")
                         .append(jquery_1.default("<div />").addClass("timer"));

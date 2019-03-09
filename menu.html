@@ -9,6 +9,7 @@
 <link rel="stylesheet" type="text/css" href="animate.css">
 <link rel="stylesheet" type="text/css" href="material-switch.css">
 <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+<script src="js/jquery.min.js"></script>
 
 
 <style>
@@ -46,9 +47,13 @@
     position: relative;
   }
 
-  a.menu-button:hover{
+  a.menu-button:not(.disabled):hover{
     transform:scale(0.9);
     text-decoration: none;
+  }
+
+  .menu-button.disabled{
+    opacity: 0.5;
   }
 
   .menu-button .logo{
@@ -92,9 +97,9 @@
         <a class="menu-button col-12 mb-5" href="levelselect.html">
           Free Play
         </a>
-        <a class="menu-button col-12" href="#" onclick="start_challenge()">
+        <a class="menu-button col-12 disabled" id="coinmode_challenge_button" href="#" onclick="start_challenge()">
           <img class="logo" src="https://coinmode.com/static/img/logo-coinmode.png">
-          Challenge Mode
+          <span class="text"><i class="fas fa-spinner fa-pulse"></i></span>
         </a>
       </div>
     </div>
@@ -115,6 +120,12 @@
 
   function start_challenge(){
     window.cm.start_challenge(); //Injected from index
+  }
+
+  function set_challenge_status({text, disabled}){
+    if(disabled) $('#coinmode_challenge_button').addClass('disabled');
+    else $('#coinmode_challenge_button').removeClass('disabled');
+    $('#coinmode_challenge_button .text').text(text);
   }
 
 </script>
