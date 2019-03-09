@@ -9,6 +9,11 @@ export class Routes {
     public routes(app: Application): void {
         app.route('/levelFromSettings')
           .get(async (req: Request, res: Response) => {
+              res.status(200).send("Araane Orbs")
+          })
+
+        app.route('/levelFromSettings')
+          .get(async (req: Request, res: Response) => {
             try{
               const level = await tryUntilSuccess(createOrbPuzzle, req.query, false)
               res.status(200).send(level)
