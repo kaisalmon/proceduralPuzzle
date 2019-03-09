@@ -7,7 +7,7 @@ export class Routes {
     challengeMap:{[seed:number]:[OrbPuzzle[], OrbMove[]]} = {};
 
     public routes(app: Application): void {
-        app.route('/levelFromSettings')
+        app.route('/')
           .get(async (req: Request, res: Response) => {
               res.status(200).send("Araane Orbs")
           })

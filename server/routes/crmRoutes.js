@@ -15,6 +15,10 @@ class Routes {
         this.challengeMap = {};
     }
     routes(app) {
+        app.route('/')
+            .get((req, res) => __awaiter(this, void 0, void 0, function* () {
+            res.status(200).send("Araane Orbs");
+        }));
         app.route('/levelFromSettings')
             .get((req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
