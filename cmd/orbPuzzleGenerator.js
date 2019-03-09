@@ -19,9 +19,10 @@ function load_level_from_file(fn) {
 }
 exports.load_level_from_file = load_level_from_file;
 let level_index = null;
-function createLevel(level) {
+function createLevel(args) {
     return __awaiter(this, void 0, void 0, function* () {
         let stack = undefined;
+        let { level, seed } = args;
         if (level_index === null) {
             level_index = yield lib_1.localFetch("levels/level_index.json");
             if (!level_index) {
@@ -29,11 +30,16 @@ function createLevel(level) {
             }
         }
         let level_data;
-        for (var i = 0; i < 20; i++) {
-            level_data = level_index[level];
-            if (level_data === undefined) {
-                level--;
+        if (typeof level === "number") {
+            for (var i = 0; i < 20; i++) {
+                level_data = level_index[level];
+                if (level_data === undefined) {
+                    level--;
+                }
             }
+        }
+        else {
+            level_data = level_index[level];
         }
         if (level_data === undefined) {
             throw "Level not found";
@@ -43,6 +49,7 @@ function createLevel(level) {
         }
         else {
             level_data = Object.assign({}, level_index.default, level_data);
+            level_data.seed = seed;
             stack = yield lib_1.tryUntilSuccess(createOrbPuzzle, level_data, true, 100);
             if (!stack) {
                 return;

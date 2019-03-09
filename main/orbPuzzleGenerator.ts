@@ -40,9 +40,10 @@ export async function load_level_from_file(fn: string): Promise<[OrbPuzzle[], Or
   return level
 }
 
-let level_index:{[l:number]:any, default:any}|null = null;
-export async function createLevel(level: number): Promise<[OrbPuzzle[], OrbMove[]]|undefined>{
+let level_index:{[l:string]:any, default:any}|null = null;
+export async function createLevel(args:{level: number|string, seed?:number}): Promise<[OrbPuzzle[], OrbMove[]]|undefined>{
   let stack:[OrbPuzzle[], OrbMove[]]|undefined = undefined;
+  let {level, seed} = args;
   if(level_index === null){
     level_index = await localFetch("levels/level_index.json");
     if(!level_index){
@@ -50,11 +51,15 @@ export async function createLevel(level: number): Promise<[OrbPuzzle[], OrbMove[
     }
   }
   let level_data;
-  for(var i = 0; i<20; i++){
-    level_data = level_index[level]
-    if(level_data === undefined){
-      level--;
+  if(typeof level === "number"){
+    for(var i = 0; i<20; i++){
+      level_data = level_index[level]
+      if(level_data === undefined){
+        level--;
+      }
     }
+  }else{
+    level_data = level_index[level];
   }
   if(level_data === undefined){
     throw "Level not found"
@@ -63,6 +68,7 @@ export async function createLevel(level: number): Promise<[OrbPuzzle[], OrbMove[
     stack = await load_level_from_file(level_data.fn);
   }else{
     level_data = Object.assign({},level_index.default,  level_data)
+    level_data.seed = seed;
     stack = await tryUntilSuccess(createOrbPuzzle, level_data, true, 100);
     if(!stack){return}
   }

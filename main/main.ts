@@ -162,7 +162,7 @@ $(document).ready(() => {
       }else{
         $("#level-info").text("Level "+level);
       }
-      stack = await runWithLoadingSwals(createLevel, level);
+      stack = await runWithLoadingSwals(createLevel, {seed: parseInt(params.round_id) || undefined, level});
       if(!stack) return;
     }else{
       $("#level-info").text("Custom Level");
@@ -529,13 +529,17 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
             })
           }else if (gameRecord.mode === "CHALLENGE"){
             gameRecord.freeze();
+
             swal({
               title: "You win!",
               type: "success",
               confirmButtonText: "Submit Score",
               useRejections: true,
             }).then(() => {
-              window.cm.orbs_submit_score(gameRecord.getTime()).then(() => {
+              window.cm.orbs_submit_score({
+                score: gameRecord.getTime(),
+                time: gameRecord.getFormattedTime(),
+              }).then(() => {
                 window.location.href = window.location.href.replace("game", "menu");
               });
             })

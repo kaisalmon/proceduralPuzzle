@@ -96,7 +96,8 @@
 					debug.log( round_info );
 					debug.log( session_token );
 
-          let game_data = {}
+          var game_data = {}
+          cm.game_data = game_data;
 					game_data.play_token = play_token;
 
 
@@ -122,12 +123,17 @@
       );
     }
 
-    cm.orbs_submit_score = function(score){
+    cm.orbs_submit_score = function({score, time}){
+      return new Promise((resolve)=>{
       score = Math.floor(score);
-      alert("Look at me wanting to submit a score! [score = "+score+"]");
-      return new Promise( (resolve) => {
-        resolve();
+      cm.helper.submitResults(cm.game_data.session_token, score, {time}, (err)=>{
+        if(!err){
+          cm.helper.showResults(cm.game_data.round_id, cm.game_data.session_token, ()=>{
+            resolve();
+          });
+        }
       });
+    });
     }
   </script>
 

@@ -156,7 +156,7 @@ jquery_1.default(document).ready(() => {
                 else {
                     jquery_1.default("#level-info").text("Level " + level);
                 }
-                stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createLevel, level);
+                stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createLevel, { seed: parseInt(params.round_id) || undefined, level });
                 if (!stack)
                     return;
             }
@@ -535,7 +535,10 @@ function apply_move(move) {
                                 confirmButtonText: "Submit Score",
                                 useRejections: true,
                             }).then(() => {
-                                window.cm.orbs_submit_score(gameRecord.getTime()).then(() => {
+                                window.cm.orbs_submit_score({
+                                    score: gameRecord.getTime(),
+                                    time: gameRecord.getFormattedTime(),
+                                }).then(() => {
                                     window.location.href = window.location.href.replace("game", "menu");
                                 });
                             });
