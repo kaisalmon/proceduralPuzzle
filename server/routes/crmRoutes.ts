@@ -1,8 +1,11 @@
 import {Request, Response, Application} from "express";
 import {createOrbPuzzle, createLevel} from './../../main/orbPuzzleGenerator';
+import {OrbPuzzle, OrbMove} from './../../main/orbPuzzle';
 import {tryUntilSuccess} from '../../main/lib';
 
 export class Routes {
+    challengeMap:{[seed:number]:[OrbPuzzle[], OrbMove[]]} = {};
+
     public routes(app: Application): void {
         app.route('/levelFromSettings')
           .get(async (req: Request, res: Response) => {
@@ -21,8 +24,19 @@ export class Routes {
             .get(async (req: Request, res: Response) => {
               try{
                 console.log(req.query)
-                const level = await createLevel(req.query['level'])
-                res.status(200).send(level)
+                let seed: number|undefined =  req.query['seed'] ? parseInt(req.query['seed']) : undefined;
+                let level = req.query['level']
+                console.log(Object.keys(this.challengeMap));
+                if(level==="challenge" && seed && this.challengeMap[seed]){
+                  const result = this.challengeMap[seed];
+                  res.status(200).send(result)
+                }else{
+                  const result = await createLevel({level, seed})
+                  if(level==="challenge" && result && seed){
+                    this.challengeMap[seed] = result;
+                  }
+                  res.status(200).send(result)
+                }
               }catch(e){
                   res.status(500).send({
                     "error":e,

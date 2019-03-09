@@ -11,6 +11,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const orbPuzzleGenerator_1 = require("./../../main/orbPuzzleGenerator");
 const lib_1 = require("../../main/lib");
 class Routes {
+    constructor() {
+        this.challengeMap = {};
+    }
     routes(app) {
         app.route('/levelFromSettings')
             .get((req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -26,8 +29,20 @@ class Routes {
             .get((req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 console.log(req.query);
-                const level = yield orbPuzzleGenerator_1.createLevel(req.query['level']);
-                res.status(200).send(level);
+                let seed = req.query['seed'] ? parseInt(req.query['seed']) : undefined;
+                let level = req.query['level'];
+                console.log(Object.keys(this.challengeMap));
+                if (level === "challenge" && seed && this.challengeMap[seed]) {
+                    const result = this.challengeMap[seed];
+                    res.status(200).send(result);
+                }
+                else {
+                    const result = yield orbPuzzleGenerator_1.createLevel({ level, seed });
+                    if (level === "challenge" && result && seed) {
+                        this.challengeMap[seed] = result;
+                    }
+                    res.status(200).send(result);
+                }
             }
             catch (e) {
                 res.status(500).send(Object.assign({ "error": e }, e));
