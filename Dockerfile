@@ -6,6 +6,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 COPY . .
+CMD ["chmod", "+x", "./build.sh"]
 CMD ["npm", "run", "build"]
 RUN npm run build
 EXPOSE 5000
