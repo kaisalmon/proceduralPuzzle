@@ -139,6 +139,19 @@ function on_player_move():void{
   }
 }
 
+ function dirtyHash(str:string) {
+    var hash = 0;
+    if (str.length == 0) {
+        return hash;
+    }
+    for (var i = 0; i < str.length; i++) {
+        var char = str.charCodeAt(i);
+        hash = ((hash<<5)-hash)+char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+}
+
 $(document).ready(() => {
   setUpExplosions();
   setTimeout(()=>{
@@ -148,9 +161,11 @@ $(document).ready(() => {
     let params = getUrlVars();
     let stack: [OrbPuzzle[], OrbMove[]] | undefined = undefined
     let level = params.round_id ? "challenge" : parseInt(params.level);
+    let seed:number|undefined = undefined;
     if(level){
       if(level === "challenge"){
         gameRecord.mode = "CHALLENGE";
+        seed=dirtyHash(params.round_id);
         $("#level-info")
           .css('opacity',  1)
           .css("padding-top", "10px")
@@ -162,7 +177,7 @@ $(document).ready(() => {
       }else{
         $("#level-info").text("Level "+level);
       }
-      stack = await runWithLoadingSwals(createLevel, {seed: parseInt(params.round_id) || undefined, level});
+      stack = await runWithLoadingSwals(createLevel, {seed: seed, level});
       if(!stack) return;
     }else{
       $("#level-info").text("Custom Level");

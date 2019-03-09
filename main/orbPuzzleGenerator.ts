@@ -216,7 +216,7 @@ export async function createOrbPuzzle(args:puzzleConfig): Promise<[OrbPuzzle[], 
         }
         return [solutionStates as OrbPuzzle[], solution]
       }catch(e){
-
+        if(args.seed) args.seed++;
         throw e;
       }
     }

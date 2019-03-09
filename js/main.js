@@ -5781,6 +5781,18 @@ function on_player_move() {
         }, 1000);
     }
 }
+function dirtyHash(str) {
+    var hash = 0;
+    if (str.length == 0) {
+        return hash;
+    }
+    for (var i = 0; i < str.length; i++) {
+        var char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+}
 jquery_1.default(document).ready(() => {
     explosion_1.setUpExplosions();
     setTimeout(() => {
@@ -5791,9 +5803,11 @@ jquery_1.default(document).ready(() => {
             let params = getUrlVars();
             let stack = undefined;
             let level = params.round_id ? "challenge" : parseInt(params.level);
+            let seed = undefined;
             if (level) {
                 if (level === "challenge") {
                     gameRecord.mode = "CHALLENGE";
+                    seed = dirtyHash(params.round_id);
                     jquery_1.default("#level-info")
                         .css('opacity', 1)
                         .css("padding-top", "10px")
@@ -5804,7 +5818,7 @@ jquery_1.default(document).ready(() => {
                 else {
                     jquery_1.default("#level-info").text("Level " + level);
                 }
-                stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createLevel, { seed: parseInt(params.round_id) || undefined, level });
+                stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createLevel, { seed: seed, level });
                 if (!stack)
                     return;
             }
@@ -7213,6 +7227,8 @@ function createOrbPuzzle(args) {
             return [solutionStates, solution];
         }
         catch (e) {
+            if (args.seed)
+                args.seed++;
             throw e;
         }
     });

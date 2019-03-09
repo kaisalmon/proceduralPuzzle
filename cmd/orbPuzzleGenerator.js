@@ -195,6 +195,8 @@ function createOrbPuzzle(args) {
             return [solutionStates, solution];
         }
         catch (e) {
+            if (args.seed)
+                args.seed++;
             throw e;
         }
     });
