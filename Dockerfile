@@ -4,7 +4,7 @@ COPY package.json .
 WORKDIR /usr/src/app
 RUN npm install -g typescript
 RUN npm install -g browserify
-RUN npm install -g uglifyjs
+RUN npm install -g uglify-js
 RUN npm install
 COPY package*.json ./
 RUN npm install
