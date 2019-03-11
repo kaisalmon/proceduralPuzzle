@@ -1,5 +1,6 @@
 FROM node
 LABEL author="Kai Salmon <kaisalmon@hotmail.com>"
+RUN npm install -g typescript
 RUN npm install
 COPY package.json .
 WORKDIR /usr/src/app
