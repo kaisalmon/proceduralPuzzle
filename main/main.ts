@@ -299,15 +299,19 @@ async function show_hint(){
   for(var path of hint_paths){
     var coord = path[0][0];
     hint_length = path.length;
-    var $e = $('<div/>').addClass('hint-orb').appendTo('.upper-layer');
-    $e.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))')
-    $e.css('transition', base_transition)
-    $e.data('x', coord.x);
-    $e.data('y', coord.y);
-    $e.data('start_visible', coord.visible);
+    if(!coord){
+      debugger;
+    }else{
+      var $e = $('<div/>').addClass('hint-orb').appendTo('.upper-layer');
+      $e.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))')
+      $e.css('transition', base_transition)
+      $e.data('x', coord.x);
+      $e.data('y', coord.y);
+      $e.data('start_visible', coord.visible);
+    }
   }
   await delay(50);
-  $('.hint-orb').each((_,e)=>{
+  $('.hint-orb').each((_, e:HTMLElement)=>{
     $(e).css('opacity', $(e).data('start_visible') ? 0.7 : 0);
   })
   await delay(750);
