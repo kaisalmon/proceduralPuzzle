@@ -11,10 +11,10 @@
     "noUnusedParameters": false,
     "noEmitOnError": true,
     "strictNullChecks": true,
-    "target": "es2015",
+    "target": "ES2015",
     "experimentalDecorators": true,
     "sourceMap": true,
-    "lib":["es2015", "dom"]
+    "lib":["ES2015", "dom"]
   },
   "include": [
     "main/*.ts",

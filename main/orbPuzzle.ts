@@ -38,6 +38,7 @@ export class Orb {
   decoy: boolean = false;
   in_pit: boolean = false;
   in_portal: boolean = false;
+  caged: boolean = false;
   exploded: boolean = false;
   last_moves: Movement[] = [];
   reversed_move_count: number = 0;
@@ -46,7 +47,7 @@ export class Orb {
     this.y = y;
   }
   is_frozen(): boolean {
-    if (this.in_pit||this.exploded||this.in_portal) {
+    if (this.in_pit||this.exploded||this.in_portal||this.caged) {
       return true;
     }
     return false;
@@ -128,7 +129,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
           result += this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen()) ? "o" : this.grid[x][y]
         }
       }
-      result += "\n";
+      if(y!=this.height-1)result += "\n";
     }
     return result;
   }
@@ -407,6 +408,23 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         }
       }
     }
+  }
+
+  getCagePairs(vec:[number, number]):{orb:Orb, cagedOrb:Orb}[] {
+    const pairs:{orb:Orb, cagedOrb:Orb}[] = [];
+    for(let orb of this.orbs){
+      if(!this.isPassable(orb.x-vec[0], orb.y-vec[1])) continue;
+      const cagedOrb = this.any_orb_at(orb.x+vec[0], orb.y+vec[1]);
+      if(cagedOrb) pairs.push({orb, cagedOrb});
+    }
+    return pairs;
+  }
+
+  reverseCage(vec:[number, number]):void{
+    const pairs = this.getCagePairs(vec);
+    const pair = this.sample(pairs);
+    if(!pair) throw new Error("No valid cage pair");
+    pair.cagedOrb.caged = true;
   }
 
   reverse(move: OrbMove, retcon:(f:(o:OrbPuzzle)=>void)=>void): OrbPuzzle {

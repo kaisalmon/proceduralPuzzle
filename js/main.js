@@ -6431,7 +6431,8 @@ class OrbPuzzle extends puzzleState_1.default {
                     result += this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen()) ? "o" : this.grid[x][y];
                 }
             }
-            result += "\n";
+            if (y != this.height - 1)
+                result += "\n";
         }
         return result;
     }
