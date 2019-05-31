@@ -25,11 +25,11 @@ interface OrbPuzzleJson{
   grid: string[][];
   orbs: any[],
   "criticalTiles":any[];
-  "use_crystals":boolean;
-  "use_pits":boolean;
-  "use_portals":boolean;
-  "use_fragile":boolean;
-  "no_basic":boolean;
+  "use_crystals"?:boolean;
+  "use_pits"?:boolean;
+  "use_portals"?:boolean;
+  "use_fragile"?:boolean;
+  "no_basic"?:boolean;
   "width":number;
   "height":number;
 }

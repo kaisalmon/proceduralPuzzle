@@ -292,12 +292,17 @@ function show_hint() {
         for (var path of hint_paths) {
             var coord = path[0][0];
             hint_length = path.length;
-            var $e = jquery_1.default('<div/>').addClass('hint-orb').appendTo('.upper-layer');
-            $e.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
-            $e.css('transition', base_transition);
-            $e.data('x', coord.x);
-            $e.data('y', coord.y);
-            $e.data('start_visible', coord.visible);
+            if (!coord) {
+                debugger;
+            }
+            else {
+                var $e = jquery_1.default('<div/>').addClass('hint-orb').appendTo('.upper-layer');
+                $e.css('transform', 'translate(calc(var(--tsize) * ' + coord.x + '), calc(var(--tsize) * ' + coord.y + '))');
+                $e.css('transition', base_transition);
+                $e.data('x', coord.x);
+                $e.data('y', coord.y);
+                $e.data('start_visible', coord.visible);
+            }
         }
         yield delay(50);
         jquery_1.default('.hint-orb').each((_, e) => {

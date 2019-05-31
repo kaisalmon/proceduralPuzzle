@@ -725,7 +725,6 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
     var result:  {x:number, y:number, visible:boolean, instant?:boolean}[][][] = [];
     var steps_to_show = OrbPuzzle.getNumberOfMovesForHint(solution.length) + 1;
     var stack = solution.slice(-steps_to_show);
-    solution.forEach(s => console.log(s.toString()));
     for(var step of stack){
       for(var i = 0; i < step.orbs.length; i++){
         var orb = step.orbs[i];
@@ -738,11 +737,11 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
             visible: !orb.exploded,
             instant: move.instant,
           }
-          if(orb.last_moves.length == 0){
-            movements.push({x: orb.x, y: orb.y, visible:!orb.exploded })
-          }
           movements.push(movement)
         })
+        if(orb.last_moves.length == 0){
+          movements.push({x: orb.x, y: orb.y, visible:!orb.exploded })
+        }
         result[i].push(movements);
       }
     }
