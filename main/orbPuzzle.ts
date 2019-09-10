@@ -117,12 +117,13 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
         if (this.grid[x][y] == Tile.Target) {
           result += this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen()) ? "✓" : this.grid[x][y]
         } else if (this.grid[x][y] == Tile.Empty) {
-          result +=
-            this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen())
-            ? "o"
-            : showCritical && this.criticalTiles.some((ct) => ct.x == x && ct.y == y)
-              ? "."
-              : this.grid[x][y]
+            if(this.orbs.some((b) => b.x == x && b.y == y && !b.is_frozen())){
+              result += "o";
+            }else if(this.orbs.some((b) => b.x == x && b.y == y && b.caged)){
+              result += 'C';
+            }else{
+              result += this.grid[x][y];
+            }
         } else if (this.grid[x][y] == Tile.Pit) {
           result += this.orbs.some((b) => b.x == x && b.y == y) ? Tile.Empty : this.grid[x][y]
         } else {
@@ -306,7 +307,7 @@ export class OrbPuzzle extends PuzzleState<OrbMove>{
       }
     }
     for (let b of this.orbs) {
-      if (b.x == x && b.y == y && !(b.is_frozen())) {
+      if (b.x == x && b.y == y && !(b.is_frozen() && !b.caged)) {
         return false;
       }
     }

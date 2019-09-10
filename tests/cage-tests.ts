@@ -8,12 +8,14 @@ import boxen from 'boxen';
 import {
     load_level_from_file
 } from '../main/orbPuzzleGenerator'
+import {
+  OrbMove
+} from '../main/orbPuzzle';
 
 describe('Cage Mechanics', () => {
   describe('getCagePairs', () => {
     it('Gets one pair going across', async () => {
       const [[level]] = await load_level_from_file('../tests/fixtures/cage.json');
-      console.log(boxen(level.toString()))
       const pairs = level.getCagePairs([1, 0]);
       assert.ok(pairs);
       assert.equal(pairs.length, 1);
@@ -34,6 +36,18 @@ describe('Cage Mechanics', () => {
       level.reverseCage([1, 0]);
       assert.equal(level.orbs.filter(o=>o.caged).length, 1, "One orb should caged");
       assert.equal(level.orbs.filter(o=>!o.caged).length, 1, "One orb should uncaged");
+    });
+  });
+  describe('apply', () => {
+    it('Correctly puts one orb in a cage', async () => {
+      let [[level]] = await load_level_from_file('../tests/fixtures/cage.json');
+      console.log(boxen(level.toString()))
+      level.reverseCage([1, 0]);
+      console.log(boxen(level.toString()))
+      level = level.reverse(OrbMove.Right, ()=>{});
+      console.log(boxen(level.toString()))
+      level = level.apply(OrbMove.Right);
+      console.log(boxen(level.toString()))
     });
   });
 });
