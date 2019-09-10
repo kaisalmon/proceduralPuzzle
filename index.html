@@ -35,106 +35,76 @@
   <head>
 
     <body>
-
-      <script>
-        var debug = {
-          log: function(text) {
-            console.log("CoinMode:" + text);
-          },
-          warning: function(text) {
-            console.log("!CoinMode:" + text);
-          },
-          error: function(text) {
-            console.log("ERROR CoinMode:" + text);
-          }
-        }
-      </script>
-
-
       <script src="js/jquery.min.js"></script>
-      <script src="https://iframe-staging.coinmode.com/static/js/coinmode_helper.js"></script>
       <iframe id="iframe" src="menu.html"></iframe>
       <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg" controls>
   <script>
-    let IFRAME_LOADED = false;
 
-    const game_iframe = document.getElementById("iframe");
-    game_iframe.onload=function(){
-      if(this.contentWindow.set_cm){
-        this.contentWindow.set_cm(cm)
-      };
-      if(IFRAME_LOADED){ on_iframe_loaded();}
-      if(this.contentWindow.set_background_audio){
-        this.contentWindow.set_background_audio(document.getElementById("music"));
-      };
-    };
-
-
-  var on_iframe_loaded = ()=>{
-    IFRAME_LOADED=true;
-    if(game_iframe.contentWindow.set_challenge_status){
-      game_iframe.contentWindow.set_challenge_status({
-        disabled: false,
-        text: "Challenge Mode",
-      });
-    }
-  }
-
-    var cm = new CoinMode({	game_id: 5, methods:{on_iframe_loaded}, optional:{environment:'staging'}});
-
-    cm.start_challenge = function(){
-      if(!IFRAME_LOADED) return;
-      cm.helper.joinFirstRound( 5, '',
-        function( err, play_token, player_info, round_id, round_info, session_token, session_info ){
-					if( err )
-					{
-						alert("There was an error joining the round:"+err);
-						return;
-					}
-					debug.log( "Round selected:"+ round_info['id_round'] );
-					debug.log( play_token );
-					debug.log( round_info );
-					debug.log( session_token );
-
-          var game_data = {}
-          cm.game_data = game_data;
-					game_data.play_token = play_token;
-
-
-					debug.log( "Returned play_token is:"+play_token );
-					debug.log( play_token );
-					game_data.play_token = play_token;
-					game_data.player_info = player_info;
-					game_data.player_id = player_info['player_id'];
-					game_data.round_id = round_id;
-					game_data.round_info = round_info; // Round_id is in this structure anyhow, but used for convenience
-					game_data.session_token = session_token;
-					game_data.joined = true;
-
-          if(!err && round_id){
-            let qstring = "?round_id="+round_id
-            let base = window.location.pathname;
-            if(base.indexOf("menu.html") === -1){
-              base += "/menu.html";
-            }
-            document.getElementById("iframe").contentWindow.location.href = base.replace("menu", "game") + qstring;
-          }
-				}
-      );
-    }
-
-    cm.orbs_submit_score = function({score, time}){
-      return new Promise((resolve)=>{
-      score = Math.floor(score);
-      cm.helper.submitResults(cm.game_data.session_token, score, {time}, (err)=>{
-        if(!err){
-          cm.helper.showResults(cm.game_data.round_id, cm.game_data.session_token, ()=>{
-            resolve();
-          });
+      /* DELETE THIS */ {
+        function init(args){
+          alert("init - "+args.gameId)
+          return new Promise(resolve => setTimeout(()=>{
+            resolve()
+          }, 400));
         }
-      });
-    });
-    }
+        function login(){
+          alert("login")
+          return new Promise(resolve => setTimeout(()=>{
+            resolve()
+          }, 400));
+        }
+        function canJoinAvailableRound(){
+          const canJoin = confirm("canJoinAvailableRound")
+          return new Promise(resolve => setTimeout(()=>{
+            resolve(canJoin)
+          }, 400));
+        }
+        function joinAvailableRound(){
+          alert("joinAvailableRound")
+          return new Promise(resolve => setTimeout(()=>{
+            resolve({
+              roundId: 100,
+              sessionId: 343,
+            })
+          }, 400));
+        }
+        function submitScore(score_object){
+          alert("gameState: "+JSON.stringify(score_object, null, 4));
+          return new Promise(resolve => setTimeout(()=>{
+            resolve()
+          }, 400));
+        }
+        function showLeaderboard(){
+          alert("showLeaderboard")
+          return new Promise(resolve => setTimeout(()=>{
+            resolve()
+          }, 400));
+        }
+        globalThis.CoinMode = {
+          init,
+          login,
+          canJoinAvailableRound,
+          joinAvailableRound,
+          submitScore,
+          showLeaderboard
+        }
+      }
+      let CoinModeState = {
+        isInitialized: false,
+        isLoggedIn: false
+      }
+      $('#iframe').ready(()=>{
+        $('#iframe').on('load', async ()=>{
+          if(!CoinModeState.isInitialized){
+            await CoinMode.init({gameId: 5});
+            CoinModeState.isInitialized = true;
+          }
+          const attachCoinmodeObj = $('#iframe')[0].contentWindow.attachCoinmodeObj;
+          if(attachCoinmodeObj){
+            attachCoinmodeObj(globalThis.CoinMode, CoinModeState);
+          }
+        });
+      })
   </script>
 
 </body>

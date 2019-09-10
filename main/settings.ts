@@ -197,7 +197,6 @@ $(document).ready(()=>{
   };
   get_level_list();
 })
-
-$('.back').click(() => {
+$('.back-btn').click(() => {
   window.location.href = window.location.href.replace("levelselect", "menu");
 });

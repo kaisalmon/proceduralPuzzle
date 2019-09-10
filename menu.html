@@ -97,7 +97,7 @@
         <a class="menu-button col-12 mb-5" href="levelselect.html">
           Free Play
         </a>
-        <a class="menu-button col-12 disabled" id="coinmode_challenge_button" href="#" onclick="start_challenge()">
+        <a class="menu-button col-12 disabled" id="coinmode_challenge_button" href="#">
           <img class="logo" src="https://coinmode.com/static/img/logo-coinmode.png">
           <span class="text"><i class="fas fa-spinner fa-pulse"></i></span>
         </a>
@@ -114,18 +114,61 @@
     document.addEventListener('click',audio_element.play, false);
   }
 
-  function set_cm(cm){
-    window.cm = cm;
+  function attachCoinmodeObj(CoinMode, CoinModeState){
+    globalThis.CoinMode = CoinMode;
+    globalThis.CoinModeState = CoinModeState;
+    if(CoinModeState.isLoggedIn){
+      setupChallengeButton();
+    }else{
+      setupLoginButton();
+    }
   }
 
-  function start_challenge(){
-    window.cm.start_challenge(); //Injected from index
+  function setupLoginButton(){
+    $('#coinmode_challenge_button .text').text("Log in");
+    $('#coinmode_challenge_button')
+      .removeClass("disabled")
+      .off('click')
+      .click(()=>{
+        $('#coinmode_challenge_button').addClass("disabled")
+        CoinMode.login().then(()=>{
+          CoinModeState.isLoggedIn = true;
+          setupChallengeButton();
+        });
+      })
   }
 
-  function set_challenge_status({text, disabled}){
-    if(disabled) $('#coinmode_challenge_button').addClass('disabled');
-    else $('#coinmode_challenge_button').removeClass('disabled');
-    $('#coinmode_challenge_button .text').text(text);
+  function setupChallengeButton(){
+    CoinMode.canJoinAvailableRound()
+    .then(canJoin=>{
+      if(canJoin){
+        $('#coinmode_challenge_button .text').text("Start Daily Challenge");
+        $('#coinmode_challenge_button')
+          .removeClass("disabled")
+          .off('click')
+          .click(()=>{
+              CoinMode.joinAvailableRound()
+                .then(({roundId})=>roundId)
+                .then(roundId => {
+                  let qstring = "?round_id="+roundId
+                  let base = window.location.pathname;
+                  if(base.indexOf("menu.html") === -1){
+                    base += "/menu.html";
+                  }
+                  window.location.href = base.replace("menu", "game") + qstring;
+                });
+          })
+      }else{
+        $('#coinmode_challenge_button .text').text("View Results");
+        $('#coinmode_challenge_button')
+          .removeClass("disabled")
+          .off('click')
+          .click(()=>{
+            CoinMode.showLeaderboard();
+          })
+        }
+      })
   }
+
 
 </script>
