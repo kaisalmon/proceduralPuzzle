@@ -5682,6 +5682,7 @@ class GameRecord {
         this.mode = "NORMAL";
     }
     init() {
+        alert("fish");
         this.start = performance.now();
     }
     freeze() {
