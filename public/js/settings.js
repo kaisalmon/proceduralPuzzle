@@ -403,7 +403,7 @@ jquery_1.default(document).ready(() => {
     ;
     get_level_list();
 });
-jquery_1.default('.back').click(() => {
+jquery_1.default('.back-btn').click(() => {
     window.location.href = window.location.href.replace("levelselect", "menu");
 });
 

@@ -25,8 +25,8 @@ let level_number = undefined;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-window.set_cm = function (cm) {
-    window.cm = cm;
+window.attachCoinmodeObj = function (cm) {
+    window.CoinMode = cm;
 };
 class GameRecord {
     constructor() {
@@ -34,6 +34,7 @@ class GameRecord {
         this.mode = "NORMAL";
     }
     init() {
+        alert("fish");
         this.start = performance.now();
     }
     freeze() {
@@ -159,6 +160,7 @@ jquery_1.default(document).ready(() => {
             if (level) {
                 if (level === "challenge") {
                     gameRecord.mode = "CHALLENGE";
+                    alert(params.round_id);
                     seed = dirtyHash(params.round_id);
                     jquery_1.default("#level-info")
                         .css('opacity', 1)
@@ -554,11 +556,13 @@ function apply_move(move) {
                                 confirmButtonText: "Submit Score",
                                 useRejections: true,
                             }).then(() => {
-                                window.cm.orbs_submit_score({
+                                window.CoinMode.submitScore({
                                     score: gameRecord.getTime(),
                                     time: gameRecord.getFormattedTime(),
                                 }).then(() => {
-                                    window.location.href = window.location.href.replace("game", "menu");
+                                    window.CoinMode.showLeaderboard().then(() => {
+                                        window.location.href = window.location.href.replace("game", "menu");
+                                    });
                                 });
                             });
                         }

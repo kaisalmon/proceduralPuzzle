@@ -16,10 +16,10 @@ function delay(ms: number): Promise<void>{
 }
 
 declare global {
-    interface Window { cm: any; set_cm:(cm:any)=>void}
+    interface Window { CoinMode: any; attachCoinmodeObj:(cm:any)=>void}
 }
-window.set_cm = function(cm:any):void{
-  window.cm = cm;
+window.attachCoinmodeObj = function(cm:any):void{
+  window.CoinMode = cm;
 }
 
 
@@ -31,6 +31,7 @@ class GameRecord {
     mode:"CHALLENGE"|"NORMAL" = "NORMAL";
 
     init():void{
+      alert("fish");
       this.start = performance.now();
     }
 
@@ -165,6 +166,7 @@ $(document).ready(() => {
     if(level){
       if(level === "challenge"){
         gameRecord.mode = "CHALLENGE";
+        alert(params.round_id);
         seed=dirtyHash(params.round_id);
         $("#level-info")
           .css('opacity',  1)
@@ -555,11 +557,13 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
               confirmButtonText: "Submit Score",
               useRejections: true,
             }).then(() => {
-              window.cm.orbs_submit_score({
+              window.CoinMode.submitScore({
                 score: gameRecord.getTime(),
                 time: gameRecord.getFormattedTime(),
               }).then(() => {
-                window.location.href = window.location.href.replace("game", "menu");
+                window.CoinMode.showLeaderboard().then( () =>{
+                  window.location.href = window.location.href.replace("game", "menu");
+                });
               });
             })
           }else {

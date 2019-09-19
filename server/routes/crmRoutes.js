@@ -7,7 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const path_1 = __importDefault(require("path"));
 const orbPuzzleGenerator_1 = require("./../../main/orbPuzzleGenerator");
 const lib_1 = require("../../main/lib");
 class Routes {
@@ -16,9 +21,7 @@ class Routes {
     }
     routes(app) {
         app.route('/')
-            .get((req, res) => __awaiter(this, void 0, void 0, function* () {
-            res.status(200).send("Araane Orbs");
-        }));
+            .get((express_1.default.static(path_1.default.join(__dirname, '../public'))));
         app.route('/levelFromSettings')
             .get((req, res) => __awaiter(this, void 0, void 0, function* () {
             try {

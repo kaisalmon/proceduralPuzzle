@@ -2,10 +2,10 @@ FROM node
 LABEL author="Kai Salmon <kaisalmon@hotmail.com>"
 COPY package.json .
 WORKDIR /usr/src/app
-RUN npm install -g typescript
-RUN npm install -g browserify
-RUN npm install -g uglify-js
-RUN npm install
+RUN  npm install
+RUN  npm install -g typescript@2.9.2
+RUN  npm install -g browserify
+RUN  npm install -g uglify-js
 COPY package*.json ./
 RUN npm install
 COPY . .
