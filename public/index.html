@@ -49,8 +49,8 @@
       $('#iframe').ready(()=>{
         $('#iframe').on('load', async ()=>{
           if(!CoinModeState.isInitialized){
-            //await CoinMode.init({gameId: 5, iframeServerUrl: 'https://iframe-staging.coinmode.com'});
-            await CoinMode.init({gameId: 5, iframeServerUrl: 'http://localhost:5000/#/'});
+            await CoinMode.init({gameId: 5, iframeServerUrl: 'https://iframe-staging.coinmode.com'});
+            //await CoinMode.init({gameId: 5, iframeServerUrl: 'http://localhost:5000/#/'});
             CoinModeState.isInitialized = true;
           }
           const attachCoinmodeObj = $('#iframe')[0].contentWindow.attachCoinmodeObj;
