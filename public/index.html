@@ -38,57 +38,10 @@
       <script src="js/jquery.min.js"></script>
       <iframe id="iframe" src="menu.html"></iframe>
       <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg" controls>
-  <script>
 
-      /* DELETE THIS */ {
-        function init(args){
-          alert("init - "+args.gameId)
-          return new Promise(resolve => setTimeout(()=>{
-            resolve()
-          }, 400));
-        }
-        function login(){
-          alert("login")
-          return new Promise(resolve => setTimeout(()=>{
-            resolve()
-          }, 400));
-        }
-        function canJoinAvailableRound(){
-          const canJoin = confirm("canJoinAvailableRound")
-          return new Promise(resolve => setTimeout(()=>{
-            resolve(canJoin)
-          }, 400));
-        }
-        function joinAvailableRound(){
-          alert("joinAvailableRound")
-          return new Promise(resolve => setTimeout(()=>{
-            resolve({
-              roundId: 100,
-              sessionId: 343,
-            })
-          }, 400));
-        }
-        function submitScore(score_object){
-          alert("gameState: "+JSON.stringify(score_object, null, 4));
-          return new Promise(resolve => setTimeout(()=>{
-            resolve()
-          }, 400));
-        }
-        function showLeaderboard(){
-          alert("showLeaderboard")
-          return new Promise(resolve => setTimeout(()=>{
-            resolve()
-          }, 400));
-        }
-        globalThis.CoinMode = {
-          init,
-          login,
-          canJoinAvailableRound,
-          joinAvailableRound,
-          submitScore,
-          showLeaderboard
-        }
-      }
+      <script src="https://js.coinmode.com/v1/coinmode.js"></script>
+
+  <script>
       let CoinModeState = {
         isInitialized: false,
         isLoggedIn: false
@@ -96,7 +49,8 @@
       $('#iframe').ready(()=>{
         $('#iframe').on('load', async ()=>{
           if(!CoinModeState.isInitialized){
-            await CoinMode.init({gameId: 5});
+            await CoinMode.init({gameId: 5, iframeServerUrl: 'https://iframe-staging.coinmode.com'});
+            //await CoinMode.init({gameId: 5, iframeServerUrl: 'http://localhost:5000/#/'});
             CoinModeState.isInitialized = true;
           }
           const attachCoinmodeObj = $('#iframe')[0].contentWindow.attachCoinmodeObj;

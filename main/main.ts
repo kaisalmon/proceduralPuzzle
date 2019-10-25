@@ -31,7 +31,6 @@ class GameRecord {
     mode:"CHALLENGE"|"NORMAL" = "NORMAL";
 
     init():void{
-      alert("fish");
       this.start = performance.now();
     }
 
