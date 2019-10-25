@@ -148,7 +148,10 @@
           .off('click')
           .click(()=>{
               CoinMode.joinAvailableRound()
-                .then(({roundId})=>roundId)
+                .then((roundInfo)=>{
+                  console.log(roundInfo)
+                  return roundInfo.round_id
+                })
                 .then(roundId => {
                   let qstring = "?round_id="+roundId
                   let base = window.location.pathname;
