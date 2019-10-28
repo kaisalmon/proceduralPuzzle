@@ -165,7 +165,6 @@ $(document).ready(() => {
     if(level){
       if(level === "challenge"){
         gameRecord.mode = "CHALLENGE";
-        alert(params.round_id);
         seed=dirtyHash(params.round_id);
         $("#level-info")
           .css('opacity',  1)
@@ -557,8 +556,8 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
               useRejections: true,
             }).then(() => {
               window.CoinMode.submitScore({
-                score: gameRecord.getTime(),
-                time: gameRecord.getFormattedTime(),
+                score: -1 * gameRecord.getTime(),
+                formatted_score: gameRecord.getFormattedTime(),
               }).then(() => {
                 window.CoinMode.showLeaderboard().then( () =>{
                   window.location.href = window.location.href.replace("game", "menu");

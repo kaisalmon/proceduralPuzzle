@@ -34,7 +34,6 @@ class GameRecord {
         this.mode = "NORMAL";
     }
     init() {
-        alert("fish");
         this.start = performance.now();
     }
     freeze() {
@@ -557,8 +556,8 @@ function apply_move(move) {
                                 useRejections: true,
                             }).then(() => {
                                 window.CoinMode.submitScore({
-                                    score: gameRecord.getTime(),
-                                    time: gameRecord.getFormattedTime(),
+                                    score: -1 * gameRecord.getTime(),
+                                    formatted_score: gameRecord.getFormattedTime(),
                                 }).then(() => {
                                     window.CoinMode.showLeaderboard().then(() => {
                                         window.location.href = window.location.href.replace("game", "menu");
