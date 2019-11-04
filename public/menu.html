@@ -147,6 +147,8 @@
           .removeClass("disabled")
           .off('click')
           .click(()=>{
+              $(this).addClass("disabled")
+              $('#coinmode_challenge_button .text').html('<i class="fas fa-spinner fa-pulse"></i>');
               CoinMode.joinAvailableRound()
                 .then((roundInfo)=>{
                   console.log(roundInfo)

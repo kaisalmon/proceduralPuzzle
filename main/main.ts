@@ -559,9 +559,8 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
                 score: -1 * gameRecord.getTime(),
                 formatted_score: gameRecord.getFormattedTime(),
               }).then(() => {
-                window.CoinMode.showLeaderboard().then( () =>{
-                  window.location.href = window.location.href.replace("game", "menu");
-                });
+                window.CoinMode.showLeaderboard()
+                window.location.href = window.location.href.replace("game", "menu");
               });
             })
           }else {
