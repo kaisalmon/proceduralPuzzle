@@ -65,7 +65,7 @@
     transform: translate(0%, -50%);
     top: 50%;
   }
-  @media (max-width: 620px){
+  @media (max-width: 920px){
       .menu-button .logo{
         transform: translate(-50%, 0);
         top: default;
@@ -122,6 +122,10 @@
     }else{
       setupLoginButton();
     }
+  }
+
+  function onCoinmodeError(CoinMode, e){
+    $('#coinmode_challenge_button .text').text("Couldn't connect to CoinMode");
   }
 
   function setupLoginButton(){
