@@ -46,19 +46,26 @@
         isInitialized: false,
         isLoggedIn: false
       }
-      $('#iframe').ready(()=>{
-        $('#iframe').on('load', async ()=>{
-          if(!CoinModeState.isInitialized){
-            await CoinMode.init({gameId: 5, iframeServerUrl: 'https://iframe-staging.coinmode.com'});
-            //await CoinMode.init({gameId: 5, iframeServerUrl: 'http://localhost:5000/#/'});
-            CoinModeState.isInitialized = true;
+      $('#iframe').ready( ()=> $('#iframe').on('load', async ()=>{
+          try{
+            if(!CoinModeState.isInitialized){
+              await CoinMode.init({gameId: 5, iframeServerUrl: 'https://iframe-staging.coinmode.com'});
+              //await CoinMode.init({gameId: 5, iframeServerUrl: 'http://localhost:5000/#/'});
+              CoinModeState.isInitialized = true;
+            }
+            const attachCoinmodeObj = $('#iframe')[0].contentWindow.attachCoinmodeObj;
+            if(attachCoinmodeObj){
+              attachCoinmodeObj(globalThis.CoinMode, CoinModeState);
+            }
+          }catch(e){
+            console.error(e)
+            CoinModeState.error = e;
+            const onCoinmodeError = $('#iframe')[0].contentWindow.onCoinmodeError;
+            if(onCoinmodeError){
+              onCoinmodeError(globalThis.CoinMode, e);
+            }
           }
-          const attachCoinmodeObj = $('#iframe')[0].contentWindow.attachCoinmodeObj;
-          if(attachCoinmodeObj){
-            attachCoinmodeObj(globalThis.CoinMode, CoinModeState);
-          }
-        });
-      })
+        }));
   </script>
 
 </body>

@@ -65,8 +65,8 @@
     transform: translate(0%, -50%);
     top: 50%;
   }
-  @media (max-width: 620px){
-      .menu-button .logo{
+  @media (max-width: 920px){
+      .menu-button .logo {
         transform: translate(-50%, 0);
         top: default;
         left: 50%;
@@ -124,6 +124,10 @@
     }
   }
 
+  function onCoinmodeError(CoinMode, e){
+    $('#coinmode_challenge_button .text').text("Couldn't connect to CoinMode");
+  }
+
   function setupLoginButton(){
     $('#coinmode_challenge_button .text').text("Log in");
     $('#coinmode_challenge_button')
@@ -147,6 +151,8 @@
           .removeClass("disabled")
           .off('click')
           .click(()=>{
+              $(this).addClass("disabled")
+              $('#coinmode_challenge_button .text').html('<i class="fas fa-spinner fa-pulse"></i>');
               CoinMode.joinAvailableRound()
                 .then((roundInfo)=>{
                   console.log(roundInfo)
