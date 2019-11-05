@@ -143,8 +143,7 @@
   }
 
   function setupChallengeButton(){
-    CoinMode.canJoinAvailableRound()
-    .then(canJoin=>{
+    CoinMode.canJoinAvailableRound().then(canJoin=>{
       if(canJoin){
         $('#coinmode_challenge_button .text').text("Start Daily Challenge");
         $('#coinmode_challenge_button')
@@ -168,15 +167,21 @@
                 });
           })
       }else{
-        $('#coinmode_challenge_button .text').text("View Results");
-        $('#coinmode_challenge_button')
-          .removeClass("disabled")
-          .off('click')
-          .click(()=>{
-            CoinMode.showLeaderboard();
-          })
-        }
-      })
+        CoinMode.canShowLeaderboard().then(canShow => {
+          if(canShow){
+            $('#coinmode_challenge_button .text').text("View Results");
+            $('#coinmode_challenge_button')
+              .removeClass("disabled")
+              .off('click')
+              .click(()=>{
+                CoinMode.showLeaderboard();
+              })
+            }else{
+              $('#coinmode_challenge_button .text').text("No round to join");
+            }
+        });
+      }
+    });
   }
 
 
