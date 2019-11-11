@@ -78,6 +78,7 @@ html, body{
       height: calc(var(--tsize) * 0.9);
       border-radius: 100%;
       box-sizing:border-box;
+      background-size: cover;
       z-index: 2;
     }
     .orb.orb--in-pit{
@@ -87,13 +88,11 @@ html, body{
         border: calc(var(--tsize) * 0.1) solid green;
     }
     .tile--brick{
-        background: brown;
-        border: calc(var(--tsize) * 0.2) outset #c4544a;
+        background-image: url(assets/block.png);
     }
 
     .tile--bomb{
-        background: #333;
-        border: calc(var(--tsize) * 0.2) outset #7d6767;
+        background-image: url(assets/bomb.png);
         color: #a52a2a;
         text-align: center;
         padding-top: calc(var(--tsize) * 0.125);
@@ -102,7 +101,6 @@ html, body{
     }
     .tile--bomb.lit{
         background: white;
-        border: calc(var(--tsize) * 0.2) outset white;
         color: white;
     }
     .tile__critical{
@@ -110,40 +108,26 @@ html, body{
       border:red 1px solid;
     }
     .tile--fragile {
-      background: url(assets/cracked.png);
+      background-image: url(assets/cracked.png);
       background-size: cover;
     }
     @media (max-width: 600px) {
       .tile--fragile {
-        background: url(assets/cracked64.png);
+        background-image: url(assets/cracked64.png);
         background-size: cover;
       }
     }
     .tile.tile--pit {
-      box-shadow: 1vmin 1vmin 1vmin rgba(0,0,0,0.3) inset;
-      background: rgba(0,0,0,0.3);
-      border: 0.5vmin inset #666;
-      border-radius: 15%;
-      margin: 1px;
-      width: calc(var(--tsize) - 3px);
-      height: calc(var(--tsize) - 3px);
+      background-image: url(assets/pit.png);
     }
     .tile--crystal {
         background: lightgreen;
     }
     .tile.tile--target {
-        background: #333;
-        border-radius:100%;
-        top: calc(var(--tsize) * 0.3);
-        left: calc(var(--tsize) * 0.3);
-        width: calc(var(--tsize) * 0.4);
-        height: calc(var(--tsize) * 0.4);
-        box-shadow:
-          0 0 0 calc(var(--tsize) * 0.15) #555,
-          0 0 0 calc(var(--tsize) * 0.25) #333;
+        background-image: url(assets/target.png);
     }
     .tile.tile--portal {
-        background: url(assets/portal.png);
+        background-image: url(assets/portal.png);
         top: calc(var(--tsize) * 0.15 );
         left: calc(var(--tsize) * 0.15 );
         width: calc(var(--tsize) * 0.7 );
@@ -157,6 +141,7 @@ html, body{
         position: absolute;
         top: 0;
         left: 0;
+        background-size: cover;
         box-sizing: border-box;
     }
     pre{

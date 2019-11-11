@@ -1,0 +1,71 @@
+<head>
+  <title>Orb Puzzle</title>
+  <meta name="theme-color" content="#2A9FD6">
+  <link rel="manifest" href="manifest.json">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+  <style>
+    body,
+    html {
+      background: #333;
+    }
+
+    body,
+    html,
+    iframe {
+      margin: 0;
+      border: none;
+      outline: none;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      position: absolute;
+      z-index: 1;
+    }
+
+    audio {
+      display: none;
+    }
+  </style>
+
+  <head>
+
+    <body>
+      <script src="js/jquery.min.js"></script>
+      <iframe id="iframe" src="menu.html"></iframe>
+      <audio id="music" src="assets/sounds/AO_LevelMusic_v03.ogg" controls>
+
+      <script src="https://js.coinmode.com/v1/coinmode.js"></script>
+
+  <script>
+      let CoinModeState = {
+        isInitialized: false,
+        isLoggedIn: false
+      }
+      $('#iframe').ready( ()=> $('#iframe').on('load', async ()=>{
+          try{
+            if(!CoinModeState.isInitialized){
+              await CoinMode.init({gameId: 5, iframeServerUrl: 'https://iframe-staging.coinmode.com'});
+              //await CoinMode.init({gameId: 5, iframeServerUrl: 'http://localhost:5000/#/'});
+              CoinModeState.isInitialized = true;
+            }
+            const attachCoinmodeObj = $('#iframe')[0].contentWindow.attachCoinmodeObj;
+            if(attachCoinmodeObj){
+              attachCoinmodeObj(globalThis.CoinMode, CoinModeState);
+            }
+          }catch(e){
+            console.error(e)
+            CoinModeState.error = e;
+            const onCoinmodeError = $('#iframe')[0].contentWindow.onCoinmodeError;
+            if(onCoinmodeError){
+              onCoinmodeError(globalThis.CoinMode, e);
+            }
+          }
+        }));
+  </script>
+
+</body>

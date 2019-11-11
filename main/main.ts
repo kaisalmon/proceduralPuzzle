@@ -16,10 +16,10 @@ function delay(ms: number): Promise<void>{
 }
 
 declare global {
-    interface Window { cm: any; set_cm:(cm:any)=>void}
+    interface Window { CoinMode: any; attachCoinmodeObj:(cm:any)=>void}
 }
-window.set_cm = function(cm:any):void{
-  window.cm = cm;
+window.attachCoinmodeObj = function(cm:any):void{
+  window.CoinMode = cm;
 }
 
 
@@ -499,7 +499,11 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
         let t = board.getTile(x, y)
         let $t = $tiles[x][y]
         if ($t && t == Tile.Empty && !$t.hasClass('animated')) {
-          $t.remove();
+          if(!$t.hasClass('tile--empty') && $('html').has($t[0]).length){
+            $t.fadeOut((e:HTMLElement)=>$(e).remove());
+          }else{
+            $t.remove();
+          }
         }
         if ($t && t == Tile.Empty && $t.hasClass('lit')) {
           $t.addClass('fadeOut')
@@ -555,10 +559,11 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
               confirmButtonText: "Submit Score",
               useRejections: true,
             }).then(() => {
-              window.cm.orbs_submit_score({
-                score: gameRecord.getTime(),
-                time: gameRecord.getFormattedTime(),
+              window.CoinMode.submitScore({
+                score: -1 * gameRecord.getTime(),
+                formatted_score: gameRecord.getFormattedTime(),
               }).then(() => {
+                window.CoinMode.showLeaderboard()
                 window.location.href = window.location.href.replace("game", "menu");
               });
             })
@@ -614,7 +619,6 @@ function create_board(board: OrbPuzzle): (JQuery|undefined)[][] {
       }
       if (t == Tile.Bomb) {
         tileName = 'bomb';
-        html = '<i class="fas fa-exclamation-triangle"></i>'
       }
       if (t == Tile.Portal) {
         tileName = 'portal';

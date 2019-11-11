@@ -1,4 +1,5 @@
-import {Request, Response, Application} from "express";
+import express, {Request, Response, Application} from "express";
+import path from "path";
 import {createOrbPuzzle, createLevel} from './../../main/orbPuzzleGenerator';
 import {OrbPuzzle, OrbMove} from './../../main/orbPuzzle';
 import {tryUntilSuccess} from '../../main/lib';
@@ -8,9 +9,7 @@ export class Routes {
 
     public routes(app: Application): void {
         app.route('/')
-          .get(async (req: Request, res: Response) => {
-              res.status(200).send("Araane Orbs")
-          })
+          .get((express.static(path.join(__dirname, '../public'))))
 
         app.route('/levelFromSettings')
           .get(async (req: Request, res: Response) => {

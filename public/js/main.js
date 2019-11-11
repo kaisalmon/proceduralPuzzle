@@ -5673,8 +5673,8 @@ let level_number = undefined;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-window.set_cm = function (cm) {
-    window.cm = cm;
+window.attachCoinmodeObj = function (cm) {
+    window.CoinMode = cm;
 };
 class GameRecord {
     constructor() {
@@ -6148,7 +6148,12 @@ function apply_move(move) {
                     let t = board.getTile(x, y);
                     let $t = $tiles[x][y];
                     if ($t && t == orbPuzzle_1.Tile.Empty && !$t.hasClass('animated')) {
-                        $t.remove();
+                        if (!$t.hasClass('tile--empty') && jquery_1.default('html').has($t[0]).length) {
+                            $t.fadeOut((e) => jquery_1.default(e).remove());
+                        }
+                        else {
+                            $t.remove();
+                        }
                     }
                     if ($t && t == orbPuzzle_1.Tile.Empty && $t.hasClass('lit')) {
                         $t.addClass('fadeOut');
@@ -6202,10 +6207,11 @@ function apply_move(move) {
                                 confirmButtonText: "Submit Score",
                                 useRejections: true,
                             }).then(() => {
-                                window.cm.orbs_submit_score({
-                                    score: gameRecord.getTime(),
-                                    time: gameRecord.getFormattedTime(),
+                                window.CoinMode.submitScore({
+                                    score: -1 * gameRecord.getTime(),
+                                    formatted_score: gameRecord.getFormattedTime(),
                                 }).then(() => {
+                                    window.CoinMode.showLeaderboard();
                                     window.location.href = window.location.href.replace("game", "menu");
                                 });
                             });
@@ -6258,7 +6264,6 @@ function create_board(board) {
             }
             if (t == orbPuzzle_1.Tile.Bomb) {
                 tileName = 'bomb';
-                html = '<i class="fas fa-exclamation-triangle"></i>';
             }
             if (t == orbPuzzle_1.Tile.Portal) {
                 tileName = 'portal';
