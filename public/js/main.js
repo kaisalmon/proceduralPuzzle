@@ -6148,7 +6148,12 @@ function apply_move(move) {
                     let t = board.getTile(x, y);
                     let $t = $tiles[x][y];
                     if ($t && t == orbPuzzle_1.Tile.Empty && !$t.hasClass('animated')) {
-                        $t.remove();
+                        if (!$t.hasClass('tile--empty') && jquery_1.default('html').has($t[0]).length) {
+                            $t.fadeOut((e) => jquery_1.default(e).remove());
+                        }
+                        else {
+                            $t.remove();
+                        }
                     }
                     if ($t && t == orbPuzzle_1.Tile.Empty && $t.hasClass('lit')) {
                         $t.addClass('fadeOut');
@@ -6259,7 +6264,6 @@ function create_board(board) {
             }
             if (t == orbPuzzle_1.Tile.Bomb) {
                 tileName = 'bomb';
-                html = '<i class="fas fa-exclamation-triangle"></i>';
             }
             if (t == orbPuzzle_1.Tile.Portal) {
                 tileName = 'portal';

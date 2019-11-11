@@ -499,7 +499,11 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
         let t = board.getTile(x, y)
         let $t = $tiles[x][y]
         if ($t && t == Tile.Empty && !$t.hasClass('animated')) {
-          $t.remove();
+          if(!$t.hasClass('tile--empty') && $('html').has($t[0]).length){
+            $t.fadeOut((e:HTMLElement)=>$(e).remove());
+          }else{
+            $t.remove();
+          }
         }
         if ($t && t == Tile.Empty && $t.hasClass('lit')) {
           $t.addClass('fadeOut')
@@ -615,7 +619,6 @@ function create_board(board: OrbPuzzle): (JQuery|undefined)[][] {
       }
       if (t == Tile.Bomb) {
         tileName = 'bomb';
-        html = '<i class="fas fa-exclamation-triangle"></i>'
       }
       if (t == Tile.Portal) {
         tileName = 'portal';
