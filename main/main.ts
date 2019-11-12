@@ -176,6 +176,11 @@ $(document).ready(() => {
         $('.buttons .hint').remove();
       }else{
         $("#level-info").text("Level "+level);
+        // If the levels not been completed before then keep the random choices the same every time
+        const hasBeenPreviouslyCompleted = parseInt(localStorage.getItem('player_progress')||'0') > level;
+        if(!hasBeenPreviouslyCompleted){
+          seed = dirtyHash(`${level}`);
+        }
       }
       stack = await runWithLoadingSwals(createLevel, {seed: seed, level});
       if(!stack) return;
@@ -500,7 +505,7 @@ async function apply_move(move: OrbMove | undefined): Promise<void> {
         let $t = $tiles[x][y]
         if ($t && t == Tile.Empty && !$t.hasClass('animated')) {
           if(!$t.hasClass('tile--empty') && $('html').has($t[0]).length){
-            $t.fadeOut((e:HTMLElement)=>$(e).remove());
+            $t.fadeOut(()=>$t&&$t.remove());
           }else{
             $t.remove();
           }

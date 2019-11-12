@@ -169,6 +169,11 @@ jquery_1.default(document).ready(() => {
                 }
                 else {
                     jquery_1.default("#level-info").text("Level " + level);
+                    // If the levels not been completed before then keep the random choices the same every time
+                    const hasBeenPreviouslyCompleted = parseInt(localStorage.getItem('player_progress') || '0') > level;
+                    if (!hasBeenPreviouslyCompleted) {
+                        seed = dirtyHash(`${level}`);
+                    }
                 }
                 stack = yield runWithLoadingSwals(orbPuzzleGenerator_1.createLevel, { seed: seed, level });
                 if (!stack)
@@ -501,7 +506,7 @@ function apply_move(move) {
                     let $t = $tiles[x][y];
                     if ($t && t == orbPuzzle_1.Tile.Empty && !$t.hasClass('animated')) {
                         if (!$t.hasClass('tile--empty') && jquery_1.default('html').has($t[0]).length) {
-                            $t.fadeOut((e) => jquery_1.default(e).remove());
+                            $t.fadeOut(() => $t && $t.remove());
                         }
                         else {
                             $t.remove();
